@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "808412736322",
+    "project_id": "gamunity-1c175",
+    "storage_bucket": "gamunity-1c175.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:808412736322:android:502fbd668c7adccb7bb6db",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUqStYH3vVGxMhSkMPKOc6ESCOUVVdKlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:808412736322:android:47f3f93f087617947bb6db",
+        "android_client_info": {
+          "package_name": "rmitcom.asm1.gamunity"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUqStYH3vVGxMhSkMPKOc6ESCOUVVdKlI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/firstItem"
+        android:title="@string/profile"
+        android:icon="@drawable/profile_icon_foreground"
+        />
+
+    <item android:id="@+id/secondItem"
+        android:title="@string/home"
+        android:icon="@drawable/home_icon_foreground"/>
+
+    <item android:id="@+id/thirdItem"
+        android:title="@string/notification"
+        android:icon="@drawable/notification_icon_foreground"/>
+
+    <item android:id="@+id/lastItem"
+        android:title="@string/chat"
+        android:icon="@drawable/chat_icon_foreground"/>
+</menu>
