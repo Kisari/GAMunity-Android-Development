@@ -1,4 +1,4 @@
-package rmitcom.asm1.gamunity.components.ui;
+package rmitcom.asm1.gamunity.components.UI;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
