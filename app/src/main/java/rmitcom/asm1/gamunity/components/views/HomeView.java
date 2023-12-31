@@ -64,8 +64,6 @@ public class HomeView extends AppCompatActivity {
             }
         });
 
-        viewPager.setCurrentItem(1);
-
         bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
             if(item.getItemId() == R.id.firstItem){
                 viewPager.setCurrentItem(0);

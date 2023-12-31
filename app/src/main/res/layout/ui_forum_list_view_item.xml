@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ImageView
+        android:id="@+id/forumBackground"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="80dp"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        tools:ignore="ImageContrastCheck" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="30dp"
+        >
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/forumIcon"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="start"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:strokeWidth="3dp"
+            app:strokeColor="@android:color/darker_gray"
+            app:shapeAppearanceOverlay="@style/circleImageView"
+            tools:ignore="ImageContrastCheck"
+             />
+
+        <TextView
+            android:id="@+id/forumTitle"
+            android:layout_marginStart="85dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textStyle="bold"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:text="@string/text_view">
+        </TextView>
+
+        <Button
+            android:id="@+id/forumActionBtn"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:backgroundTint="#757575"
+            android:text="@string/button"
+            android:textColor="#ffffff" />
+
+
+    </FrameLayout>
+
+
+</RelativeLayout>

@@ -14,16 +14,10 @@ public class Forum implements Serializable {
     private ArrayList<String> memberIds;
     private long noJoined = 0;
     private ArrayList<String> postIds;
+    private String forumBackground;
+    private String forumIcon;
 
-    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description) {
-        this.forumId = forumId;
-        this.chiefAdmin = chiefAdmin;
-        this.title = title;
-        this.category = category;
-        this.description = description;
-    }
-
-    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds) {
+    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;
         this.chiefAdmin = chiefAdmin;
         this.title = title;
@@ -33,6 +27,17 @@ public class Forum implements Serializable {
         this.memberIds = memberIds;
         this.noJoined = noJoined;
         this.postIds = postIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
+    }
+
+    public Forum(String forumId, String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
+        this.forumId = forumId;
+        this.title = title;
+        this.category = category;
+        this.memberIds = memberIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
     }
 
     public String getForumId() {
@@ -105,5 +110,21 @@ public class Forum implements Serializable {
 
     public void setPostIds(ArrayList<String> postIds) {
         this.postIds = postIds;
+    }
+
+    public String getForumBackground() {
+        return forumBackground;
+    }
+
+    public void setForumBackground(String forumBackground) {
+        this.forumBackground = forumBackground;
+    }
+
+    public String getForumIcon() {
+        return forumIcon;
+    }
+
+    public void setForumIcon(String forumIcon) {
+        this.forumIcon = forumIcon;
     }
 }

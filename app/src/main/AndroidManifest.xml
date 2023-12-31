@@ -13,6 +13,9 @@
         android:theme="@style/Theme.GAMunity"
         tools:targetApi="31">
         <activity
+            android:name=".components.views.forum.CreateForumView"
+            android:exported="false" />
+        <activity
             android:name=".components.views.HomeView"
             android:exported="true">
             <intent-filter>
