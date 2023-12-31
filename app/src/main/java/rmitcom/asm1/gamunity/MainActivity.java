@@ -16,6 +16,5 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(MainActivity.this, HomeView.class);
         startActivity(intent);
-
     }
 }
