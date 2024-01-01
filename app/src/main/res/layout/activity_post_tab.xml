@@ -1,9 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".components.views.PostTab">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:id="@+id/postTabTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1"
+        android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/postTabUserProfile"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.2"
+            android:padding="10dp"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_gravity="top">
+            <TextView
+                android:id="@+id/postTabUserName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:padding="5dp"/>
+            <TextView
+                android:id="@+id/postTabTimestamp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Timestamp"
+                android:padding="5dp"/>
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/postTabContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/postTabTop">
+        <TextView
+            android:id="@+id/postTabTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Post's Title"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:padding="10dp"/>
+        <ImageView
+            android:id="@+id/postTabImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/postTabContent">
+        <TextView
+            android:id="@+id/postTabLike"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:gravity="center"
+            android:drawableStart="@drawable/like_icon"
+            android:padding="5dp"/>
+        <TextView
+            android:id="@+id/postTabDislike"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:gravity="center"
+            android:drawableStart="@drawable/dislike_icon"
+            android:padding="5dp"/>
+        <TextView
+            android:id="@+id/postTabComment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:gravity="center"
+            android:drawableStart="@drawable/chat_icon"
+            android:padding="5dp"/>
+    </LinearLayout>
+
+</RelativeLayout>

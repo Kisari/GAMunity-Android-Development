@@ -1,9 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".components.views.AddPostForm">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/addPost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Post"
+            android:textSize="30sp"/>
+
+        <EditText
+            android:id="@+id/addPostTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:hint="Post title"/>
+        <EditText
+            android:id="@+id/addPostDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:hint="Forum description"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="10dp"
+            android:orientation="horizontal">
+            <Button
+                android:id="@+id/addPostImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_marginHorizontal="10dp"
+                android:text="Add Image"/>
+            <Button
+                android:id="@+id/confirmAddPost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_marginHorizontal="10dp"
+                android:text="Submit"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:drawableStart="@drawable/arrow_back"
+        android:paddingVertical="5dp"
+        android:id="@+id/returnBack"/>
+
+</RelativeLayout>

@@ -1,9 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".components.views.forumMoreInfoView">
+    tools:context=".components.views.ForumMoreInfoView">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:id="@+id/topMoreInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:drawableStart="@drawable/arrow_back"
+            android:paddingVertical="5dp"
+            android:id="@+id/returnBack"/>
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/moreInfoProfileImage"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/topMoreInfo"
+        android:padding="10dp"/>
+    <TextView
+        android:id="@+id/moreInfoTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/moreInfoProfileImage"
+        android:textAlignment="center"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:padding="5dp"
+        android:text="Title"
+        android:paddingHorizontal="10dp"/>
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/moreInfoTitle"
+        android:padding="5dp"
+        android:text="Description"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+    <TextView
+        android:id="@+id/moreInfoDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/description"
+        android:padding="5dp"
+        android:text="description of the forum"/>
+    <TextView
+        android:id="@+id/category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/moreInfoDescription"
+        android:padding="5dp"
+        android:text="Category"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+    <TextView
+        android:id="@+id/moreInfoCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/category"
+        android:padding="5dp"
+        android:text="category of the forum"/>
+    <TextView
+        android:id="@+id/admin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/moreInfoCategory"
+        android:padding="5dp"
+        android:text="Admin"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+    <ListView
+        android:id="@+id/moreInfoAdminList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/admin"/>
+    <TextView
+        android:id="@+id/member"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/moreInfoAdminList"
+        android:padding="5dp"
+        android:text="Member"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
+    <ListView
+        android:id="@+id/moreInfoMemberList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/member"/>
+
+</RelativeLayout>

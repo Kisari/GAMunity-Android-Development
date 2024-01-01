@@ -13,6 +13,30 @@
         android:theme="@style/Theme.GAMunity"
         tools:targetApi="31">
         <activity
+            android:name=".components.views.AddCommentForm"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.ForumMoreInfoTab"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.AddPostForm"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.PostTab"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.ForumMoreInfoView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.AddForumForm"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.PostView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.ForumView"
+            android:exported="false" />
+        <activity
             android:name=".components.views.HomeView"
             android:exported="true">
             <intent-filter>

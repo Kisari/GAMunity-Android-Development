@@ -4,6 +4,7 @@ import com.google.type.DateTime;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 
 @SuppressWarnings("unused")
 public class Post implements Serializable {
@@ -12,11 +13,13 @@ public class Post implements Serializable {
     private String forumId;
     private String title;
     private String description;
-    private DateTime timestamp;
-
+    private Date timestamp;
+    private ArrayList<String> likeIds, dislikeIds, commentIds;
     private long noLike = 0;
+    private long noDislike = 0;
+    private long noComment = 0;
 
-    public Post(String postId, String ownerId, String forumId, String title, String description, DateTime timestamp) {
+    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp) {
         this.postId = postId;
         this.ownerId = ownerId;
         this.forumId = forumId;
@@ -25,7 +28,7 @@ public class Post implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public Post(String postId, String ownerId, String forumId, String title, String description, DateTime timestamp, long noLike, long noDislike, ArrayList<String> commentIds, long noComment) {
+    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, long noLike, long noDislike, ArrayList<String> commentIds, long noComment) {
         this.postId = postId;
         this.ownerId = ownerId;
         this.forumId = forumId;
@@ -38,9 +41,40 @@ public class Post implements Serializable {
         this.noComment = noComment;
     }
 
-    private long noDislike = 0;
-    private ArrayList<String> commentIds;
-    private long noComment = 0;
+    public Post(String postId, String ownerId, String forumId, String title, Date timestamp) {
+        this.postId = postId;
+        this.ownerId = ownerId;
+        this.forumId = forumId;
+        this.title = title;
+        this.timestamp = timestamp;
+    }
+
+    public Post(String postId, String ownerId, String title) {
+        this.postId = postId;
+        this.ownerId = ownerId;
+        this.title = title;
+    }
+
+    public Post(String postId, String ownerId, String forumId, String title, Date timestamp, long noLike, long noDislike, long noComment) {
+        this.postId = postId;
+        this.ownerId = ownerId;
+        this.forumId = forumId;
+        this.title = title;
+        this.timestamp = timestamp;
+        this.noLike = noLike;
+        this.noDislike = noDislike;
+        this.noComment = noComment;
+    }
+
+    public Post(String postId, String ownerId, String forumId, String title, long noLike, long noDislike, long noComment) {
+        this.postId = postId;
+        this.ownerId = ownerId;
+        this.forumId = forumId;
+        this.title = title;
+        this.noLike = noLike;
+        this.noDislike = noDislike;
+        this.noComment = noComment;
+    }
 
     public String getPostId() {
         return postId;
@@ -82,11 +116,11 @@ public class Post implements Serializable {
         this.description = description;
     }
 
-    public DateTime getTimestamp() {
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(DateTime timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -120,5 +154,21 @@ public class Post implements Serializable {
 
     public void setNoComment(long noComment) {
         this.noComment = noComment;
+    }
+
+    public ArrayList<String> getLikeIds() {
+        return likeIds;
+    }
+
+    public void setLikeIds(ArrayList<String> likeIds) {
+        this.likeIds = likeIds;
+    }
+
+    public ArrayList<String> getDislikeIds() {
+        return dislikeIds;
+    }
+
+    public void setDislikeIds(ArrayList<String> dislikeIds) {
+        this.dislikeIds = dislikeIds;
     }
 }

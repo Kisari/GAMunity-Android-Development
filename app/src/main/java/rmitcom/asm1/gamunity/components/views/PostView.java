@@ -13,4 +13,6 @@ public class PostView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_view);
     }
+
+
 }
