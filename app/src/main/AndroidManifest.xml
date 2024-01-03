@@ -19,6 +19,12 @@
             android:name=".components.views.HomeView"
             android:exported="false" />
         <activity
+            android:name=".components.views.LoginView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.SignupView"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="false" />
         <activity

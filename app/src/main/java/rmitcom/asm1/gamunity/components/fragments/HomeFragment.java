@@ -103,8 +103,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         createForumBtn.setOnClickListener(v -> {
             Intent createForumViewIntent = new Intent(getActivity(), CreateForumView.class);
-            createForumViewIntent.putExtra("chiefAdmin", "testUser");
-            createForumViewIntent.putExtra("nextForumID", forumList.size()+1);
+            createForumViewIntent.putExtra("nextForumID", String.valueOf(forumList.size()+1));
             startActivity(createForumViewIntent);
         });
     }

@@ -35,17 +35,16 @@ import java.util.UUID;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.ForumTagListAdapter;
+import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 
 public class CreateForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
-
     private final FireBaseManager db = new FireBaseManager();
     private String nextForumID;
     private EditText forumCategories;
     private EditText forumDescription;
     private EditText forumName;
-
     private ImageView forumBackground;
     private ImageButton forumIconImageBtn;
     private Uri backgroundFilePath;
@@ -57,6 +56,13 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_forum_view);
+
+        if(db.getCurrentUser() == null){
+            Intent forceToLogin = new Intent(this, LoginView.class);
+            Toast.makeText(this, "This action require to login before start", Toast.LENGTH_SHORT).show();
+            startActivity(forceToLogin);
+            finish();
+        }
 
         Intent intent = getIntent();
         nextForumID = intent.getStringExtra("nextForumID");
@@ -171,12 +177,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     // Set the data to edit text
                     EditText pointerView = ((EditText)v);
                     String addNewItemString = "#" + tagListAdapter.getItem(Integer.parseInt(dragData.toString()));
-                    if(pointerView.getText().toString().equals("")){
-                        pointerView.setText(addNewItemString);
-
-                    }else{
-                        pointerView.setText(pointerView.getText().toString() + " " +  addNewItemString);
-                    }
+                    pointerView.setText(pointerView.getText().toString() + " " +  addNewItemString);
 
                     tagListAdapter.removeAt(Integer.parseInt(dragData.toString()));
 
@@ -229,7 +230,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
 
         Map<String, Object> newForum = new HashMap<>();
         newForum.put("forumId", nextForumID);
-        newForum.put("chiefAdmin", "minhTest");
+        newForum.put("chiefAdmin", db.getCurrentUser().getUid());
         newForum.put("title", forumNameContent);
         newForum.put("category", Arrays.asList(forumTagList));
         newForum.put("description", forumDescriptionContent);
@@ -238,6 +239,8 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         newForum.put("noJoined", 0);
         newForum.put("forumBackground", backgroundFilePath.toString());
         newForum.put("forumIcon", iconFilePath.toString());
+
+
 
         try {
             db.getDb().collection("FORUMS")
@@ -261,10 +264,11 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
     private String[] convertStringTagToArray(String tagString){
 
         String[] array = tagString.split("#");
-        for (int i = 0; i < array.length; i++) {
-            array[i] = array[i].trim();
+        String[] newArray = new String[array.length-1];
+        for (int i = 1; i < array.length; i++) {
+            newArray[i-1] = array[i].trim();
         }
-        return array;
+        return newArray;
     }
 
     private void uploadBackgroundImage(Uri submitFilePath) {
