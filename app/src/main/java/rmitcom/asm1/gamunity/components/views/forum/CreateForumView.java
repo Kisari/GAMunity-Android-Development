@@ -2,55 +2,37 @@ package rmitcom.asm1.gamunity.components.views.forum;
 
 import static android.content.ContentValues.TAG;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.storage.OnProgressListener;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import rmitcom.asm1.gamunity.MainActivity;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.ForumTagListAdapter;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
@@ -58,7 +40,7 @@ import rmitcom.asm1.gamunity.model.Constant;
 
 public class CreateForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
 
-    private FireBaseManager db = new FireBaseManager();
+    private final FireBaseManager db = new FireBaseManager();
     private String nextForumID;
     private EditText forumCategories;
     private EditText forumDescription;
@@ -70,7 +52,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
     private Uri iconFilePath;
     private ForumTagListAdapter tagListAdapter;
 
-    private Constant constant = new Constant();
+    private final Constant constant = new Constant();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,16 +72,11 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
 
         initializeForumTagSelectionView();
 
-        backBtn.setOnClickListener(v -> {
-            finish();
-        });
-        forumBackgroundImageBtn.setOnClickListener(v -> {
-            chooseImageFromFile(true);
-        });
+        backBtn.setOnClickListener(v -> finish());
 
-        forumIconImageBtn.setOnClickListener(v -> {
-            chooseImageFromFile(false);
-        });
+        forumBackgroundImageBtn.setOnClickListener(v -> chooseImageFromFile(true));
+
+        forumIconImageBtn.setOnClickListener(v -> chooseImageFromFile(false));
 
         submitBtn.setOnClickListener(v -> {
 //            submit();
@@ -153,7 +130,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
     @SuppressLint("SetTextI18n")
     private void initializeForumTagSelectionView(){
         //get the listview
-        RecyclerView forumTagLayout = (RecyclerView) findViewById(R.id.forumTagsLayout);
+        RecyclerView forumTagLayout = findViewById(R.id.forumTagsLayout);
 
         forumCategories.setFocusable(false);
         forumDescription.setOnDragListener((v, event) -> true);
@@ -176,11 +153,11 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         forumCategories.setOnDragListener((v, event) -> {
             switch (event.getAction()){
                 case DragEvent.ACTION_DRAG_ENTERED:
-                    ((EditText)v).setBackgroundColor(Color.parseColor("#99006400"));
+                    v.setBackgroundColor(Color.parseColor("#99006400"));
                     v.invalidate();
                     return true;
                 case DragEvent.ACTION_DRAG_EXITED:
-                    ((EditText)v).setBackgroundResource(R.drawable.rounded_pill_purple_stroke);
+                    v.setBackgroundResource(R.drawable.rounded_pill_purple_stroke);
                     v.invalidate();
                     return true;
                 case DragEvent.ACTION_DROP:
@@ -194,11 +171,16 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     // Set the data to edit text
                     EditText pointerView = ((EditText)v);
                     String addNewItemString = "#" + tagListAdapter.getItem(Integer.parseInt(dragData.toString()));
-                    pointerView.setText(pointerView.getText().toString() + " " +  addNewItemString);
+                    if(pointerView.getText().toString().equals("")){
+                        pointerView.setText(addNewItemString);
+
+                    }else{
+                        pointerView.setText(pointerView.getText().toString() + " " +  addNewItemString);
+                    }
 
                     tagListAdapter.removeAt(Integer.parseInt(dragData.toString()));
 
-                    ((EditText)v).setBackgroundResource(R.drawable.rounded_pill_purple_stroke);
+                    v.setBackgroundResource(R.drawable.rounded_pill_purple_stroke);
                     v.invalidate();
 
                     // Return true. DragEvent.getResult() returns true.
@@ -206,7 +188,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
 
                 case DragEvent.ACTION_DRAG_ENDED:
 
-                    ((EditText)v).setBackgroundColor(Color.parseColor("#ffffff"));
+                    v.setBackgroundColor(Color.parseColor("#ffffff"));
                     v.invalidate();
 
                     // Do a getResult() and displays what happens.
@@ -231,7 +213,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         view.setTag(String.valueOf(position));
         ClipData.Item item = new ClipData.Item((CharSequence) view.getTag());
         ClipData dragData = new ClipData(
-                (CharSequence) tagListAdapter.getItem(position),
+                tagListAdapter.getItem(position),
                 new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN },
                 item);
 
