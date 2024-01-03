@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.material.imageview.ShapeableImageView;
@@ -61,13 +62,15 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);
+        ProgressBar forumIconProgress = viewForumList.findViewById(R.id.progress1);
+        ProgressBar forumBackgroundProgress = viewForumList.findViewById(R.id.progress2);
         TextView forumTitle = viewForumList.findViewById(R.id.forumTitle);
         Button forumAction = viewForumList.findViewById(R.id.forumActionBtn);
 
         //fetch two image with cdn
         try{
-            new AsyncImage(forumBackground).execute(forumItem.getForumBackground());
-            new AsyncImage(forumIcon).execute(forumItem.getForumIcon());
+            new AsyncImage(forumIcon, forumIconProgress).loadImage(forumItem.getForumIcon());
+            new AsyncImage(forumBackground, forumBackgroundProgress).loadImage(forumItem.getForumBackground());
         }
         catch (Exception e){
             Log.e(TAG, "getView: ", e);
