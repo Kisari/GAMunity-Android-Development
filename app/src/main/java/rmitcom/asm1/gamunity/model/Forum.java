@@ -1,5 +1,8 @@
 package rmitcom.asm1.gamunity.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -16,6 +19,30 @@ public class Forum implements Serializable {
     private ArrayList<String> postIds;
     private String forumBackground;
     private String forumIcon;
+
+//    @Override
+//    public void writeToParcel(Parcel out, int flags) {
+//        out.writeInt(mData);
+//    }
+//
+//    public static final Parcelable.Creator<Forum> CREATOR = new Parcelable.Creator<Forum>() {
+//        public Forum createFromParcel(Parcel in) {
+//            return new Forum(in);
+//        }
+//
+//        public Forum[] newArray(int size) {
+//            return new Forum[size];
+//        }
+//    };
+//
+//    private Forum(Parcel in){
+//        this.forumId = in.readString();
+//        this.title = in.readString();
+//        this.category = in.readArrayList(String);
+//        this.memberIds = memberIds;
+//        this.forumBackground = forumBackground;
+//        this.forumIcon = forumIcon;
+//    }
 
     public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;

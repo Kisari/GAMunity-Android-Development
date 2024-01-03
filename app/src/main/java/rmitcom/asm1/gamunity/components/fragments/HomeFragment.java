@@ -65,6 +65,19 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
         fetchData();
         return view;
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == constant.CREATE){
+            if(resultCode == constant.SUCCESS){
+                Forum newAddedforum = (Forum) data.getSerializableExtra("newForum");
+                forumList.add(newAddedforum);
+
+                this.forumListAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public void fetchData() {
@@ -104,7 +117,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
         createForumBtn.setOnClickListener(v -> {
             Intent createForumViewIntent = new Intent(getActivity(), CreateForumView.class);
             createForumViewIntent.putExtra("nextForumID", String.valueOf(forumList.size()+1));
-            startActivity(createForumViewIntent);
+            startActivityForResult(createForumViewIntent, constant.CREATE);
         });
     }
 

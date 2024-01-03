@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
@@ -126,8 +127,6 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 ArrayList<Forum> FilteredArrayNames = new ArrayList<>();
 
                 constraint = constraint.toString().toLowerCase();
-                Log.d(TAG, "performFiltering: " + constraint.equals(""));
-                Log.d(TAG, "performFiltering: " + constraint);
 
                 for (int i = 0; i < forumList.size(); i++) {
                     String dataNames = forumList.get(i).getTitle();
@@ -136,23 +135,19 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                     }
                 }
 
+                Log.d(TAG, "FilteredArrayNames: " + FilteredArrayNames.size());
+
+                Log.d(TAG, "Constrains: " + constraint.equals(""));
+
                 if(!Objects.equals(tag, "")){
-                    if(FilteredArrayNames.size() == 0 && constraint.equals("")){
-                        for (int i = 0; i < forumList.size(); i++) {
-                            ArrayList<String> forumCatsList = forumList.get(i).getCategory();
-                            if (forumCatsList.contains(tag))  {
-                                FilteredArrayNames.add(forumList.get(i));
-                            }
+                    for (int i = 0; i < FilteredArrayNames.size(); i++) {
+                        ArrayList<String> forumCatsList = FilteredArrayNames.get(i).getCategory();
+                        if (!forumCatsList.contains(tag))  {
+                            FilteredArrayNames.set(i, null);
                         }
                     }
-                    else{
-                        for (int i = 0; i < FilteredArrayNames.size(); i++) {
-                            ArrayList<String> forumCatsList = FilteredArrayNames.get(i).getCategory();
-                            if (!forumCatsList.contains(tag))  {
-                                FilteredArrayNames.remove(FilteredArrayNames.get(i));
-                            }
-                        }
-                    }
+
+                    FilteredArrayNames.removeAll(Collections.singletonList(null));
                 }
 
                 results.count = FilteredArrayNames.size();

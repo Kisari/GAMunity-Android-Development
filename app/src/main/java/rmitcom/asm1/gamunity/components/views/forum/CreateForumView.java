@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import rmitcom.asm1.gamunity.adapter.ForumTagListAdapter;
 import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Forum;
 
 public class CreateForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
     private final FireBaseManager db = new FireBaseManager();
@@ -240,7 +242,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         newForum.put("forumBackground", backgroundFilePath.toString());
         newForum.put("forumIcon", iconFilePath.toString());
 
-
+        Forum newForumObject = new Forum(nextForumID, forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
 
         try {
             db.getDb().collection("FORUMS")
@@ -248,6 +250,9 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     .addOnCompleteListener(task -> {
                         if(task.isSuccessful()){
                             try {
+                                Intent backIntent = new Intent();
+                                backIntent.putExtra("newForum", newForumObject);
+                                setResult(constant.SUCCESS, backIntent);
                                 finish();
                             }
                             catch (Exception e){

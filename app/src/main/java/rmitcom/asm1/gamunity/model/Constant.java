@@ -4,9 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Constant {
-    public final String create = "CREATE";
-    public final String delete = "DELETE";
-    public final String edit = "EDIT";
+    public final int SUCCESS = 200;
+    public final int CREATE = 201;
+    public final String DELETE = "DELETE";
+    public final String EDIT = "EDIT";
     public final String forums = "FORUMS";
     public final String users = "USERS";
     public final String groupchats = "GROUPCHATS";
