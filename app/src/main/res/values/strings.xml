@@ -17,4 +17,7 @@
     <string name="members">Members</string>
     <string name="admin">Admin</string>
     <string name="member_name">Member Name</string>
+    <string name="join">Join</string>
+    <string name="joined">Joined</string>
+    <string name="owned">Owned</string>
 </resources>

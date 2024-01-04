@@ -242,7 +242,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         newForum.put("forumBackground", backgroundFilePath.toString());
         newForum.put("forumIcon", iconFilePath.toString());
 
-        Forum newForumObject = new Forum(nextForumID, forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
+        Forum newForumObject = new Forum(nextForumID, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
 
         try {
             db.getDb().collection("FORUMS")

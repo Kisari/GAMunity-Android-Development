@@ -86,16 +86,37 @@
         </TextView>
 
         <Button
-            android:id="@+id/forumActionBtn"
+            android:id="@+id/forumActionBtnJoined"
             style="@style/TextAppearance.AppCompat.Subhead"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|end"
             android:backgroundTint="#757575"
-            android:text="@string/button"
+            android:visibility="gone"
+            android:text="@string/joined"
             android:textColor="#ffffff" />
 
+        <Button
+            android:id="@+id/forumActionBtnJoin"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:visibility="gone"
+            android:backgroundTint="#757575"
+            android:text="@string/join"
+            android:textColor="#ffffff" />
 
+        <Button
+            android:id="@+id/forumActionBtnOwned"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:visibility="gone"
+            android:backgroundTint="#757575"
+            android:text="@string/owned"
+            android:textColor="#ffffff" />
     </FrameLayout>
 
 

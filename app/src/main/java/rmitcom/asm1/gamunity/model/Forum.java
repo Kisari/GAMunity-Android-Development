@@ -58,8 +58,9 @@ public class Forum implements Serializable {
         this.forumIcon = forumIcon;
     }
 
-    public Forum(String forumId, String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
+    public Forum(String forumId, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;
+        this.chiefAdmin = chiefAdmin;
         this.title = title;
         this.category = category;
         this.memberIds = memberIds;
@@ -154,4 +155,5 @@ public class Forum implements Serializable {
     public void setForumIcon(String forumIcon) {
         this.forumIcon = forumIcon;
     }
+
 }

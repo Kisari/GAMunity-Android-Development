@@ -88,12 +88,13 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             String forumId = document.getString("forumId");
                             String forumTitle = document.getString("title");
+                            String forumChiefAdmin = document.getString("chiefAdmin");
                             ArrayList<String> forumCategory = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("category")));
                             ArrayList<String> forumMemberIds = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("memberIds")));
                             String forumBackground = document.getString("forumBackground");
                             String forumIcon = document.getString("forumIcon");
 
-                            Forum newForum = new Forum(forumId, forumTitle, forumCategory, forumMemberIds, forumBackground, forumIcon);
+                            Forum newForum = new Forum(forumId, forumChiefAdmin, forumTitle, forumCategory, forumMemberIds, forumBackground, forumIcon);
                             forumList.add(newForum);
                         }
                         setUI();
