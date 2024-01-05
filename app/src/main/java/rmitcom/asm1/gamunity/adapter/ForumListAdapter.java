@@ -3,7 +3,10 @@ package rmitcom.asm1.gamunity.adapter;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -15,10 +18,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -33,7 +32,6 @@ import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
-import rmitcom.asm1.gamunity.components.views.HomeView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
@@ -116,10 +114,33 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 forumActionBtnJoined.setVisibility(View.GONE);
                 forumActionJoin.setVisibility(View.VISIBLE);
             }
-            forumActionBtnJoined.setOnClickListener(v -> unJoinForum(forumItem));
-            forumActionJoin.setOnClickListener(v -> {
-                joinForum(forumItem);
+            forumActionBtnJoined.setOnClickListener(v -> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+
+                //get the custom layout
+                LayoutInflater inflater = (LayoutInflater) v.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                final View unJoinDialogLayout = inflater.inflate(R.layout.ui_forum_unjoin_dialog_view, null);
+                ImageView dialogIcon = unJoinDialogLayout.findViewById(R.id.dialogIcon);
+                ProgressBar dialogIconProgress = unJoinDialogLayout.findViewById(R.id.dialogIconProgress);
+                TextView dialogMessage = unJoinDialogLayout.findViewById(R.id.dialogMessage);
+                TextView dialogCancel = unJoinDialogLayout.findViewById(R.id.dialogCancel);
+                TextView dialogAccept = unJoinDialogLayout.findViewById(R.id.dialogAccept);
+                builder.setView(unJoinDialogLayout);
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                try{
+                    new AsyncImage(dialogIcon, dialogIconProgress).loadImage(forumItem.getForumIcon());
+                    dialogMessage.setText("You will no longer be a member of this forum.Do you want to unjoin?");
+                    dialogCancel.setOnClickListener(v1 -> dialog.dismiss());
+                    dialogAccept.setOnClickListener(v12 -> unJoinForum(forumItem, dialog));
+                }
+                catch (Exception e){
+                    Log.e(TAG, "getView: ", e);
+                    e.printStackTrace();
+                }
+
             });
+            forumActionJoin.setOnClickListener(v -> joinForum(forumItem));
         }
 
         this.currentView = viewForumList;
@@ -171,7 +192,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
             });
     }
 
-    public void unJoinForum(Forum forum){
+    public void unJoinForum(Forum forum, AlertDialog dialog){
         String[] newMemberIdsList = removeItemFromArray(forum.getMemberIds().toArray(new String[0]), db.getCurrentUser().getUid());
 
         CollectionReference ref = db.getDb().collection(constant.forums);
@@ -186,6 +207,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
                                 updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
+                                dialog.dismiss();
                                 Toast.makeText(currentView.getContext(), "You leave " + forum.getTitle(),Toast.LENGTH_SHORT).show();
                             }
                         });
@@ -197,7 +219,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
     public static String[] removeItemFromArray(String[] input, String item) {
         if (input == null) {
             return null;
-        } else if (input.length <= 0) {
+        } else if (input.length == 0) {
             return input;
         } else {
             String[] output = new String[input.length - 1];

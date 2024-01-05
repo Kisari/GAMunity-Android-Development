@@ -20,4 +20,6 @@
     <string name="join">Join</string>
     <string name="joined">Joined</string>
     <string name="owned">Owned</string>
+    <string name="cancel">Cancel</string>
+    <string name="unjoin">Unjoin</string>
 </resources>
