@@ -15,6 +15,8 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -94,7 +96,7 @@ public class LoginView extends AppCompatActivity {
             dialogView.findViewById(R.id.reset_button).setOnClickListener(view12 -> {
                 String userEmail = emailBox.getText().toString();
 
-                if (TextUtils.isEmpty(userEmail) && !Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()){
+                if (TextUtils.isEmpty(userEmail) || !Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()){
                     Toast.makeText(LoginView.this, "Enter your registered email id", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -112,6 +114,12 @@ public class LoginView extends AppCompatActivity {
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
             }
             dialog.show();
+
+            // After showing the dialog, set its window layout parameters
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            }
         });
 
         //Inside onCreate
@@ -123,7 +131,9 @@ public class LoginView extends AppCompatActivity {
             finish();
             Intent intent = new Intent(LoginView.this, MainActivity.class);
             startActivity(intent);
+            gClient.signOut(); // Logout
         }
+
         ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK){
@@ -131,9 +141,9 @@ public class LoginView extends AppCompatActivity {
                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                         try {
                             task.getResult(ApiException.class);
-                            finish();
                             Intent intent = new Intent(LoginView.this, MainActivity.class);
                             startActivity(intent);
+                            finish();
                         } catch (ApiException e){
                             Toast.makeText(LoginView.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                         }
