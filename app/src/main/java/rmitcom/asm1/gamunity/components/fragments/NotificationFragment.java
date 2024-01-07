@@ -2,27 +2,21 @@ package rmitcom.asm1.gamunity.components.fragments;
 
 import static android.content.ContentValues.TAG;
 
+import android.Manifest;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.Manifest;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
@@ -30,16 +24,16 @@ import rmitcom.asm1.gamunity.db.FireBaseManager;
 public class NotificationFragment extends Fragment {
     private final FireBaseManager db = new FireBaseManager();
     View currentView;
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    Toast.makeText(currentView.getContext(), "Notifications will be push up in the future", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(currentView.getContext(), "Your app will not receive push notifications", Toast.LENGTH_SHORT).show();
-                }
-            });
+    private final ActivityResultLauncher<String> requestPermissionLauncher;
 
     public NotificationFragment() {
+        this.requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+            if (isGranted) {
+                Toast.makeText(currentView.getContext(), "Notifications will be push up in the future", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(currentView.getContext(), "Your app will not receive push notifications", Toast.LENGTH_SHORT).show();
+            }
+        });
         // Required empty public constructor
     }
 
@@ -59,6 +53,7 @@ public class NotificationFragment extends Fragment {
 
         //ask to receive notification
         askNotificationPermission();
+        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
 
         initializeNotification();
 
@@ -73,9 +68,7 @@ public class NotificationFragment extends Fragment {
                 new AlertDialog.Builder(currentView.getContext())
                         .setTitle("Are you sure ?")
                         .setMessage("You will not receive any push notifications in the future.")
-                        .setPositiveButton("Ok", (dialog, which) -> {
-                            Toast.makeText(currentView.getContext(), "Notification disable", Toast.LENGTH_SHORT).show();
-                        })
+                        .setPositiveButton("Ok", (dialog, which) -> Toast.makeText(currentView.getContext(), "Notification disable", Toast.LENGTH_SHORT).show())
                         .setNegativeButton("Enable Notification", (dialog, which) -> {
                             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
                             Toast.makeText(currentView.getContext(), "Notification enable", Toast.LENGTH_SHORT).show();
@@ -92,9 +85,7 @@ public class NotificationFragment extends Fragment {
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
                         String msg = task.getResult();
-//                        String msg = token;
                         Log.d(TAG, msg);
-                        Toast.makeText(currentView.getContext(), msg, Toast.LENGTH_SHORT).show();
                     }
                     else{
                         Log.w(TAG, "Fetching FCM registration token failed", task.getException());
