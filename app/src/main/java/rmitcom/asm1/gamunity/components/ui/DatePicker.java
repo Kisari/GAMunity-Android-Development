@@ -1,4 +1,4 @@
-package rmitcom.asm1.gamunity.components.UI;
+package rmitcom.asm1.gamunity.components.ui;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;

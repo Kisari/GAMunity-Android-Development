@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@drawable/rounded_pill"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="80dp"
+        android:layout_height="80dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <ProgressBar
+                android:indeterminateTint="#4900FF"
+                android:id="@+id/dialogIconProgress"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/dialogIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no">
+        </ImageView>
+
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/dialogMessage"
+        style="@style/TextAppearance.AppCompat.Subhead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="16dp"
+        android:text="@string/text_view"
+        android:textColor="#A5A5A5"
+        android:textStyle="bold"
+        tools:ignore="TextContrastCheck">
+
+    </TextView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/dialogCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_pill"
+            android:text="@string/cancel"
+            app:backgroundTint="#A5A5A5"
+            tools:ignore="ButtonStyle,TextContrastCheck,VisualLintButtonSize" />
+
+        <Button
+            android:id="@+id/dialogAccept"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_pill"
+            android:text="@string/unjoin"
+            app:backgroundTint="#FF2C20"
+            tools:ignore="ButtonStyle,TextContrastCheck,VisualLintButtonSize" />
+
+    </LinearLayout>
+
+</LinearLayout>

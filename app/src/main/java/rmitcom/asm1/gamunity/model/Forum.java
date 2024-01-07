@@ -1,5 +1,8 @@
 package rmitcom.asm1.gamunity.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -14,16 +17,34 @@ public class Forum implements Serializable {
     private ArrayList<String> memberIds;
     private long noJoined = 0;
     private ArrayList<String> postIds;
+    private String forumBackground;
+    private String forumIcon;
 
-    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description) {
-        this.forumId = forumId;
-        this.chiefAdmin = chiefAdmin;
-        this.title = title;
-        this.category = category;
-        this.description = description;
-    }
+//    @Override
+//    public void writeToParcel(Parcel out, int flags) {
+//        out.writeInt(mData);
+//    }
+//
+//    public static final Parcelable.Creator<Forum> CREATOR = new Parcelable.Creator<Forum>() {
+//        public Forum createFromParcel(Parcel in) {
+//            return new Forum(in);
+//        }
+//
+//        public Forum[] newArray(int size) {
+//            return new Forum[size];
+//        }
+//    };
+//
+//    private Forum(Parcel in){
+//        this.forumId = in.readString();
+//        this.title = in.readString();
+//        this.category = in.readArrayList(String);
+//        this.memberIds = memberIds;
+//        this.forumBackground = forumBackground;
+//        this.forumIcon = forumIcon;
+//    }
 
-    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds) {
+    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;
         this.chiefAdmin = chiefAdmin;
         this.title = title;
@@ -33,6 +54,18 @@ public class Forum implements Serializable {
         this.memberIds = memberIds;
         this.noJoined = noJoined;
         this.postIds = postIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
+    }
+
+    public Forum(String forumId, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
+        this.forumId = forumId;
+        this.chiefAdmin = chiefAdmin;
+        this.title = title;
+        this.category = category;
+        this.memberIds = memberIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
     }
 
     public String getForumId() {
@@ -106,4 +139,21 @@ public class Forum implements Serializable {
     public void setPostIds(ArrayList<String> postIds) {
         this.postIds = postIds;
     }
+
+    public String getForumBackground() {
+        return forumBackground;
+    }
+
+    public void setForumBackground(String forumBackground) {
+        this.forumBackground = forumBackground;
+    }
+
+    public String getForumIcon() {
+        return forumIcon;
+    }
+
+    public void setForumIcon(String forumIcon) {
+        this.forumIcon = forumIcon;
+    }
+
 }

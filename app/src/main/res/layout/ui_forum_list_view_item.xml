@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="80dp">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <ProgressBar
+                android:indeterminateTint="#4900FF"
+                android:id="@+id/progress2"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/forumBackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY"
+            tools:ignore="ImageContrastCheck" />
+
+    </RelativeLayout>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="30dp"
+        >
+
+        <RelativeLayout
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center">
+
+                <ProgressBar
+                    android:indeterminateTint="#4900FF"
+                    android:id="@+id/progress1"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:visibility="visible" />
+
+            </LinearLayout>
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/forumIcon"
+                android:layout_gravity="start"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:strokeWidth="3dp"
+                app:strokeColor="@android:color/darker_gray"
+                app:shapeAppearanceOverlay="@style/circleImageView"
+                tools:ignore="ImageContrastCheck"
+                />
+
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/forumTitle"
+            android:layout_marginStart="85dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textStyle="bold"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:text="@string/text_view">
+        </TextView>
+
+        <Button
+            android:id="@+id/forumActionBtnJoined"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:backgroundTint="#757575"
+            android:visibility="gone"
+            android:text="@string/joined"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/forumActionBtnJoin"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:visibility="gone"
+            android:backgroundTint="#757575"
+            android:text="@string/join"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/forumActionBtnOwned"
+            style="@style/TextAppearance.AppCompat.Subhead"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|end"
+            android:visibility="gone"
+            android:backgroundTint="#757575"
+            android:text="@string/owned"
+            android:textColor="#ffffff" />
+    </FrameLayout>
+
+
+</RelativeLayout>

@@ -28,13 +28,13 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
-                return new ProfileFragment();
-            case 1:
                 return new HomeFragment();
+            case 1:
+                return new ChatFragment();
             case 2:
                 return new NotificationFragment();
             case 3:
-                return new ChatFragment();
+                return new ProfileFragment();
 
             default:
                 return new Fragment();
