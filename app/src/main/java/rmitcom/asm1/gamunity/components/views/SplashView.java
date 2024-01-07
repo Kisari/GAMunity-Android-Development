@@ -19,7 +19,7 @@ public class SplashView extends AppCompatActivity {
 
         // Set a listener to start MainActivity after video completion
         videoView.setOnCompletionListener(mp -> {
-            Intent intent = new Intent(SplashView.this, HomeView.class);
+            Intent intent = new Intent(SplashView.this, LoginView.class);
             startActivity(intent);
             finish(); // Finish the splash screen activity to prevent going back to it
         });
