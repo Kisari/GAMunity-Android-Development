@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".components.views.comment.CreateCommentForm">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:ignore="UselessParent">
+
+        <ImageView
+            android:id="@+id/addCommentAppIcon"
+            android:layout_centerHorizontal="true"
+            android:layout_width="292dp"
+            android:layout_height="54dp"
+            android:background="@drawable/app_icon"
+            android:layout_alignParentTop="true"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:id="@+id/addCommentTop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/addCommentAppIcon">
+            <TextView
+                android:id="@+id/returnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/back_icon_foreground"
+                android:layout_gravity="center"/>
+            <TextView
+                android:id="@+id/pageRole"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingVertical="5dp"
+                android:text="Add comment"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/addCommentContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="1"
+            android:layout_below="@id/addCommentTop"
+            android:orientation="horizontal">
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="81dp"
+                android:layout_weight="0.2">
+                <ProgressBar
+                    android:id="@+id/addCommentProgressBar1"
+                    android:indeterminateTint="#4900FF"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="10dp"
+                    android:visibility="visible"/>
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/addCommentUserProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:strokeWidth="3dp"
+                    android:padding="5dp"
+                    app:strokeColor="@android:color/darker_gray"
+                    app:shapeAppearanceOverlay="@style/circleImageView"
+                    tools:ignore="ImageContrastCheck"/>
+            </RelativeLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.8"
+                android:padding="5dp"
+                android:orientation="vertical">
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="12dp"
+                    app:boxBackgroundColor="@android:color/transparent"
+                    app:boxStrokeWidth="0dp"
+                    app:boxStrokeWidthFocused="0dp">
+                    <EditText
+                        android:id="@+id/addCommentDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:background="@drawable/rounded_pill_purple_stroke"
+                        android:ems="10"
+                        android:hint="@string/description"
+                        android:importantForAutofill="no"
+                        android:inputType="text"
+                        tools:ignore="VisualLintTextFieldSize"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/addCommentImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Image/Video"
+                    android:gravity="center"
+                    android:drawableStart="@drawable/camera_icon_foreground"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/addCommentPicture"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_below="@id/addCommentContent"
+            android:visibility="gone"
+            android:background="@drawable/rectangle_shadow"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY"
+            tools:ignore="ImageContrastCheck"/>
+
+        <TextView
+            android:id="@+id/addCommentConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/addCommentAppIcon"
+            android:gravity="center"
+            android:rotation="-45"
+            android:drawableEnd="@drawable/send_icon_foreground"/>
+    </RelativeLayout>
+
+</androidx.core.widget.NestedScrollView>

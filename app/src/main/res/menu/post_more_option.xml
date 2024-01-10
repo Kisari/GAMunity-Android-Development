@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/postUpdate"
+        android:title="Update post"
+        android:visible="true"/>
+    <item
+        android:id="@+id/postDelete"
+        android:title="Delete post"
+        android:visible="true"/>
+    <item
+        android:id="@+id/postBanUser"
+        android:title="Banned user"
+        android:visible="false"/>
+    <item
+        android:id="@+id/postReport"
+        android:title="Report"
+        android:visible="false"/>
+
+</menu>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/forumMoreInfo"
+        android:title="More Information"
+        android:visible="true"/>
+    <item
+        android:id="@+id/forumUpdate"
+        android:title="Update Forum"
+        android:visible="true"/>
+    <item
+        android:id="@+id/forumDelete"
+        android:title="Delete Forum"
+        android:visible="true"/>
+    <item
+        android:id="@+id/forumAddModerator"
+        android:title="Add Moderator"
+        android:visible="true"/>
+    <item
+        android:id="@+id/forumRemoveModerator"
+        android:title="Remove Moderator"
+        android:visible="true"/>
+</menu>
