@@ -63,7 +63,7 @@
 
                 <Button
                     android:id="@+id/cancel_button"
-                    android:layout_width="170dp"
+                    android:layout_width="160dp"
                     android:layout_height="60dp"
                     android:backgroundTint="@color/purple_01"
                     android:text="Cancel"
@@ -73,7 +73,7 @@
 
                 <Button
                     android:id="@+id/reset_button"
-                    android:layout_width="170dp"
+                    android:layout_width="160dp"
                     android:layout_height="60dp"
                     android:backgroundTint="@color/purple_01"
                     android:text="Reset"

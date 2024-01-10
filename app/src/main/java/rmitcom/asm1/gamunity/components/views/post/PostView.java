@@ -195,7 +195,7 @@ public class PostView extends AppCompatActivity {
                     }
 
                     postTimestamp.setText(timestamp);
-                    
+
 
                 } else {
                     Log.d(TAG, "No such document");
