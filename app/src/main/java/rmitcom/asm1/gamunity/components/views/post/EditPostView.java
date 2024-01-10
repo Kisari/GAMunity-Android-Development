@@ -3,6 +3,7 @@ package rmitcom.asm1.gamunity.components.views.post;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -27,6 +28,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -43,12 +45,13 @@ import rmitcom.asm1.gamunity.model.Constant;
 
 public class EditPostView extends AppCompatActivity {
     private final String TAG = "Edit Post";
+    private WeakReference<Activity> activityReference;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, postData, userData;
-    private String forumId, postId, title, description, postImageUri, updateDate;
+    private String forumId, postId, title, description, postImageUri, updateDate, imageUri;
     private EditText postEditTitle, postEditDescription;
     private TextView postEditImageButton, postEditConfirmButton, returnBackButton;
     private ImageView postEditPicture;
@@ -87,8 +90,8 @@ public class EditPostView extends AppCompatActivity {
         returnBackButton = findViewById(R.id.returnBack);
 
         setPostData();
-        updatePost();
         updateImage();
+        updatePost();
         returnToPreviousPage();
 
     }
@@ -102,6 +105,14 @@ public class EditPostView extends AppCompatActivity {
                     title = document.getString("title");
                     description = document.getString("description");
                     postImageUri = document.getString("image");
+
+                    if (title != null) {
+                        postEditTitle.setText(title);
+                    }
+
+                    if (description != null) {
+                        postEditDescription.setText(description);
+                    }
 
                     if (postImageUri != null) {
                         editPostImage.setVisibility(View.VISIBLE);
@@ -165,42 +176,56 @@ public class EditPostView extends AppCompatActivity {
 
     private void uploadPostImage(Uri submitFilePath) {
         if(submitFilePath != null) {
+            activityReference = new WeakReference<>(this);
+
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading post image...");
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference();
-            storageRef.child("images/"+ UUID.randomUUID().toString());
+            String randomId = UUID.randomUUID().toString();
+            Log.i(TAG, "uploadPostImage - randomId: " + randomId);
+            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+
             storageRef.putFile(submitFilePath)
-            .addOnSuccessListener(taskSnapshot -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+                    .addOnSuccessListener(taskSnapshot -> {
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
-                storageRef.getDownloadUrl().addOnCompleteListener(uri -> {
-                    postImageFilePath = uri.getResult();
+                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
 
-                });
+                            if (postImageUri != null) {
+                                Log.i(TAG, "uploadPostImage - postImageUri: " + postImageUri);
+                                String pattern = "images%2F(.*?)\\?";
 
-            }).addOnFailureListener(e -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+                                Pattern p = Pattern.compile(pattern);
+                                Matcher m = p.matcher(postImageUri);
+                                if (m.find()) {
+                                    String oldUri = m.group(1);
+                                    storageRef.child("images/" + oldUri);
+                                    storageRef.delete();
+                                }
+                            }
 
-            }).addOnProgressListener(taskSnapshot -> {
-                double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
-                        .getTotalByteCount());
-                progressDialog.setMessage("Uploaded "+(int)progress+"%");
+                            postImageFilePath = uri;
+                            imageUri = postImageFilePath.toString();
 
-            });
+                            addDataToFirebase();
+                            Log.i(TAG, "uploadPostImage - postImageFilePath: " + postImageFilePath);
+                        });
 
-            String pattern = "images%2F(.*?)\\?";
-
-            Pattern p = Pattern.compile(pattern);
-            Matcher m = p.matcher(postImageUri);
-            if (m.find()) {
-                String uri = m.group(1);
-                storageRef.child("images/" + uri);
-                storageRef.delete();
-            }
+                    }).addOnFailureListener(e -> {
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
+                    }).addOnProgressListener(taskSnapshot -> {
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                        progressDialog.setMessage("Uploaded " + (int) progress + "%");
+                    });
         }
     }
 
@@ -227,8 +252,11 @@ public class EditPostView extends AppCompatActivity {
                 updateDate = sdf.format(calendar.getTime());
                 Log.i(TAG, "onClick - date: " + updateDate);
 
-                uploadPostImage(postImageFilePath);
-                addDataToFirebase();
+                if (postImageFilePath != null) {
+                    uploadPostImage(postImageFilePath);
+                } else {
+                    addDataToFirebase();
+                }
             }
         });
     }
@@ -241,7 +269,7 @@ public class EditPostView extends AppCompatActivity {
         data.put("updateDate", updateDate);
 
         if (postImageFilePath != null) {
-            data.put("image", postImageFilePath.toString());
+            data.put("image", imageUri);
         }
 
         postData.set(data, SetOptions.merge()).addOnCompleteListener(task -> {

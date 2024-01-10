@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostListAdapter;
@@ -92,7 +94,9 @@ public class ForumView extends AppCompatActivity {
         forumBackground = findViewById(R.id.forumBackgroundImage);
         forumIcon = findViewById(R.id.forumIconImage);
 
-//        joinButton = findViewById(R.id.joinForumButton);
+        joinButton = findViewById(R.id.forumActionJoinButton);
+        joinedButton = findViewById(R.id.forumActionJoinedButton);
+        ownedButton = findViewById(R.id.forumActionOwnedButton);
 
         returnBackButton = findViewById(R.id.returnBack);
 
@@ -109,11 +113,15 @@ public class ForumView extends AppCompatActivity {
 
                 if (document.exists()) {
                     forumTitleStr = (String) document.get("title");
-                    chiefAdminId = (String) document.get("chiefAdminId");
+                    chiefAdminId = (String) document.get("chiefAdmin");
 
                     memberIds = (ArrayList<String>) document.get("memberIds");
                     moderatorIds = (ArrayList<String>) document.get("moderatorIds");
-                    postIds = (ArrayList<String>) document.get("postIds");
+
+                    if (document.get("postIds") != null) {
+                        postIds = (ArrayList<String>) document.get("postIds");
+                        displayList(postIds);
+                    }
 
                     forumBackgroundUri = document.getString("forumBackground");
                     forumIconUri = document.getString("forumIcon");
@@ -121,7 +129,6 @@ public class ForumView extends AppCompatActivity {
                     Log.i(TAG, "forumBackgroundUri: " + forumBackgroundUri);
                     Log.i(TAG, "forumIconUri: " + forumIconUri);
 
-                    displayList(postIds);
 
                     if (forumTitleStr != null) {
                         forumTitle.setText(forumTitleStr);
@@ -136,6 +143,8 @@ public class ForumView extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
+                    setButton();
+
                 } else {
                     Log.d(TAG, "No such document");
                 }
@@ -147,84 +156,88 @@ public class ForumView extends AppCompatActivity {
 
     private void displayList(ArrayList<String> postIds) {
         postList = new ArrayList<>();
+//        int listLength = postIds.size();
+//        final int[] counter = {0};
 
-        if (postIds != null) {
-            int listLength = postIds.size();
-            final int[] counter = {0};
+        int listLength = postIds.size();
+        AtomicInteger counter = new AtomicInteger(0);
 
-            for (String postId : postIds) {
-                db.collection("POSTS").document(postId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
+        for (String postId : postIds) {
+            db.collection("POSTS").document(postId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
 
-                            String postTitle, postDescription, postOwnerId, timestampStr, updateTimestampStr;
-                            long noLike, noDislike, noComment;
-                            Date timestamp = new Date(), updateTimestamp = new Date();
-                            ArrayList<String> postLikeIds, postDislikeIds, postCommentIds;
+                        String postTitle, postDescription, postOwnerId, timestampStr, updateTimestampStr;
+                        long noLike, noDislike, noComment;
+                        Date timestamp = new Date(), updateTimestamp = new Date();
+                        ArrayList<String> postLikeIds, postDislikeIds, postCommentIds;
 
-                            if (document.exists()) {
-                                postTitle = (String) document.get("title");
-                                postDescription = (String) document.get("description");
-                                postOwnerId = (String) document.get("ownerId");
+                        if (document.exists()) {
+                            postTitle = (String) document.get("title");
+                            postDescription = (String) document.get("description");
+                            postOwnerId = (String) document.get("ownerId");
 
-                                postLikeIds = (ArrayList<String>) document.get("likeIds");
-                                postDislikeIds = (ArrayList<String>) document.get("dislikeIds");
-                                postCommentIds = (ArrayList<String>) document.get("commentIds");
+                            postLikeIds = (ArrayList<String>) document.get("likeIds");
+                            postDislikeIds = (ArrayList<String>) document.get("dislikeIds");
+                            postCommentIds = (ArrayList<String>) document.get("commentIds");
 
-                                timestampStr = (String) document.get("date");
-                                updateTimestampStr = (String) document.get("updateDate");
-                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                            timestampStr = (String) document.get("date");
+                            updateTimestampStr = (String) document.get("updateDate");
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
 
-                                if (timestampStr != null) {
-                                    try {
-                                        timestamp = sdf.parse(timestampStr);
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
+                            if (timestampStr != null) {
+                                try {
+                                    timestamp = sdf.parse(timestampStr);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
                                 }
+                            }
 
-                                if (updateTimestampStr != null) {
-                                    try {
-                                        updateTimestamp = sdf.parse(updateTimestampStr);
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
-                                } else {
-                                    updateTimestamp = null;
+                            if (updateTimestampStr != null) {
+                                try {
+                                    updateTimestamp = sdf.parse(updateTimestampStr);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
                                 }
+                            } else {
+                                updateTimestamp = null;
+                            }
 
-                                if (document.get("noLike") == null) {
-                                    noLike = 0;
-                                } else {
-                                    noLike = (int) document.get("noLike");
-                                }
+                            if (document.get("noLike") == null) {
+                                noLike = 0;
+                            } else {
+                                noLike = (int) document.get("noLike");
+                            }
 
-                                if (document.get("noDislike") == null) {
-                                    noDislike = 0;
-                                } else {
-                                    noDislike = (int) document.get("noDislike");
-                                }
+                            if (document.get("noDislike") == null) {
+                                noDislike = 0;
+                            } else {
+                                noDislike = (int) document.get("noDislike");
+                            }
 
-                                if (document.get("noComment") == null) {
-                                    noComment = 0;
-                                } else {
-                                    noComment = (int) document.get("noComment");
-                                }
+                            if (document.get("noComment") == null) {
+                                noComment = 0;
+                            } else {
+                                noComment = (int) document.get("noComment");
+                            }
 
-                                Post post = new Post(postId, postOwnerId, forumId, postTitle, postDescription, timestamp, updateTimestamp, postCommentIds, postLikeIds, postDislikeIds, noLike, noDislike, noComment);
-                                postList.add(post);
+                            Log.i(TAG, "onComplete - postId: " + postId);
+                            Post post = new Post(postId, postOwnerId, forumId, postTitle, postDescription, timestamp, updateTimestamp, postCommentIds, postLikeIds, postDislikeIds, noLike, noDislike, noComment);
+                            postList.add(post);
 
-                                counter[0]++;
-                                if (counter[0] == listLength -1) {
-                                    setupList(postList);
-                                }
+//                            counter[0]++;
+//                            if (counter[0] == listLength -1) {
+//                                setupList(postList);
+//                            }
+                            if (counter.incrementAndGet() == listLength) {
+                                setupList(postList);
                             }
                         }
                     }
-                });
-            }
+                }
+            });
         }
     }
 
@@ -350,6 +363,7 @@ public class ForumView extends AppCompatActivity {
                 public void onClick(View v) {
                     deleteForum(forumId);
                     dialog.dismiss();
+                    finish();
                 }
             });
 
@@ -433,6 +447,193 @@ public class ForumView extends AppCompatActivity {
                 postView.deletePost(id);
             }
         }
+    }
+
+    private void setButton() {
+        if (Objects.equals(userId, chiefAdminId)) {
+            ownedButton.setVisibility(View.VISIBLE);
+            joinButton.setVisibility(View.GONE);
+            joinedButton.setVisibility(View.GONE);
+
+        } else if (memberIds.contains(userId) || moderatorIds.contains(userId)) {
+            ownedButton.setVisibility(View.GONE);
+            joinButton.setVisibility(View.GONE);
+            joinedButton.setVisibility(View.VISIBLE);
+
+        } else {
+            ownedButton.setVisibility(View.GONE);
+            joinButton.setVisibility(View.VISIBLE);
+            joinedButton.setVisibility(View.GONE);
+        }
+
+        joinForum();
+        unJoinForum();
+    }
+
+    private void joinForum() {
+        joinButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                userData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            Map<String, ArrayList<String>> joinedForumIds = new HashMap<>();
+                            if (document.exists()) {
+                                ArrayList<String> joinedForumList;
+                                joinedForumList = (ArrayList<String>) document.get("joinedForumIds");
+
+                                if (joinedForumList != null) {
+                                    joinedForumList.add(forumId);
+                                } else {
+                                    joinedForumList = new ArrayList<>();
+                                    joinedForumList.add(forumId);
+                                }
+
+                                joinedForumIds.put("joinedForumIds", joinedForumList);
+                            }
+                            userData.set(joinedForumIds, SetOptions.merge());
+                        }
+                    }
+                });
+
+                forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            Map<String, ArrayList<String>> memberIdsList = new HashMap<>();
+                            if (document.exists()) {
+                                ArrayList<String> memberList;
+                                memberList = (ArrayList<String>) document.get("memberIds");
+
+                                if (memberList != null) {
+                                    memberList.add(userId);
+                                } else {
+                                    memberList = new ArrayList<>();
+                                    memberList.add(userId);
+                                }
+
+                                memberIdsList.put("memberIds", memberList);
+                            }
+                            userData.set(memberIdsList, SetOptions.merge());
+                        }
+                    }
+                });
+
+                memberIds.add(userId);
+
+                joinButton.setVisibility(View.GONE);
+                joinedButton.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void unJoinForum() {
+        joinedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(ForumView.this);
+                LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                final View unJoinDialogLayout = inflater.inflate(R.layout.ui_forum_unjoin_dialog_view, null);
+
+                ImageView dialogIcon = unJoinDialogLayout.findViewById(R.id.dialogIcon);
+                ProgressBar dialogIconProgress = unJoinDialogLayout.findViewById(R.id.dialogIconProgress);
+                TextView dialogMessage = unJoinDialogLayout.findViewById(R.id.dialogMessage);
+                TextView dialogCancel = unJoinDialogLayout.findViewById(R.id.dialogCancel);
+                TextView dialogAccept = unJoinDialogLayout.findViewById(R.id.dialogAccept);
+
+                builder.setView(unJoinDialogLayout);
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+                try {
+                    new AsyncImage(dialogIcon, dialogIconProgress).loadImage(forumIconUri);
+                    dialogMessage.setText("Are you sure you want to unjoin this forum");
+                    dialogCancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    dialogAccept.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            unJoinFunction();
+                            dialog.dismiss();
+                            joinButton.setVisibility(View.VISIBLE);
+                            joinedButton.setVisibility(View.GONE);
+                        }
+                    });
+
+                } catch (Exception e) {
+                    Log.e("Forum", "getView: ", e);
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void unJoinFunction() {
+        userData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    Map<String, ArrayList<String>> forumIds = new HashMap<>();
+                    if (document.exists()) {
+                        ArrayList<String> joinedForumList, adminForumList;
+                        joinedForumList = (ArrayList<String>) document.get("joinedForumIds");
+                        adminForumList = (ArrayList<String>) document.get("adminForumIds");
+
+                        if (joinedForumList != null) {
+                            joinedForumList.remove(forumId);
+                        }
+
+                        if (adminForumList != null) {
+                            adminForumList.remove(forumId);
+                        }
+
+                        forumIds.put("joinedForumIds", joinedForumList);
+                        forumIds.put("adminForumIds", adminForumList);
+                    }
+                    userData.set(forumIds, SetOptions.merge());
+                }
+            }
+        });
+
+        forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    Map<String, ArrayList<String>> memberIds = new HashMap<>();
+                    if (document.exists()) {
+                        ArrayList<String> memberList, moderatorList;
+                        memberList = (ArrayList<String>) document.get("memberIds");
+                        moderatorList = (ArrayList<String>) document.get("moderatorIds");
+
+                        if (memberList != null) {
+                            memberList.remove(forumId);
+                        }
+
+                        if (moderatorList != null) {
+                            moderatorList.remove(forumId);
+                        }
+
+                        memberIds.put("memberIds", memberList);
+                        memberIds.put("moderatorIds", moderatorList);
+                    }
+                    userData.set(memberIds, SetOptions.merge());
+                }
+            }
+        });
+    }
+
+    private void promoteToModerator() {
+
     }
 
     private void setupList(ArrayList<Post> postList) {

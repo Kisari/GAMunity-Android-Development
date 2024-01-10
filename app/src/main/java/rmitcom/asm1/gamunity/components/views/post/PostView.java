@@ -13,12 +13,16 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -35,6 +39,7 @@ import java.util.Map;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.CommentListAdapter;
+import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
@@ -48,16 +53,20 @@ public class PostView extends AppCompatActivity {
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
     private String postId, forumId, ownerId,
             postUsernameStr, postTimestampStr, postUpdateTimestampStr,
-            postTitleStr, postDescriptionStr;
+            postTitleStr, postDescriptionStr, postUserImageUri, postImageUri;
     private int noLike, noDislike, noComment;
     private Date postTimestampDate, postUpdateTimestampDate;
-    private ArrayList<String> memberIds, moderatorIds;
-    private ArrayList<String> commentIds, commentLikeIds, commentDislikeIds, replyCommentIds;
+    private ArrayList<String> memberIds, moderatorIds, postLikeIds, postDislikeIds, postCommentIds;
+    private ArrayList<String> commentLikeIds, commentDislikeIds, replyCommentIds;
     private ArrayList<Comment> commentList;
     private TextView postUsername, postTimestamp, postTitle, postDescription, moreOptionButton,
             postLike, postDislike, postComment, postLikeTrue, postDislikeTrue,
             addCommentButton, returnBackButton;
     private ListView commentListView;
+    private RelativeLayout postPicture;
+    private ProgressBar userProgressBar, postProgressBar;
+    private ImageView postImage;
+    private ShapeableImageView postUserImage;
     private CommentListAdapter adapter;
     private Constant constant = new Constant();
 
@@ -91,6 +100,12 @@ public class PostView extends AppCompatActivity {
         postLikeTrue = findViewById(R.id.postLikeTrue);
         postDislikeTrue = findViewById(R.id.postDislikeTrue);
 
+        postPicture = findViewById(R.id.postPicture);
+        postImage  =findViewById(R.id.postImage);
+        postUserImage = findViewById(R.id.postUserImage);
+        userProgressBar = findViewById(R.id.postProgressBar1);
+        postProgressBar = findViewById(R.id.postProgressBar2);
+
         addCommentButton = findViewById(R.id.postAddComment);
         commentListView = findViewById(R.id.postCommentList);
 
@@ -112,12 +127,22 @@ public class PostView extends AppCompatActivity {
                 DocumentSnapshot document = task.getResult();
 
                 if (document.exists()) {
-                    ownerId = (String) document.get("chiefAdminId");
+                    ownerId = (String) document.get("ownerId");
                     postTitleStr = (String) document.get("title");
                     postDescriptionStr = (String) document.get("description");
                     postTimestampStr = (String) document.get("date");
                     postUpdateTimestampStr = (String) document.get("updateDate");
-                    Log.i(TAG, "postTimestampStr: " + postTimestampStr);
+                    postImageUri = document.getString("image");
+
+                    if(postImageUri != null) {
+                        try {
+                            postPicture.setVisibility(View.VISIBLE);
+                            new AsyncImage(postImage, postProgressBar).loadImage(postImageUri);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
 
                     String format = "dd/MM/yyyy HH:mm";
                     SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
@@ -157,24 +182,43 @@ public class PostView extends AppCompatActivity {
                         noComment = (int) document.get("noComment");
                     }
 
-                    commentIds = (ArrayList<String>) document.get("commentIds");
+                    if (document.get("likeIds") != null) {
+                        postLikeIds = (ArrayList<String>) document.get("likeIds");
+                    } else {
+                        postLikeIds = new ArrayList<>();
+                    }
 
-                    displayList(commentIds);
+                    if (document.get("dislikeIds") != null) {
+                        postDislikeIds = (ArrayList<String>) document.get("dislikeIds");
+                    } else {
+                        postDislikeIds = new ArrayList<>();
+                    }
 
-                    db.collection("users").document(ownerId).get()
-                    .addOnCompleteListener(task1 -> {
-                        if (task1.isSuccessful()) {
-                            DocumentSnapshot document1 = task1.getResult();
+                    if (document.get("commentIds") != null) {
+                        postCommentIds = (ArrayList<String>) document.get("commentIds");
+                        displayList(postCommentIds);
 
-                            if (document1.exists()) {
-                                postUsernameStr = (String) document1.get("name");
+                    } else {
+                        postCommentIds = new ArrayList<>();
+                    }
 
-                                if (postUsernameStr != null) {
-                                    postUsername.setText(postUsernameStr);
+                    if (ownerId != null) {
+                        db.collection("users").document(ownerId).get()
+                            .addOnCompleteListener(userTask -> {
+                                if (userTask.isSuccessful()) {
+                                    DocumentSnapshot userDocument = userTask.getResult();
+
+                                    if (userDocument.exists()) {
+                                        postUsernameStr = (String) userDocument.get("name");
+                                        postUserImageUri = userDocument.getString("image");
+
+                                        if (postUsernameStr != null) {
+                                            postUsername.setText(postUsernameStr);
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    });
+                            });
+                    }
 
                     if (postTitleStr != null) {
                         postTitle.setText(postTitleStr);
@@ -191,11 +235,10 @@ public class PostView extends AppCompatActivity {
                     }
 
                     if (postUpdateTimestampStr != null) {
-                        timestamp.append("(Edited: ").append(postUpdateTimestampStr).append(")");
+                        timestamp.append(" (Edited: ").append(postUpdateTimestampStr).append(")");
                     }
 
                     postTimestamp.setText(timestamp);
-
 
                 } else {
                     Log.d(TAG, "No such document");
@@ -221,7 +264,7 @@ public class PostView extends AppCompatActivity {
                             DocumentSnapshot document = task.getResult();
 
                             String commentDescription, commentOwnerId, timestampStr, updateTimestampStr, repliedCommentId;
-                            long noLike, noDislike, noComment;
+                            int noLike, noDislike, noComment;
                             boolean isReply;
                             Date timestamp = new Date(), updateTimeStamp = new Date();
 
@@ -231,9 +274,9 @@ public class PostView extends AppCompatActivity {
 
                                 repliedCommentId = (String) document.get("repliedCommentId");
 
-                                noLike = (long) document.get("noLike");
-                                noDislike = (long) document.get("noDislike");
-                                noComment = (long) document.get("noComment");
+                                noLike = (int) document.get("noLike");
+                                noDislike = (int) document.get("noDislike");
+                                noComment = (int) document.get("noComment");
 
                                 commentLikeIds = (ArrayList<String>) document.get("likeIds");
                                 commentDislikeIds = (ArrayList<String>) document.get("dislikeIds");
@@ -241,7 +284,6 @@ public class PostView extends AppCompatActivity {
 
                                 timestampStr = (String) document.get("date");
                                 updateTimestampStr = (String) document.get("updateDate");
-
 
                                 if (timestampStr != null) {
                                     try {
@@ -261,11 +303,7 @@ public class PostView extends AppCompatActivity {
                                     updateTimeStamp = null;
                                 }
 
-                                if (repliedCommentId != null) {
-                                    isReply = true;
-                                } else {
-                                    isReply = false;
-                                }
+                                isReply = repliedCommentId != null;
 
                                 Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, commentLikeIds, commentDislikeIds, replyCommentIds, isReply, noLike, noDislike, noComment);
                                 commentList.add(comment);
@@ -344,7 +382,7 @@ public class PostView extends AppCompatActivity {
                         if (itemId == R.id.postUpdate) {
                             updatePost();
                         } else if (itemId == R.id.postDelete) {
-
+                            deletePostAlert();
                         } else if (itemId == R.id.postBanUser) {
 
                         } else if (itemId == R.id.postReport) {
@@ -395,6 +433,7 @@ public class PostView extends AppCompatActivity {
                 public void onClick(View v) {
                     deletePost(postId);
                     dialog.dismiss();
+                    finish();
                 }
             });
 
@@ -402,6 +441,7 @@ public class PostView extends AppCompatActivity {
             Log.e("Post", "getView: ", e);
             e.printStackTrace();
         }
+
     }
 
     public void deletePost(String postId) {

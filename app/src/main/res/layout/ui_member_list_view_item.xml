@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1"
+        android:orientation="horizontal">
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="81dp"
+            android:layout_weight="0.2">
+            <ProgressBar
+                android:id="@+id/memberProgressBar1"
+                android:indeterminateTint="#4900FF"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="10dp"
+                android:visibility="visible"/>
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/memberUserProfile"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:strokeWidth="3dp"
+                android:padding="5dp"
+                app:strokeColor="@android:color/darker_gray"
+                app:shapeAppearanceOverlay="@style/circleImageView"
+                tools:ignore="ImageContrastCheck"/>
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/userName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.7"
+            android:padding="5dp"
+            android:textSize="20sp"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.1"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:drawableStart="@drawable/checkbox_selector"/>
+    </LinearLayout>
+
+</RelativeLayout>

@@ -144,13 +144,25 @@
         android:backgroundTint="#757575"
         android:text="@string/owned"
         android:textColor="#ffffff" />
-    <TextView
-        android:id="@+id/forumMoreOption"
+
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/forumTop"
-        android:layout_alignParentEnd="true"
-        android:drawableEnd="@drawable/more_option_icon"/>
+        android:layout_alignParentEnd="true">
+        <TextView
+            android:id="@+id/forumMoreOption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableEnd="@drawable/more_option_icon"
+            android:visibility="gone"/>
+        <TextView
+            android:id="@+id/forumMoreInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableEnd="@drawable/more_info_icon"
+            android:visibility="visible"/>
+    </RelativeLayout>
 
     <ImageButton
         android:id="@+id/forumAddPost"

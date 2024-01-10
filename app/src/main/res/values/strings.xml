@@ -22,13 +22,10 @@
     <string name="owned">Owned</string>
     <string name="cancel">Cancel</string>
     <string name="unjoin">Unjoin</string>
-<<<<<<< HEAD
     <string name="add_post_description">Description</string>
     <string name="title">Title</string>
     <string name="category">Category</string>
     <string name="edit_forum">Edit Forum</string>
     <string name="member">Member</string>
-=======
     <string name="notification_chanel">Notification Chanel</string>
->>>>>>> a7e9952c293a6983bea3f223725ee3fcf065c391
 </resources>

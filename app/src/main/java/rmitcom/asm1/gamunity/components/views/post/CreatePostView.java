@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -30,6 +31,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -45,6 +47,7 @@ import rmitcom.asm1.gamunity.model.Constant;
 
 public class CreatePostView extends AppCompatActivity {
     private final String TAG = "Add Post";
+    private WeakReference<Activity> activityReference;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
@@ -53,7 +56,7 @@ public class CreatePostView extends AppCompatActivity {
     //    private String forumId = "IYvjtX2OyUr5C4DDWS28";
     private String forumId;
 //    private String userId = "testUser1";
-    private String title, description, date;
+    private String title, description, date, imageUri;
     private ArrayList<String> memberIds, moderatorIds;
     private TextView returnBackButton, addImageButton, createPostButton;
     private EditText inputPostTitle, inputPostDescription;
@@ -74,7 +77,7 @@ public class CreatePostView extends AppCompatActivity {
         if (getIntent != null) {
             forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
             forumData = db.collection("FORUMS").document(forumId);
-            userData = db.collection("USERS").document(userId);
+            userData = db.collection("users").document(userId);
         }
 
         inputPostTitle = findViewById(R.id.addPostTitle);
@@ -129,33 +132,42 @@ public class CreatePostView extends AppCompatActivity {
     }
 
     private void uploadPostImage(Uri submitFilePath) {
-        if(submitFilePath != null) {
+        if (submitFilePath != null) {
+            activityReference = new WeakReference<>(this);
+
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading post image...");
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference();
-            storageRef.child("images/"+ UUID.randomUUID().toString());
+            String randomId = UUID.randomUUID().toString();
+            Log.i(TAG, "uploadPostImage - randomId: " + randomId);
+            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+
             storageRef.putFile(submitFilePath)
-            .addOnSuccessListener(taskSnapshot -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+                    .addOnSuccessListener(taskSnapshot -> {
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
-                storageRef.getDownloadUrl().addOnCompleteListener(uri -> {
-                    postImageFilePath = uri.getResult();
+                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            postImageFilePath = uri;
+                            imageUri = postImageFilePath.toString();
+                            addDataToFirebase();
+                            Log.i(TAG, "uploadPostImage - postImageFilePath: " + postImageFilePath);
+                        });
 
-                });
-
-            }).addOnFailureListener(e -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
-
-            }).addOnProgressListener(taskSnapshot -> {
-                double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
-                        .getTotalByteCount());
-                progressDialog.setMessage("Uploaded "+(int)progress+"%");
-
-            });
+                    }).addOnFailureListener(e -> {
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
+                    }).addOnProgressListener(taskSnapshot -> {
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                        progressDialog.setMessage("Uploaded " + (int) progress + "%");
+                    });
         }
     }
 
@@ -182,8 +194,11 @@ public class CreatePostView extends AppCompatActivity {
                 date = sdf.format(calendar.getTime());
                 Log.i(TAG, "onClick - date: " + date);
 
-                uploadPostImage(postImageFilePath);
-                addDataToFirebase();
+                if (postImageFilePath != null) {
+                    uploadPostImage(postImageFilePath);
+                } else {
+                    addDataToFirebase();
+                }
             }
         });
     }
@@ -198,7 +213,7 @@ public class CreatePostView extends AppCompatActivity {
         data.put("date", date);
 
         if (postImageFilePath != null) {
-            data.put("image", postImageFilePath.toString());
+            data.put("image", imageUri);
         }
 
         db.collection("POSTS").add(data)

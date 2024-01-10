@@ -97,12 +97,19 @@ public class PostListAdapter extends ArrayAdapter<Post> {
             dislike.setText((int) currPost.getNoDislike() + "");
             comment.setText((int) currPost.getNoComment() + "");
 
-            Date timestampDate = currPost.getTimestamp();
+            Date timestampDate = currPost.getTimestamp(), updateTimestampDate = currPost.getUpdateTimestamp();
+            StringBuilder timestampStr = new StringBuilder();
+
             if (timestampDate != null) {
-                timestamp.setText(sdf.format(timestampDate));
-            } else {
-                timestamp.setText("N/A");  // Or set it to some default value
+                timestampStr.append(sdf.format(timestampDate));
             }
+
+            if (updateTimestampDate != null) {
+                timestampStr.append(" (Edited: ").append(sdf.format(updateTimestampDate)).append(")");
+            }
+
+            timestamp.setText(timestampStr);
+
 
             String ownerId = currPost.getOwnerId();
             Log.i("TAG", "ownerId: " + ownerId);
@@ -130,7 +137,7 @@ public class PostListAdapter extends ArrayAdapter<Post> {
             public void onClick(View v) {
                 Intent intent = new Intent(getContext(), PostView.class);
                 if (currPost != null) {
-                    intent.putExtra("postId", postId);
+                    intent.putExtra("postId", currPost.getPostId());
                     intent.putExtra("forumId", currPost.getForumId());
                 }
                 getContext().startActivity(intent);

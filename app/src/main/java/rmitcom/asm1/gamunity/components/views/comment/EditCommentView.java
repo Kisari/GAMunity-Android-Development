@@ -164,31 +164,27 @@ public class EditCommentView extends AppCompatActivity {
     private void uploadCommentImage(Uri submitFilePath) {
         if(submitFilePath != null) {
             final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading comment image...");
+            progressDialog.setTitle("Uploading post image...");
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference();
-            storageRef.child("images/"+ UUID.randomUUID().toString());
+            StorageReference storageRef = storage.getReference().child("images/" + UUID.randomUUID().toString());
+
             storageRef.putFile(submitFilePath)
-            .addOnSuccessListener(taskSnapshot -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+                    .addOnSuccessListener(taskSnapshot -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
-                storageRef.getDownloadUrl().addOnCompleteListener(uri -> {
-                    commentImageFilePath = uri.getResult();
+                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            commentImageFilePath = uri;
+                        });
 
-                });
-
-            }).addOnFailureListener(e -> {
-                progressDialog.dismiss();
-                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
-
-            }).addOnProgressListener(taskSnapshot -> {
-                double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
-                        .getTotalByteCount());
-                progressDialog.setMessage("Uploaded "+(int)progress+"%");
-
-            });
+                    }).addOnFailureListener(e -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+                    }).addOnProgressListener(taskSnapshot -> {
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                        progressDialog.setMessage("Uploaded " + (int) progress + "%");
+                    });
 
             String pattern = "images%2F(.*?)\\?";
 
