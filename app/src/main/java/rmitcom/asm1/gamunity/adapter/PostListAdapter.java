@@ -7,6 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,17 +18,23 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.model.Post;
 
@@ -66,6 +75,10 @@ public class PostListAdapter extends ArrayAdapter<Post> {
         View listItem = convertView;
 
         TextView title, username, timestamp, like, dislike, comment;
+        RelativeLayout imageLayout;
+        ProgressBar userProgressBar, postProgressBar;
+        ImageView postImage;
+        ShapeableImageView userImage;
 
         if (listItem == null) {
             LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -85,6 +98,11 @@ public class PostListAdapter extends ArrayAdapter<Post> {
         dislike = listItem.findViewById(R.id.postTabDislike);
         comment = listItem.findViewById(R.id.postTabComment);
 
+        imageLayout = listItem.findViewById(R.id.postTabPicture);
+        userProgressBar = listItem.findViewById(R.id.postTabProgressBar1);
+        postProgressBar = listItem.findViewById(R.id.postTabProgressBar2);
+        postImage =listItem.findViewById(R.id.postTabImage);
+        userImage = listItem.findViewById(R.id.postTabUserProfile);
 
         if (currPost != null) {
             String format = "dd/MM/yyyy HH:mm";
@@ -110,6 +128,18 @@ public class PostListAdapter extends ArrayAdapter<Post> {
 
             timestamp.setText(timestampStr);
 
+            String postImgUri = currPost.getImgUri();
+            Log.i("Post Tab", "getView - : " + postImgUri);
+            if (postImgUri != null) {
+                try {
+                    imageLayout.setVisibility(View.VISIBLE);
+                    new AsyncImage(postImage, postProgressBar).loadImage(postImgUri);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                imageLayout.setVisibility(View.GONE);
+            }
 
             String ownerId = currPost.getOwnerId();
             Log.i("TAG", "ownerId: " + ownerId);
@@ -123,8 +153,18 @@ public class PostListAdapter extends ArrayAdapter<Post> {
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = task.getResult();
 
+                            String userImgUri;
                             if (document != null) {
                                 username.setText((String) document.get("name"));
+
+                                userImgUri = document.getString("image");
+                                if (userImgUri != null) {
+                                    try {
+                                        new AsyncImage(userImage, userProgressBar).loadImage(userImgUri);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
                         }
                     }
@@ -146,9 +186,4 @@ public class PostListAdapter extends ArrayAdapter<Post> {
 
         return listItem;
     }
-
-//    public void deletePost() {
-//        PostView postView = new PostView();
-//        postView.deletePost(postId);
-//    }
 }

@@ -15,6 +15,7 @@ public class Post implements Serializable {
     private String description;
     private Date timestamp;
     private Date updateTimestamp;
+    private String imgUri;
     private ArrayList<String> commentIds, likeIds, dislikeIds;
     private long noLike = 0, noDislike = 0, noComment = 0;
 
@@ -53,7 +54,7 @@ public class Post implements Serializable {
 //        this.noComment = noComment;
 //    }
 
-    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp, ArrayList<String> likeIds, ArrayList<String> dislikeIds, ArrayList<String> commentIds, long noLike, long noDislike, long noComment) {
+    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> commentIds, ArrayList<String> likeIds, ArrayList<String> dislikeIds, long noLike, long noDislike, long noComment) {
         this.postId = postId;
         this.ownerId = ownerId;
         this.forumId = forumId;
@@ -61,6 +62,7 @@ public class Post implements Serializable {
         this.description = description;
         this.timestamp = timestamp;
         this.updateTimestamp = updateTimestamp;
+        this.imgUri = imgUri;
         this.commentIds = commentIds;
         this.likeIds = likeIds;
         this.dislikeIds = dislikeIds;
@@ -123,6 +125,14 @@ public class Post implements Serializable {
 
     public void setUpdateTimestamp(Date updateTimestamp) {
         this.updateTimestamp = updateTimestamp;
+    }
+
+    public String getImgUri() {
+        return imgUri;
+    }
+
+    public void setImgUri(String imgUri) {
+        this.imgUri = imgUri;
     }
 
     public long getNoLike() {

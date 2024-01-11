@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -34,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -54,10 +56,11 @@ public class ForumView extends AppCompatActivity {
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-    private String forumId = "ZZ7NRNW83lsjBKswutHj", chiefAdminId, forumTitleStr, forumBackgroundUri, forumIconUri;
+    private String forumId = "Z6wihCA9Yo4jVb4806ke", chiefAdminId,
+            forumTitleStr, forumBackgroundUri, forumIconUri;
     private ArrayList<String> memberIds, moderatorIds, postIds;
     private ArrayList<Post> postList;
-    private TextView forumTitle, moreOptionButton, returnBackButton;
+    private TextView forumTitle, moreOptionButton, moreInfoButton, returnBackButton;
     private ListView postListView;
     private ProgressBar backgroundProgressBar, iconProgressBar;
     private ImageView forumBackground;
@@ -85,8 +88,9 @@ public class ForumView extends AppCompatActivity {
         }
         Log.i(TAG, "forumId: " + forumId);
 
-        forumTitle = findViewById(R.id.forumTitle);
         moreOptionButton = findViewById(R.id.forumMoreOption);
+        moreInfoButton = findViewById(R.id.forumMoreInfo);
+        forumTitle = findViewById(R.id.forumTitle);
         addPostButton = findViewById(R.id.forumAddPost);
         postListView = findViewById(R.id.forumPostList);
         backgroundProgressBar = findViewById(R.id.forumProgress1);
@@ -107,6 +111,8 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void setForumData() {
+        postList = new ArrayList<>();
+
         forumData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
@@ -155,7 +161,6 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void displayList(ArrayList<String> postIds) {
-        postList = new ArrayList<>();
 //        int listLength = postIds.size();
 //        final int[] counter = {0};
 
@@ -169,7 +174,7 @@ public class ForumView extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
 
-                        String postTitle, postDescription, postOwnerId, timestampStr, updateTimestampStr;
+                        String postTitle, postDescription, postOwnerId, timestampStr, updateTimestampStr, imgUri;
                         long noLike, noDislike, noComment;
                         Date timestamp = new Date(), updateTimestamp = new Date();
                         ArrayList<String> postLikeIds, postDislikeIds, postCommentIds;
@@ -205,6 +210,12 @@ public class ForumView extends AppCompatActivity {
                                 updateTimestamp = null;
                             }
 
+                            if (document.getString("image") != null) {
+                                imgUri = document.getString("image");
+                            } else {
+                                imgUri = null;
+                            }
+
                             if (document.get("noLike") == null) {
                                 noLike = 0;
                             } else {
@@ -224,7 +235,7 @@ public class ForumView extends AppCompatActivity {
                             }
 
                             Log.i(TAG, "onComplete - postId: " + postId);
-                            Post post = new Post(postId, postOwnerId, forumId, postTitle, postDescription, timestamp, updateTimestamp, postCommentIds, postLikeIds, postDislikeIds, noLike, noDislike, noComment);
+                            Post post = new Post(postId, postOwnerId, forumId, postTitle, postDescription, timestamp, updateTimestamp, imgUri, postCommentIds, postLikeIds, postDislikeIds, noLike, noDislike, noComment);
                             postList.add(post);
 
 //                            counter[0]++;
@@ -253,7 +264,7 @@ public class ForumView extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        String postId, postTitle, postDescription, postTimestamp;
+        String postId, postTitle, postDescription, postTimestamp, postImgUri;
         if (requestCode == constant.CREATE && resultCode == RESULT_OK) {
             if (data != null) {
 
@@ -275,9 +286,15 @@ public class ForumView extends AppCompatActivity {
                     }
                 }
 
+                if ((String) data.getExtras().get("image") != null) {
+                    postImgUri = (String) data.getExtras().get("image");
+                } else {
+                    postImgUri = null;
+                }
+
                 ArrayList<String> postLikeIds = new ArrayList<>(), postDislikeIds = new ArrayList<>(), postCommentIds = new ArrayList<>();
 
-                Post post = new Post(postId, userId, forumId, postTitle, postDescription, timestamp, null, postLikeIds, postDislikeIds, postCommentIds,0, 0, 0);
+                Post post = new Post(postId, userId, forumId, postTitle, postDescription, timestamp, null, postImgUri, postLikeIds, postDislikeIds, postCommentIds,0, 0, 0);
                 postList.add(post);
             }
             setupList(postList);
@@ -442,11 +459,15 @@ public class ForumView extends AppCompatActivity {
         });
 
         if (postIds != null) {
-            for (String id: postIds) {
-                PostView postView = new PostView();
-                postView.deletePost(id);
+            for (String id : postIds) {
+                if (id != null) {
+                    PostView postView = new PostView();
+                    postView.deletePostFromForum(id, getBaseContext());
+                }
             }
         }
+
+        forumData.delete();
     }
 
     private void setButton() {
@@ -455,15 +476,27 @@ public class ForumView extends AppCompatActivity {
             joinButton.setVisibility(View.GONE);
             joinedButton.setVisibility(View.GONE);
 
+            moreInfoButton.setVisibility(View.GONE);
+            moreOptionButton.setVisibility(View.VISIBLE);
+            addPostButton.setVisibility(View.VISIBLE);
+
         } else if (memberIds.contains(userId) || moderatorIds.contains(userId)) {
             ownedButton.setVisibility(View.GONE);
             joinButton.setVisibility(View.GONE);
             joinedButton.setVisibility(View.VISIBLE);
 
+            moreInfoButton.setVisibility(View.GONE);
+            moreOptionButton.setVisibility(View.VISIBLE);
+            addPostButton.setVisibility(View.VISIBLE);
+
         } else {
             ownedButton.setVisibility(View.GONE);
             joinButton.setVisibility(View.VISIBLE);
             joinedButton.setVisibility(View.GONE);
+
+            moreInfoButton.setVisibility(View.VISIBLE);
+            moreOptionButton.setVisibility(View.GONE);
+            addPostButton.setVisibility(View.GONE);
         }
 
         joinForum();

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -27,6 +28,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,6 +44,7 @@ import rmitcom.asm1.gamunity.model.Constant;
 
 public class CreateCommentForm extends AppCompatActivity {
     private final String TAG = "Add Comment";
+    private WeakReference<Activity> activityReference;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
@@ -50,7 +53,7 @@ public class CreateCommentForm extends AppCompatActivity {
     //    private String forumId = "IYvjtX2OyUr5C4DDWS28";
     private String postId;
 //    private String userId = "testUser1";
-    private String description, date, commentRepliedId;
+    private String description, date, commentRepliedId, imageUri;
     private ArrayList<String> memberIds, moderatorIds;
     private TextView returnBackButton, addImageButton, createCommentButton;
     private EditText inputCommentDescription;
@@ -72,8 +75,10 @@ public class CreateCommentForm extends AppCompatActivity {
         if (getIntent != null) {
             postId = (String) Objects.requireNonNull(getIntent.getExtras()).get("postId");
             postData = db.collection("POSTS").document(postId);
-//            userData = db.collection("USERS").document(userId);
-            isReply = (boolean) getIntent.getExtras().get("isReply");
+//            userData = db.collection("users").document(userId);
+            isReply = getIntent.getExtras().get("isReply") != null;
+
+
             if (isReply) {
                 commentRepliedId = (String) getIntent.getExtras().get("commentId");
             }
@@ -85,8 +90,8 @@ public class CreateCommentForm extends AppCompatActivity {
         commentImage = findViewById(R.id.addCommentPicture);
         returnBackButton = findViewById(R.id.returnBack);
 
-        addComment();
         addImage();
+        addComment();
         returnToPreviousPage();
     }
 
@@ -129,24 +134,37 @@ public class CreateCommentForm extends AppCompatActivity {
 
     private void uploadCommentImage(Uri submitFilePath) {
         if(submitFilePath != null) {
+            activityReference = new WeakReference<>(this);
+
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading post image...");
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference().child("images/" + UUID.randomUUID().toString());
+            String randomId = UUID.randomUUID().toString();
+            Log.i(TAG, "uploadCommentImage - randomId: " + randomId);
+            StorageReference storageRef = storage.getReference().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
                         storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                             commentImageFilePath = uri;
+                            imageUri = commentImageFilePath.toString();
+                            addDataToFirebase();
+                            Log.i(TAG, "uploadCommentImage - commentImageFilePath: " + commentImageFilePath);
                         });
 
                     }).addOnFailureListener(e -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
                     }).addOnProgressListener(taskSnapshot -> {
                         double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
                         progressDialog.setMessage("Uploaded " + (int) progress + "%");
@@ -171,8 +189,11 @@ public class CreateCommentForm extends AppCompatActivity {
                 date = sdf.format(calendar.getTime());
                 Log.i(TAG, "onClick - date: " + date);
 
-                uploadCommentImage(commentImageFilePath);
-                addDataToFirebase();
+                if (commentImageFilePath != null) {
+                    uploadCommentImage(commentImageFilePath);
+                } else {
+                    addDataToFirebase();
+                }
             }
 
         });
@@ -198,7 +219,7 @@ public class CreateCommentForm extends AppCompatActivity {
                 .addOnSuccessListener(documentReference -> {
                     String commentId = documentReference.getId();
 
-                    db.collection("USERS").document(userId)
+                    db.collection("users").document(userId)
                             .update("ownedCommentIds", FieldValue.arrayUnion(postId));
                     db.collection("POSTS").document(postId)
                             .update("commentIds", FieldValue.arrayUnion(commentId));
@@ -212,6 +233,7 @@ public class CreateCommentForm extends AppCompatActivity {
                     commentIntent.putExtra("commentId", commentId);
                     commentIntent.putExtra("description", description);
                     commentIntent.putExtra("date", date);
+                    commentIntent.putExtra("image", imageUri);
                     setResult(RESULT_OK, commentIntent);
                     finish();
                 }).addOnFailureListener(e -> Log.w(TAG, "Error adding document", e));

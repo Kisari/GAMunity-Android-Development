@@ -230,6 +230,7 @@ public class CreatePostView extends AppCompatActivity {
                     postIntent.putExtra("title", title);
                     postIntent.putExtra("description", description);
                     postIntent.putExtra("date", date);
+                    postIntent.putExtra("image", imageUri);
                     setResult(RESULT_OK, postIntent);
                     finish();
                 }).addOnFailureListener(e -> Log.w(TAG, "Error adding document", e));

@@ -11,8 +11,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,20 +23,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.components.views.comment.EditCommentView;
 import rmitcom.asm1.gamunity.model.Comment;
@@ -43,14 +55,23 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
-    private Comment currComment;
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
     private String postId, commentId, userIds, ownerId;
-    private DocumentReference userData, postData;
+    private DocumentReference userData, postData, commentData;
     private TextView description, username, timestamp, like, dislike, comment, commentReply, moreOptionButton;
     private ListView replyCommentListView;
-    private ArrayList<Comment> replyCommentList;
+    private ArrayList<Comment> commentList, replyCommentList;
     private boolean isReply;
+    private RelativeLayout imageLayout;
+    private ProgressBar userProgressBar, postProgressBar;
+    private ImageView postImage;
+    private ShapeableImageView userImage;
+    private CommentDeleteListener commentDeleteListener;
     private Constant constant = new Constant();
+
+    public interface CommentDeleteListener {
+        void onCommentDeleted();
+    }
 
     public CommentListAdapter(@NonNull Context context, int resource) {
         super(context, resource);
@@ -75,6 +96,10 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
     public CommentListAdapter(@NonNull Context context, int resource, int textViewResourceId, @NonNull List<Comment> objects) {
         super(context, resource, textViewResourceId, objects);
     }
+    public void setCommentDeleteListener(CommentDeleteListener listener) {
+        this.commentDeleteListener = listener;
+    }
+
 
     @NonNull
     @Override
@@ -90,7 +115,7 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
             }
         }
 
-        currComment = getItem(position);
+        Comment currComment = getItem(position);
 
         description = listItem.findViewById(R.id.commentTabDescription);
         username = listItem.findViewById(R.id.commentTabUsername);
@@ -104,14 +129,12 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
 
         replyCommentListView = listItem.findViewById(R.id.commentTabList);
 
-        setCommentData();
-        replyComment();
-        moreOption();
+        imageLayout = listItem.findViewById(R.id.commentTabPicture);
+        userProgressBar = listItem.findViewById(R.id.commentTabProgressBar1);
+        postProgressBar = listItem.findViewById(R.id.commentTabProgressBar2);
+        postImage =listItem.findViewById(R.id.commentTabImage);
+        userImage = listItem.findViewById(R.id.commentTabUserProfile);
 
-        return listItem;
-    }
-
-    private void setCommentData() {
         if (currComment != null) {
             String format = "dd/MM/yyyy HH:mm";
             SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
@@ -121,51 +144,95 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
             dislike.setText((int) currComment.getNoDislike() + "");
             comment.setText((int) currComment.getNoComment() + "");
 
-            if (currComment.getTimestamp() != null) {
-                timestamp.setText(sdf.format(currComment.getTimestamp()));
-            } else {
-                timestamp.setText("N/A");  // Or set it to some default value
+            Date timestampDate = currComment.getTimestamp(), updateTimestampDate = currComment.getUpdateTimestamp();
+            StringBuilder timestampStr = new StringBuilder();
+
+            if (timestampDate != null) {
+                timestampStr.append(sdf.format(timestampDate));
             }
 
+            if (updateTimestampDate != null) {
+                timestampStr.append(" (Edited: ").append(sdf.format(updateTimestampDate)).append(")");
+            }
+
+            timestamp.setText(timestampStr);
+
+            String postImgUri = currComment.getImgUri();
+            Log.i("Post Tab", "getView - : " + postImgUri);
+            if (postImgUri != null) {
+                try {
+                    imageLayout.setVisibility(View.VISIBLE);
+                    new AsyncImage(postImage, postProgressBar).loadImage(postImgUri);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                imageLayout.setVisibility(View.GONE);
+            }
+
+            commentId = currComment.getCommentId();
+            commentData = db.collection("COMMENTS").document(commentId);
 
             postId = currComment.getPostId();
             postData = db.collection("POSTS").document(postId);
 
             ownerId = currComment.getOwnerId();
-            userData = db.collection("USERS").document(ownerId);
+            Log.i("Comment Tab", "setCommentData - ownerId: " + ownerId);
+            userData = db.collection("users").document(ownerId);
 
-            userData.get().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+            if (ownerId != null) {
+                userData.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
 
-                    if (document != null) {
-                        username.setText((String) document.get("username"));
+                        String userImgUri;
+                        if (document != null) {
+                            username.setText((String) document.get("name"));
+
+                            userImgUri = document.getString("image");
+                            if (userImgUri != null) {
+                                try {
+                                    new AsyncImage(userImage, userProgressBar).loadImage(userImgUri);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
                     }
-                }
-            });
-        }
-    }
+                });
+            }
 
-    private void replyComment() {
-        commentReply.setOnClickListener(new View.OnClickListener() {
+            moreOption(currComment);
+        }
+
+        listItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), CreateCommentForm.class);
-                if (currComment != null) {
-                    intent.putExtra("commentId", currComment.getCommentId());
-                    intent.putExtra("postId", currComment.getPostId());
-                    intent.putExtra("isReply", true);
-                }
-                ((Activity) getContext()).startActivityForResult(intent, constant.CREATE);
+                Log.i("TAG", "onClick: " + currComment.getCommentId());
             }
         });
+
+        return listItem;
     }
 
-    public void onReplyCommentResult() {
+//    private void replyComment() {
+//        commentReply.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(getContext(), CreateCommentForm.class);
+//                if (currComment != null) {
+//                    intent.putExtra("commentId", currComment.getCommentId());
+//                    intent.putExtra("postId", currComment.getPostId());
+//                    intent.putExtra("isReply", true);
+//                }
+//                ((Activity) getContext()).startActivityForResult(intent, constant.CREATE);
+//            }
+//        });
+//    }
 
-    }
+    private void moreOption(Comment currComment) {
+        Log.i("TAG", "moreOption: " + currComment.getCommentId());
 
-    private void moreOption() {
         PopupMenu popupMenu = new PopupMenu(getContext(), moreOptionButton);
         popupMenu.getMenuInflater().inflate(R.menu.comment_more_option, popupMenu.getMenu());
 
@@ -183,9 +250,9 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
                 int itemId = item.getItemId();
 
                 if (itemId == R.id.commentUpdate) {
-                    updateComment();
+                    updateComment(currComment);
                 } else if (itemId == R.id.commentDelete) {
-                    deleteCommentAlert();
+                    deleteCommentAlert(currComment);
                 } else if (itemId == R.id.commentBanUser) {
 
                 } else if (itemId == R.id.commentReport) {
@@ -199,7 +266,7 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
         });
     }
 
-    private void updateComment() {
+    private void updateComment(Comment currComment) {
         Intent updateIntent = new Intent(getContext(), EditCommentView.class);
         if (currComment != null) {
             updateIntent.putExtra("commentId", currComment.getCommentId());
@@ -210,7 +277,7 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
     }
 
     @SuppressLint({"InflateParams", "SetTextI18n"})
-    private void deleteCommentAlert() {
+    private void deleteCommentAlert(Comment currComment) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View deleteDialogLayout = inflater.inflate(R.layout.ui_delete_dialog_view, null);
@@ -228,7 +295,12 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
             deleteButton.setOnClickListener(v -> {
+                String commentId = currComment.getCommentId();
                 deleteComment(commentId);
+
+                if (commentDeleteListener != null) {
+                    commentDeleteListener.onCommentDeleted();
+                }
                 dialog.dismiss();
             });
 
@@ -240,6 +312,8 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
     }
 
     public void deleteComment(String commentId) {
+        Log.i("Comment Tab", "deleteComment - commentId: " + commentId);
+
         DocumentReference ownerData = db.collection("users").document(ownerId);
         ownerData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -258,7 +332,6 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
             }
         });
 
-        DocumentReference postData = db.collection("POSTS").document(postId);
         postData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
@@ -276,30 +349,126 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
             }
         });
 
-        if (isReply) {
-            db.collection("COMMENTS").document(commentId).get().addOnCompleteListener(task -> {
+//        if (isReply) {
+//            dcommentData.get().addOnCompleteListener(task -> {
+//                if (task.isSuccessful()) {
+//                    DocumentSnapshot document = task.getResult();
+//                    Map<String, ArrayList<String>> replyIds = new HashMap<>();
+//
+//                    if (document.exists()) {
+//                        ArrayList<String> replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
+//
+//                        if (replyCommentIds != null) {
+//                            replyCommentIds.remove(commentId);
+//                            replyIds.put("replyCommentIds", replyCommentIds);
+//                        }
+//                    }
+//                    db.collection("COMMENTS").document(commentId)
+//                            .set(replyIds, SetOptions.merge());
+//                }
+//            });
+//        }
+
+        DocumentReference commentData = db.collection("COMMENTS").document(commentId);
+        commentData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
-                    Map<String, ArrayList<String>> replyIds = new HashMap<>();
 
                     if (document.exists()) {
-                        ArrayList<String> replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
+                        String imageUrl = document.getString("imageUrl");
 
-                        if (replyCommentIds != null) {
-                            replyCommentIds.remove(commentId);
-                            replyIds.put("replyCommentIds", replyCommentIds);
+                        if (imageUrl != null) {
+                            Log.i("Comment Tab", "imageUrl: " + imageUrl);
+
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(imageUrl);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+                                Log.i("Comment Tab", "oldUri: " + oldUri);
+
+                                // Create a reference to the old image and delete it
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Comment Tab", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Comment Tab", "Failed to delete old image: " + e.getMessage());
+                                });
+                            } else {
+                                Log.e("Comment Tab", "Regex pattern did not match imageUrl");
+                            }
                         }
+
+                        commentData.delete();
+
                     }
-                    db.collection("COMMENTS").document(commentId)
-                            .set(replyIds, SetOptions.merge());
+                }
+            }
+        });
+    }
+
+    public void deleteCommentFromForum(String commentId) {
+        if (commentId != null) {
+            DocumentReference commentData = db.collection("COMMENTS").document(commentId);
+            commentData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        String ownerId, postId;
+                        if (document.exists()) {
+                            postId = document.getString("postId");
+                            ownerId = document.getString("ownerId");
+
+                            DocumentReference ownerData = db.collection("users").document(ownerId);
+                            ownerData.get().addOnCompleteListener(userTask -> {
+                                if (userTask.isSuccessful()) {
+                                    DocumentSnapshot userDocument = userTask.getResult();
+                                    Map<String, ArrayList<String>> userCommentIds = new HashMap<>();
+
+                                    if (userDocument.exists()) {
+                                        ArrayList<String> commentIds = (ArrayList<String>) userDocument.get("commentIds");
+
+                                        if (commentIds != null) {
+                                            commentIds.remove(commentId);
+                                            userCommentIds.put("commentIds", commentIds);
+                                        }
+                                    }
+                                    ownerData.set(userCommentIds, SetOptions.merge());
+                                }
+                            });
+
+                            DocumentReference postData = db.collection("POSTS").document(postId);
+                            postData.get().addOnCompleteListener(postTask -> {
+                                if (postTask.isSuccessful()) {
+                                    DocumentSnapshot postDocument = postTask.getResult();
+                                    Map<String, ArrayList<String>> postCommentIds = new HashMap<>();
+
+                                    if (postDocument.exists()) {
+                                        ArrayList<String> commentIds = (ArrayList<String>) postDocument.get("commentIds");
+
+                                        if (commentIds != null) {
+                                            commentIds.remove(commentId);
+                                            postCommentIds.put("commentIds", commentIds);
+                                        }
+                                    }
+                                    postData.set(postCommentIds, SetOptions.merge());
+                                }
+                            });
+                        }
+
+                        commentData.delete();
+
+                    }
                 }
             });
         }
-
-        db.collection("COMMENTS").document(commentId).delete();
     }
 
-    private void setReplyCommentList() {
-        CommentListAdapter adapter = new CommentListAdapter(getContext(), 0, replyCommentList);
-    }
+//    private void setReplyCommentList() {
+//        CommentListAdapter adapter = new CommentListAdapter(getContext(), 0, replyCommentList);
+//    }
 }

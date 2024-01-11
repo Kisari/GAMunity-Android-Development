@@ -11,6 +11,7 @@ public class Comment {
     private String repliedCommentId;
     private Date timestamp;
     private Date updateTimestamp;
+    private String imgUri;
     private ArrayList<String> likeIds, dislikeIds, replyCommentIds;
     private boolean isReply;
     private long noLike = 0;
@@ -61,7 +62,12 @@ public class Comment {
 //        this.isReply = isReply;
 //    }
 
-    public Comment(String commentId, String ownerId, String postId, String description, String repliedCommentId, Date timestamp, Date updateTimestamp, ArrayList<String> likeIds, ArrayList<String> dislikeIds, ArrayList<String> replyCommentIds, boolean isReply, long noLike, long noDislike, long noComment) {
+
+    public Comment(String commentId) {
+        this.commentId = commentId;
+    }
+
+    public Comment(String commentId, String ownerId, String postId, String description, String repliedCommentId, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> likeIds, ArrayList<String> dislikeIds, ArrayList<String> replyCommentIds, boolean isReply, long noLike, long noDislike, long noComment) {
         this.commentId = commentId;
         this.ownerId = ownerId;
         this.postId = postId;
@@ -69,6 +75,7 @@ public class Comment {
         this.repliedCommentId = repliedCommentId;
         this.timestamp = timestamp;
         this.updateTimestamp = updateTimestamp;
+        this.imgUri = imgUri;
         this.likeIds = likeIds;
         this.dislikeIds = dislikeIds;
         this.replyCommentIds = replyCommentIds;
@@ -132,6 +139,14 @@ public class Comment {
 
     public void setUpdateTimestamp(Date updateTimestamp) {
         this.updateTimestamp = updateTimestamp;
+    }
+
+    public String getImgUri() {
+        return imgUri;
+    }
+
+    public void setImgUri(String imgUri) {
+        this.imgUri = imgUri;
     }
 
     public ArrayList<String> getLikeIds() {

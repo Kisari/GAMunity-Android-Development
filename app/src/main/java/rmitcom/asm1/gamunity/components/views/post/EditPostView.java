@@ -197,15 +197,21 @@ public class EditPostView extends AppCompatActivity {
                         storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
 
                             if (postImageUri != null) {
-                                Log.i(TAG, "uploadPostImage - postImageUri: " + postImageUri);
                                 String pattern = "images%2F(.*?)\\?";
-
                                 Pattern p = Pattern.compile(pattern);
                                 Matcher m = p.matcher(postImageUri);
+
                                 if (m.find()) {
                                     String oldUri = m.group(1);
-                                    storageRef.child("images/" + oldUri);
-                                    storageRef.delete();
+                                    Log.i(TAG, "uploadPostImage - oldUri: " + oldUri);
+
+                                    // Create a reference to the old image and delete it
+                                    StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                    oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                        Log.i(TAG, "Old image deleted successfully");
+                                    }).addOnFailureListener(e -> {
+                                        Log.e(TAG, "Failed to delete old image: " + e.getMessage());
+                                    });
                                 }
                             }
 
@@ -269,6 +275,7 @@ public class EditPostView extends AppCompatActivity {
         data.put("updateDate", updateDate);
 
         if (postImageFilePath != null) {
+            Log.i(TAG, "addDataToFirebase - imageUri: " + imageUri);
             data.put("image", imageUri);
         }
 

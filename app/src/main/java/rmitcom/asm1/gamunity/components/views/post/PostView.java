@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.CommentListAdapter;
@@ -44,14 +46,14 @@ import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
 
-public class PostView extends AppCompatActivity {
+public class PostView extends AppCompatActivity implements CommentListAdapter.CommentDeleteListener {
     private final String TAG = "Post View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData, postData;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-    private String postId, forumId, ownerId,
+    private String postId, forumId, ownerId, chiefAdminId,
             postUsernameStr, postTimestampStr, postUpdateTimestampStr,
             postTitleStr, postDescriptionStr, postUserImageUri, postImageUri;
     private int noLike, noDislike, noComment;
@@ -121,6 +123,25 @@ public class PostView extends AppCompatActivity {
     private void setPostData() {
         postTimestampDate = new Date();
         postUpdateTimestampDate = new Date();
+
+        commentList = new ArrayList<>();
+
+        forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+
+                    if (document.exists()) {
+                        chiefAdminId = (String) document.get("chiefAdmin");
+
+                        memberIds = (ArrayList<String>) document.get("memberIds");
+                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                    }
+                }
+            }
+        });
 
         postData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -239,6 +260,7 @@ public class PostView extends AppCompatActivity {
                     }
 
                     postTimestamp.setText(timestamp);
+                    setButton();
 
                 } else {
                     Log.d(TAG, "No such document");
@@ -249,74 +271,128 @@ public class PostView extends AppCompatActivity {
         });
     }
 
+    private void setButton() {
+        if (Objects.equals(userId, chiefAdminId)) {
+            moreOptionButton.setVisibility(View.VISIBLE);
+            addCommentButton.setVisibility(View.VISIBLE);
+
+        } else if (memberIds.contains(userId) || moderatorIds.contains(userId)) {
+            moreOptionButton.setVisibility(View.VISIBLE);
+            addCommentButton.setVisibility(View.VISIBLE);
+
+        } else {
+            moreOptionButton.setVisibility(View.GONE);
+            addCommentButton.setVisibility(View.GONE);
+        }
+    }
+
     private void displayList(ArrayList<String> commentIds) {
-        commentList = new ArrayList<>();
+//        int listLength = commentIds.size();
+//        final int[] counter = {0};
 
-        if (commentIds != null) {
-            int listLength = commentIds.size();
-            final int[] counter = {0};
+        int listLength = commentIds.size();
+        AtomicInteger counter = new AtomicInteger(0);
 
-            for (String commentId: commentIds) {
-                db.collection("COMMENTS").document(commentId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
+        for (String commentId: commentIds) {
+            db.collection("COMMENTS").document(commentId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
 
-                            String commentDescription, commentOwnerId, timestampStr, updateTimestampStr, repliedCommentId;
-                            int noLike, noDislike, noComment;
-                            boolean isReply;
-                            Date timestamp = new Date(), updateTimeStamp = new Date();
+                        String commentDescription, commentOwnerId, timestampStr, updateTimestampStr, repliedCommentId, imgUri;
+                        int noLike, noDislike, noComment;
+                        boolean isReply;
+                        Date timestamp = new Date(), updateTimeStamp = new Date();
 
-                            if (document.exists()) {
-                                commentDescription = (String) document.get("description");
-                                commentOwnerId = (String) document.get("ownerId");
+                        if (document.exists()) {
+                            commentDescription = (String) document.get("description");
+                            commentOwnerId = (String) document.get("ownerId");
 
-                                repliedCommentId = (String) document.get("repliedCommentId");
+                            repliedCommentId = (String) document.get("repliedCommentId");
 
+                            if (document.getString("image") != null) {
+                                imgUri = document.getString("image");
+                            } else {
+                                imgUri = null;
+                            }
+
+                            if (document.get("noLike") == null) {
+                                noLike = 0;
+                            } else {
                                 noLike = (int) document.get("noLike");
+                            }
+
+                            if (document.get("noDislike") == null) {
+                                noDislike = 0;
+                            } else {
                                 noDislike = (int) document.get("noDislike");
+                            }
+
+                            if (document.get("noComment") == null) {
+                                noComment = 0;
+                            } else {
                                 noComment = (int) document.get("noComment");
+                            }
 
+                            if (document.get("likeIds") != null) {
                                 commentLikeIds = (ArrayList<String>) document.get("likeIds");
+                            } else {
+                                commentLikeIds = new ArrayList<>();
+                            }
+
+                            if (document.get("dislikeIds") != null) {
                                 commentDislikeIds = (ArrayList<String>) document.get("dislikeIds");
-                                replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
+                            } else {
+                                commentDislikeIds = new ArrayList<>();
+                            }
 
-                                timestampStr = (String) document.get("date");
-                                updateTimestampStr = (String) document.get("updateDate");
+//                            if (document.get("replyCommentIds") != null) {
+//                                replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
+//                                displayList(replyCommentIds);
+//
+//                            } else {
+//                                replyCommentIds = new ArrayList<>();
+//                            }
 
-                                if (timestampStr != null) {
-                                    try {
-                                        timestamp = sdf.parse(timestampStr);
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
+                            timestampStr = (String) document.get("date");
+                            updateTimestampStr = (String) document.get("updateDate");
+
+                            if (timestampStr != null) {
+                                try {
+                                    timestamp = sdf.parse(timestampStr);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
                                 }
+                            }
 
-                                if (updateTimestampStr != null) {
-                                    try {
-                                        updateTimeStamp = sdf.parse(updateTimestampStr);
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
-                                } else {
-                                    updateTimeStamp = null;
+                            if (updateTimestampStr != null) {
+                                try {
+                                    updateTimeStamp = sdf.parse(updateTimestampStr);
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
                                 }
+                            } else {
+                                updateTimeStamp = null;
+                            }
 
-                                isReply = repliedCommentId != null;
+                            isReply = repliedCommentId != null;
 
-                                Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, commentLikeIds, commentDislikeIds, replyCommentIds, isReply, noLike, noDislike, noComment);
-                                commentList.add(comment);
+                            Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, imgUri, commentLikeIds, commentDislikeIds, replyCommentIds, isReply, noLike, noDislike, noComment);
+                            commentList.add(comment);
 
-                                counter[0]++;
-                                if (counter[0] == listLength -1) {
-                                    setupList(commentList);
-                                }
+//                            counter[0]++;
+//                            if (counter[0] == listLength -1) {
+//                                setupList(commentList);
+//                            }
+
+                            if (counter.incrementAndGet() == listLength) {
+                                setupList(commentList);
                             }
                         }
                     }
-                });
-            }
+                }
+            });
         }
     }
     private void addComment() {
@@ -332,7 +408,7 @@ public class PostView extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        String commentId, commentDescription, commentTimestamp;
+        String commentId, commentDescription, commentTimestamp, commentImgUri;
         if (requestCode == constant.CREATE && resultCode == RESULT_OK) {
             if (data != null) {
                 commentId = (String) data.getExtras().get("commentId");
@@ -349,10 +425,17 @@ public class PostView extends AppCompatActivity {
                     }
                 }
 
+                if ((String) data.getExtras().get("image") != null) {
+                    commentImgUri = (String) data.getExtras().get("image");
+                } else {
+                    commentImgUri = null;
+                }
+
                 ArrayList<String> commentLikeIds = new ArrayList<>(), commentDislikeIds = new ArrayList<>(), replyCommentIds = new ArrayList<>();
 
-                Comment comment = new Comment(commentId, userId, postId, commentDescription, null, timestamp, null, commentLikeIds, commentDislikeIds, replyCommentIds, false, 0, 0, 0);
+                Comment comment = new Comment(commentId, userId, postId, commentDescription, null, timestamp, null, commentImgUri, commentLikeIds, commentDislikeIds, replyCommentIds, false, 0, 0, 0);
                 commentList.add(comment);
+
             }
             setupList(commentList);
         }
@@ -444,7 +527,7 @@ public class PostView extends AppCompatActivity {
 
     }
 
-    public void deletePost(String postId) {
+    private void deletePost(String postId) {
         DocumentReference ownerData = db.collection("users").document(ownerId);
         ownerData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -463,6 +546,7 @@ public class PostView extends AppCompatActivity {
             }
         });
 
+        DocumentReference forumData = db.collection("FORUMS").document(forumId);
         forumData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
@@ -495,15 +579,92 @@ public class PostView extends AppCompatActivity {
                             }
                         }
                     }
+
+                    postData.delete();
+
                 }
             }
         });
 
-        postData.delete();
+    }
+
+    public void deletePostFromForum(String postId, Context context) {
+        DocumentReference postData = db.collection("POSTS").document(postId);
+
+        postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    String forumId, ownerId;
+                    ArrayList<String> commentIdsList = new ArrayList<>();
+
+                    if (document.exists()) {
+                        forumId = document.getString("forumId");
+                        ownerId = document.getString("ownerId");
+
+                        DocumentReference ownerData = db.collection("users").document(ownerId);
+                        ownerData.get().addOnCompleteListener(userTask -> {
+                            if (userTask.isSuccessful()) {
+                                DocumentSnapshot userDocument = userTask.getResult();
+                                Map<String, ArrayList<String>> userPostIds = new HashMap<>();
+
+                                if (userDocument.exists()) {
+                                    ArrayList<String> postIds = (ArrayList<String>) userDocument.get("postIds");
+
+                                    if (postIds != null) {
+                                        postIds.remove(postId);
+                                        userPostIds.put("postIds", postIds);
+                                    }
+                                }
+                                ownerData.set(userPostIds, SetOptions.merge());
+                            }
+                        });
+
+                        DocumentReference forumData = db.collection("FORUMS").document(forumId);
+                        forumData.get().addOnCompleteListener(forumTask -> {
+                            if (forumTask.isSuccessful()) {
+                                DocumentSnapshot forumDocument = forumTask.getResult();
+                                Map<String, ArrayList<String>> userPostIds = new HashMap<>();
+
+                                if (forumDocument.exists()) {
+                                    ArrayList<String> postIds = (ArrayList<String>) forumDocument.get("postIds");
+
+                                    if (postIds != null) {
+                                        postIds.remove(postId);
+                                        userPostIds.put("postIds", postIds);
+                                    }
+                                }
+                                forumData.set(userPostIds, SetOptions.merge());
+                            }
+                        });
+
+                        commentIdsList = (ArrayList<String>) document.get("commentIds");
+
+                        if (commentIdsList != null) {
+                            ArrayList<Comment> commentList = new ArrayList<>();
+                            for (String id: commentIdsList) {
+                                Comment comment = new Comment(id);
+                                commentList.add(comment);
+                            }
+
+                            CommentListAdapter commentListAdapter = new CommentListAdapter(context, R.layout.ui_comment_list_view_item, commentList);
+                            for (String id: commentIdsList) {
+                                commentListAdapter.deleteCommentFromForum(id);
+                            }
+                        }
+                    }
+
+                    postData.delete();
+
+                }
+            }
+        });
+
     }
 
     private void setupList(ArrayList<Comment> commentList) {
-        adapter = new CommentListAdapter(this, 0, commentList);
+        adapter = new CommentListAdapter(this, R.layout.ui_comment_list_view_item, commentList);
         commentListView.setAdapter(adapter);
     }
 
@@ -511,4 +672,8 @@ public class PostView extends AppCompatActivity {
         returnBackButton.setOnClickListener(v -> finish());
     }
 
+    @Override
+    public void onCommentDeleted() {
+        setPostData();
+    }
 }

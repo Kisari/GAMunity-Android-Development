@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -30,6 +31,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -46,12 +48,13 @@ import rmitcom.asm1.gamunity.model.Constant;
 
 public class EditCommentView extends AppCompatActivity {
     private final String TAG = "Edit Comment View";
+    private WeakReference<Activity> activityReference;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference postData, commentData, userData;
-    private String postId, commentId, description, commentImageUri, updateDate;
+    private String postId, commentId, description, commentImageUri, updateDate, imageUri;
     private EditText commentEditDescription;
     private TextView commentEditImageButton, commentEditConfirmButton, returnBackButton;
     private ImageView commentEditPicture;
@@ -103,6 +106,10 @@ public class EditCommentView extends AppCompatActivity {
                 if (document.exists()) {
                     description = document.getString("description");
                     commentImageUri = document.getString("image");
+
+                    if (description != null) {
+                        commentEditDescription.setText(description);
+                    }
 
                     if (commentImageUri != null) {
                         editCommentImage.setVisibility(View.VISIBLE);
@@ -163,38 +170,62 @@ public class EditCommentView extends AppCompatActivity {
 
     private void uploadCommentImage(Uri submitFilePath) {
         if(submitFilePath != null) {
+            activityReference = new WeakReference<>(this);
+
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading post image...");
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference().child("images/" + UUID.randomUUID().toString());
+            String randomId = UUID.randomUUID().toString();
+            Log.i(TAG, "uploadCommentImage - randomId: " + randomId);
+            StorageReference storageRef = storage.getReference().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
                         storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+
+                            if (commentImageUri != null) {
+                                String pattern = "images%2F(.*?)\\?";
+                                Pattern p = Pattern.compile(pattern);
+                                Matcher m = p.matcher(commentImageUri);
+
+                                if (m.find()) {
+                                    String oldUri = m.group(1);
+                                    Log.i(TAG, "uploadPostImage - oldUri: " + oldUri);
+
+                                    // Create a reference to the old image and delete it
+                                    StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                    oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                        Log.i(TAG, "Old image deleted successfully");
+                                    }).addOnFailureListener(e -> {
+                                        Log.e(TAG, "Failed to delete old image: " + e.getMessage());
+                                    });
+                                }
+                            }
+
                             commentImageFilePath = uri;
+                            imageUri = commentImageFilePath.toString();
+
+                            addDataToFirebase();
+                            Log.i(TAG, "uploadCommentImage - commentImageFilePath: " + commentImageFilePath);
                         });
 
                     }).addOnFailureListener(e -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+                        Activity activity = activityReference.get();
+                        if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                            progressDialog.dismiss();
+                        }
+                        Toast.makeText(activity, "Failed", Toast.LENGTH_SHORT).show();
                     }).addOnProgressListener(taskSnapshot -> {
                         double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
                         progressDialog.setMessage("Uploaded " + (int) progress + "%");
                     });
-
-            String pattern = "images%2F(.*?)\\?";
-
-            Pattern p = Pattern.compile(pattern);
-            Matcher m = p.matcher(commentImageUri);
-            if (m.find()) {
-                String uri = m.group(1);
-                storageRef.child("images/" + uri);
-                storageRef.delete();
-            }
         }
     }
 
@@ -215,8 +246,11 @@ public class EditCommentView extends AppCompatActivity {
                 updateDate = sdf.format(calendar.getTime());
                 Log.i(TAG, "onClick - date: " + updateDate);
 
-                uploadCommentImage(commentImageFilePath);
-                addDataToFirebase();
+                if (commentImageFilePath != null) {
+                    uploadCommentImage(commentImageFilePath);
+                } else {
+                    addDataToFirebase();
+                }
             }
 
         });
