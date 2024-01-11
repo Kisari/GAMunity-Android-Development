@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".components.views.post.EditPostView">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
+
+        <ImageView
+            android:id="@+id/editPostAppIcon"
+            android:layout_centerHorizontal="true"
+            android:layout_width="292dp"
+            android:layout_height="54dp"
+            android:background="@drawable/app_icon"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:id="@+id/editPostTop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/editPostAppIcon"
+            tools:ignore="UseCompoundDrawables">
+            <TextView
+                android:id="@+id/returnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/back_icon_foreground" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingVertical="5dp"
+                android:textStyle="bold"
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:textColor="#757575"
+                android:text="Edit Post"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/editPostContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_below="@id/editPostTop"
+            android:orientation="vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="12dp"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp">
+                <EditText
+                    android:id="@+id/editPostTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:background="@drawable/rounded_pill_purple_stroke"
+                    android:ems="10"
+                    android:hint="@string/title"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    tools:ignore="VisualLintTextFieldSize"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="12dp"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp">
+                <EditText
+                    android:id="@+id/editPostDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:layout_marginHorizontal="20dp"
+                    android:background="@drawable/rounded_pill_purple_stroke"
+                    android:ems="10"
+                    android:hint="@string/description"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    tools:ignore="VisualLintTextFieldSize"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/editPostImageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:layout_centerHorizontal="true"
+            android:text="Add Image/Video"
+            android:gravity="center"
+            android:layout_below="@id/editPostContent"
+            android:drawableStart="@drawable/camera_icon_foreground"/>
+
+        <TextView
+            android:id="@+id/editPostConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@id/editPostAppIcon"
+            android:rotation="-45"
+            android:gravity="center"
+            android:drawableEnd="@drawable/send_icon_foreground"/>
+
+        <RelativeLayout
+            android:id="@+id/editPostImage"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:visibility="gone"
+            android:layout_below="@id/editPostImageButton">
+            <ProgressBar
+                android:id="@+id/editPostProgress1"
+                android:indeterminateTint="#4900FF"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:layout_centerInParent="true"
+                android:visibility="visible"/>
+            <ImageView
+                android:id="@+id/editPostPicture"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                tools:ignore="ImageContrastCheck"/>
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</androidx.core.widget.NestedScrollView>

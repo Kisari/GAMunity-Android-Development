@@ -312,7 +312,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         if(submitFilePath != null)
         {
             final ProgressDialog progressDialog = new ProgressDialog(this);
-            progressDialog.setTitle("Uploading forum background...");
+            progressDialog.setTitle("Uploading forum icon...");
             progressDialog.show();
 
             StorageReference ref = db.getStorageRef().child("images/"+ UUID.randomUUID().toString());

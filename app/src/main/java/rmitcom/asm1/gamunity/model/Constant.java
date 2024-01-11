@@ -6,8 +6,8 @@ import java.util.Arrays;
 public class Constant {
     public final int SUCCESS = 200;
     public final int CREATE = 201;
-    public final String DELETE = "DELETE";
-    public final String EDIT = "EDIT";
+    public final int EDIT = 203;
+    public final int DELETE = 204;
     public final String forums = "FORUMS";
     public final String users = "USERS";
     public final String deviceTokens = "DEVICE_TOKENS";
@@ -20,6 +20,8 @@ public class Constant {
 
     public final int PICK_IMAGE_BACKGROUND_REQUEST = 101;
     public final int PICK_IMAGE_ICON_REQUEST = 102;
+    public final int PICK_POST_IMAGE_REQUEST = 103;
+    public final int PICK_COMMENT_IMAGE_REQUEST = 104;
 
     public Constant() {
     }

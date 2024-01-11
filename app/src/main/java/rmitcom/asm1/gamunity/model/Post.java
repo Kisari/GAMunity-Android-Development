@@ -4,6 +4,7 @@ import com.google.type.DateTime;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 
 @SuppressWarnings("unused")
 public class Post implements Serializable {
@@ -12,35 +13,63 @@ public class Post implements Serializable {
     private String forumId;
     private String title;
     private String description;
-    private DateTime timestamp;
+    private Date timestamp;
+    private Date updateTimestamp;
+    private String imgUri;
+    private ArrayList<String> commentIds, likeIds, dislikeIds;
+    private long noLike = 0, noDislike = 0, noComment = 0;
 
-    private long noLike = 0;
+//    //Create Post constructor
+//    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp) {
+//        this.postId = postId;
+//        this.ownerId = ownerId;
+//        this.forumId = forumId;
+//        this.title = title;
+//        this.description = description;
+//        this.timestamp = timestamp;
+//    }
+//
+//    //Update Post constructor
+//    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp) {
+//        this.postId = postId;
+//        this.ownerId = ownerId;
+//        this.forumId = forumId;
+//        this.title = title;
+//        this.description = description;
+//        this.timestamp = timestamp;
+//        this.updateTimestamp = updateTimestamp;
+//    }
+//
+//    public Post(String postId, String ownerId, String forumId, String title, Date timestamp, ArrayList<String> likeIds, ArrayList<String> dislikeIds, long noLike, long noDislike, long noComment) {
+//        this.postId = postId;
+//        this.ownerId = ownerId;
+//        this.forumId = forumId;
+//        this.title = title;
+//        this.description = description;
+//        this.timestamp = timestamp;
+//        this.likeIds = likeIds;
+//        this.dislikeIds = dislikeIds;
+//        this.noLike = noLike;
+//        this.noDislike = noDislike;
+//        this.noComment = noComment;
+//    }
 
-    public Post(String postId, String ownerId, String forumId, String title, String description, DateTime timestamp) {
+    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> commentIds, ArrayList<String> likeIds, ArrayList<String> dislikeIds, long noLike, long noDislike, long noComment) {
         this.postId = postId;
         this.ownerId = ownerId;
         this.forumId = forumId;
         this.title = title;
         this.description = description;
         this.timestamp = timestamp;
-    }
-
-    public Post(String postId, String ownerId, String forumId, String title, String description, DateTime timestamp, long noLike, long noDislike, ArrayList<String> commentIds, long noComment) {
-        this.postId = postId;
-        this.ownerId = ownerId;
-        this.forumId = forumId;
-        this.title = title;
-        this.description = description;
-        this.timestamp = timestamp;
+        this.updateTimestamp = updateTimestamp;
+        this.imgUri = imgUri;
+        this.commentIds = commentIds;
+        this.likeIds = likeIds;
+        this.dislikeIds = dislikeIds;
         this.noLike = noLike;
         this.noDislike = noDislike;
-        this.commentIds = commentIds;
         this.noComment = noComment;
     }
-
-    private long noDislike = 0;
-    private ArrayList<String> commentIds;
-    private long noComment = 0;
 
     public String getPostId() {
         return postId;
@@ -82,12 +111,28 @@ public class Post implements Serializable {
         this.description = description;
     }
 
-    public DateTime getTimestamp() {
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(DateTime timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Date getUpdateTimestamp() {
+        return updateTimestamp;
+    }
+
+    public void setUpdateTimestamp(Date updateTimestamp) {
+        this.updateTimestamp = updateTimestamp;
+    }
+
+    public String getImgUri() {
+        return imgUri;
+    }
+
+    public void setImgUri(String imgUri) {
+        this.imgUri = imgUri;
     }
 
     public long getNoLike() {
@@ -120,5 +165,21 @@ public class Post implements Serializable {
 
     public void setNoComment(long noComment) {
         this.noComment = noComment;
+    }
+
+    public ArrayList<String> getLikeIds() {
+        return likeIds;
+    }
+
+    public void setLikeIds(ArrayList<String> likeIds) {
+        this.likeIds = likeIds;
+    }
+
+    public ArrayList<String> getDislikeIds() {
+        return dislikeIds;
+    }
+
+    public void setDislikeIds(ArrayList<String> dislikeIds) {
+        this.dislikeIds = dislikeIds;
     }
 }
