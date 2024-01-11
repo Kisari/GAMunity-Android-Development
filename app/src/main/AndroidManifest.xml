@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,6 +14,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GAMunity"
         tools:targetApi="31">
+        <activity
+            android:name=".components.views.chat.ChatView"
+            android:exported="false" />
+
         <service
             android:name=".db.FireBaseManager"
             android:exported="false">
@@ -20,12 +25,14 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/notification_chanel" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/teal_200" />
+
         <activity
             android:name=".components.views.comment.EditCommentView"
             android:exported="false" />
@@ -78,6 +85,5 @@
             </intent-filter>
         </activity>
     </application>
-
 
 </manifest>
