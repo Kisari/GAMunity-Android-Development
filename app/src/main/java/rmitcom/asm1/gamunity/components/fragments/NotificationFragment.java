@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -18,11 +19,26 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import rmitcom.asm1.gamunity.R;
-import rmitcom.asm1.gamunity.db.FireBaseManager;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 
-public class NotificationFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.adapter.NotificationListAdapter;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
+import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
+import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Notification;
+
+public class NotificationFragment extends Fragment implements FirebaseFetchAndSetUI {
+    private NotificationListAdapter adapter;
+    private ArrayList<Notification> notificationArrayList = new ArrayList<>();
     private final FireBaseManager db = new FireBaseManager();
+    private final Constant constant = new Constant();
     View currentView;
     private final ActivityResultLauncher<String> requestPermissionLauncher;
 
@@ -53,9 +69,10 @@ public class NotificationFragment extends Fragment {
 
         //ask to receive notification
         askNotificationPermission();
-        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
 
         initializeNotification();
+
+        fetchData();
 
         return view;
     }
@@ -64,6 +81,7 @@ public class NotificationFragment extends Fragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(currentView.getContext(), Manifest.permission.POST_NOTIFICATIONS) ==
                     PackageManager.PERMISSION_GRANTED) {
+
             } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
                 new AlertDialog.Builder(currentView.getContext())
                         .setTitle("Are you sure ?")
@@ -82,14 +100,79 @@ public class NotificationFragment extends Fragment {
 
     private void initializeNotification(){
         db.getMsgProvider().getToken()
+            .addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    String msg = task.getResult();
+                    Log.d(TAG, msg);
+                }
+                else{
+                    Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                }
+            });
+    }
+
+    @Override
+    public void fetchData() {
+        db.getDb().collection(constant.notifications)
+                .whereEqualTo("notificationReceiverId", db.getCurrentUser().getUid())
+                .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
-                        String msg = task.getResult();
-                        Log.d(TAG, msg);
+                        for(QueryDocumentSnapshot document: task.getResult()){
+                            String notificationId = document.getString("notificationId");
+                            String receiverToken = document.getString("receiverToken");
+                            String notificationTitle = document.getString("notificationTitle");
+                            String notificationSenderUrl = document.getString("notificationSenderUrl");
+                            String notificationBody = document.getString("notificationBody");
+                            String notificationSenderId = document.getString("notificationSenderId");
+                            String notificationReceiverId = document.getString("notificationReceiverId");
+                            Boolean notificationIsRead = document.getBoolean("notificationIsRead");
+                            String sendTime = document.getString("sendTime");
+
+                            Notification notificationObject = new Notification(notificationId, receiverToken, notificationTitle, notificationSenderUrl, notificationBody, notificationSenderId, notificationReceiverId, notificationIsRead, sendTime);
+
+                            notificationArrayList.add(notificationObject);
+                        }
+                        setUI();
                     }
                     else{
-                        Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                        Log.w(TAG, "Error getting documents.", task.getException());
                     }
                 });
+    }
+
+    @Override
+    public void setUI() {
+        initializeNotificationListView();
+    }
+
+    private void initializeNotificationListView(){
+        ListView notificationListView = currentView.findViewById(R.id.notificationListView);
+
+        this.adapter = new NotificationListAdapter(this.notificationArrayList);
+
+        notificationListView.setAdapter(adapter);
+
+        notificationListView.setOnItemClickListener((parent, view, position, id) -> updateTheReadNotification(id, position));
+    }
+
+    private void updateTheReadNotification(long notificationId, int position){
+        CollectionReference ref = db.getDb().collection(constant.notifications);
+        ref.whereEqualTo("notificationId", notificationId)
+            .get()
+            .addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    for (QueryDocumentSnapshot returnDocument : task.getResult()) {
+                        Map<String, Object> updateNotification = new HashMap<>();
+                        updateNotification.put("notificationIsRead", true);
+                        ref.document(returnDocument.getId()).set(updateNotification, SetOptions.merge()).addOnCompleteListener(updateTask -> {
+                            if(updateTask.isSuccessful()){
+                                //navigate to the specific event after update the data
+                                adapter.updateNotificationAfterClickEvent(position);
+                            }
+                        });
+                    }
+                }
+            });
     }
 }

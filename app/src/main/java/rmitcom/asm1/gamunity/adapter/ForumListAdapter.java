@@ -25,6 +25,7 @@ import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
+import rmitcom.asm1.gamunity.model.Notification;
 
 public class ForumListAdapter extends BaseAdapter implements Filterable {
 
@@ -98,10 +100,9 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         //set data for forum view
         forumTitle.setText(forumItem.getTitle());
-
+        Button forumActionBtnOwned = viewForumList.findViewById(R.id.forumActionBtnOwned);
         //set Join/unJoin button function
         if(forumItem.getChiefAdmin().equals(db.getCurrentUser().getUid())){
-            Button forumActionBtnOwned = viewForumList.findViewById(R.id.forumActionBtnOwned);
             forumActionBtnOwned.setVisibility(View.VISIBLE);
         }
         //current user is not the admin of forum
@@ -109,9 +110,11 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
             if(forumItem.getMemberIds().contains(db.getCurrentUser().getUid())){
                 forumActionBtnJoined.setVisibility(View.VISIBLE);
                 forumActionJoin.setVisibility(View.GONE);
+                forumActionBtnOwned.setVisibility(View.GONE);
             }
             else{
                 forumActionBtnJoined.setVisibility(View.GONE);
+                forumActionBtnOwned.setVisibility(View.GONE);
                 forumActionJoin.setVisibility(View.VISIBLE);
             }
             forumActionBtnJoined.setOnClickListener(v -> {
@@ -184,6 +187,10 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
                                 updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
+                                String avatarUrl = "https://firebasestorage.googleapis.com/v0/b/gamunity-1c175.appspot.com/o/forumIcon1.png?alt=media&token=1ebe3d13-3264-4646-9d63-ecbef8f5c8e4";
+                                String notificationBody = db.getCurrentUser().getDisplayName() + " become a new member of " + forum.getTitle();
+                                Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString());
+                                db.sendNotificationToDevice(newNotification);
                                 Toast.makeText(currentView.getContext(), "You join " + forum.getTitle(),Toast.LENGTH_SHORT).show();
                             }
                         });
