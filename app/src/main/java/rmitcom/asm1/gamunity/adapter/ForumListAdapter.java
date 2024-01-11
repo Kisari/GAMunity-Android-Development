@@ -5,6 +5,7 @@ import static android.content.ContentValues.TAG;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +33,7 @@ import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
@@ -85,6 +87,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
         TextView forumTitle = viewForumList.findViewById(R.id.forumTitle);
         Button forumActionJoin = viewForumList.findViewById(R.id.forumActionBtnJoin);
         Button forumActionBtnJoined = viewForumList.findViewById(R.id.forumActionBtnJoined);
+        Button accessForumButton = viewForumList.findViewById(R.id.forumAccessButton);
 
         //fetch two image with cdn
         try{
@@ -98,6 +101,17 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         //set data for forum view
         forumTitle.setText(forumItem.getTitle());
+
+        accessForumButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(currentView.getContext(), ForumView.class);
+                String forumId = currentForumList.get(position).getForumId();
+                intent.putExtra("forumId", forumId);
+                Log.i(TAG, "forumId: " + forumId);
+                currentView.getContext().startActivity(intent);
+            }
+        });
 
         //set Join/unJoin button function
         if(forumItem.getChiefAdmin().equals(db.getCurrentUser().getUid())){

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/commentUpdate"
+        android:title="Update comment"
+        android:visible="true"/>
+    <item
+        android:id="@+id/commentDelete"
+        android:title="Delete comment"
+        android:visible="true"/>
+    <item
+        android:id="@+id/commentBanUser"
+        android:title="Banned user"
+        android:visible="false"/>
+    <item
+        android:id="@+id/commentReport"
+        android:title="Report"
+        android:visible="false"/>
+
+</menu>

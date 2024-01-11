@@ -3,6 +3,7 @@ package rmitcom.asm1.gamunity.components.ui;
 import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
@@ -30,7 +31,8 @@ public class AsyncImage {
 
     public void loadImage(String urls) {
         try {
-            Glide.with(bmImage).load(urls)
+            Context context = bmImage.getContext();
+            Glide.with(context).load(urls)
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {

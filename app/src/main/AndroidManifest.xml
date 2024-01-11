@@ -27,6 +27,33 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/teal_200" />
         <activity
+            android:name=".components.views.comment.EditCommentView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.post.EditPostView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.forum.EditForumView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.comment.CreateCommentForm"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.forum.ForumMoreInfoView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.post.CreatePostView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.post.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.post.PostView"
+            android:exported="false" />
+        <activity
+            android:name=".components.views.forum.ForumView"
+            android:exported="false" />
+        <activity
             android:name=".components.views.forum.CreateForumView"
             android:exported="false" />
         <activity
@@ -43,9 +70,10 @@
             android:exported="false" />
         <activity
             android:name=".components.views.SplashView"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
