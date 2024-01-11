@@ -647,12 +647,15 @@ public class PostView extends AppCompatActivity implements CommentListAdapter.Co
                                 Comment comment = new Comment(id);
                                 commentList.add(comment);
                             }
+                        }
 
+                        if (commentList != null) {
                             CommentListAdapter commentListAdapter = new CommentListAdapter(context, R.layout.ui_comment_list_view_item, commentList);
                             for (String id: commentIdsList) {
                                 commentListAdapter.deleteCommentFromForum(id);
                             }
                         }
+
                     }
 
                     postData.delete();

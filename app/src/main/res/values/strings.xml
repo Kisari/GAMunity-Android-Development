@@ -28,4 +28,5 @@
     <string name="edit_forum">Edit Forum</string>
     <string name="member">Member</string>
     <string name="notification_chanel">Notification Chanel</string>
+    <string name="moderator">Moderator</string>
 </resources>

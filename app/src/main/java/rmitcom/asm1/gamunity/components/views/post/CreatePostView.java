@@ -221,7 +221,7 @@ public class CreatePostView extends AppCompatActivity {
                     String postId = documentReference.getId();
 
                     db.collection("users").document(userId)
-                            .update("ownedPostIds", FieldValue.arrayUnion(postId));
+                            .update("postIds", FieldValue.arrayUnion(postId));
                     db.collection("FORUMS").document(forumId)
                             .update("postIds", FieldValue.arrayUnion(postId));
 

@@ -36,18 +36,21 @@
             android:id="@+id/userName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.7"
+            android:layout_weight="0.6"
             android:padding="5dp"
             android:textSize="20sp"
             android:layout_gravity="center"/>
 
-        <TextView
+        <Button
+            android:id="@+id/userButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.1"
+            android:layout_weight="0.2"
             android:layout_gravity="center"
             android:gravity="center"
             android:textAlignment="center"
+            android:text="Text"
+            android:textSize="10sp"
             android:drawableStart="@drawable/checkbox_selector"/>
     </LinearLayout>
 
