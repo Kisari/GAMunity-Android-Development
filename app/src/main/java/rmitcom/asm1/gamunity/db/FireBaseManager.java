@@ -2,16 +2,17 @@ package rmitcom.asm1.gamunity.db;
 
 import static android.content.ContentValues.TAG;
 
-import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -31,6 +32,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -39,9 +41,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okio.Buffer;
-import rmitcom.asm1.gamunity.MainActivity;
-import rmitcom.asm1.gamunity.components.views.LoginView;
+import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Notification;
 
@@ -138,14 +138,30 @@ public class FireBaseManager extends FirebaseMessagingService {
                 });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(TAG, "From: " + remoteMessage.getFrom());
-        Log.d(TAG, "Notification Message Title: " + remoteMessage.getNotification().getTitle());
+        Log.d(TAG, "Notification Message Title: " + Objects.requireNonNull(remoteMessage.getNotification()).getTitle());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getBaseContext())
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(remoteMessage.getNotification().getTitle())
+                .setContentText(remoteMessage.getNotification().getBody());
+        NotificationManager notificationManager = (NotificationManager) getBaseContext().getSystemService(NOTIFICATION_SERVICE);
+        if(Build.VERSION.SDK_INT >= 26) {
+            NotificationChannel mChannel = new NotificationChannel("DEFAULT_ID", "GAMunity", NotificationManager.IMPORTANCE_HIGH);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.RED);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
+        }
+        notificationManager.notify(0, builder.build());
     }
 
-    public void sendNotificationToDevice(Notification newNo, String userName){
+    public void sendNotificationToDevice(Notification newNo, String userName, String sendMode){
         db.collection(constant.deviceTokens)
                 .whereEqualTo("userId", newNo.getNotificationReceiverId())
                 .get()
@@ -159,8 +175,18 @@ public class FireBaseManager extends FirebaseMessagingService {
                             JSONObject newNotificationObject = new JSONObject();
                             JSONObject dataObject = new JSONObject();
                             try{
-                                newNotificationObject.put("title", "Join the forum");
-                                newNotificationObject.put("body", userName + " joins your forum");
+                                switch (sendMode){
+                                    case "JOIN_FORUM":
+                                        newNotificationObject.put("title", "Join the forum");
+                                        newNotificationObject.put("body", userName + " joins your forum");
+                                        break;
+                                    case "EDIT_FORUM":
+                                        newNotificationObject.put("title", "Update the forum");
+                                        newNotificationObject.put("body", "Owner " + userName + " has update the content with new changes");
+                                        break;
+                                    default:
+                                        break;
+                                }
 
                                 assert token != null;
                                 dataObject.put("to", token.trim());

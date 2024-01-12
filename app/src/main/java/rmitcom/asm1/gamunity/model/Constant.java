@@ -10,6 +10,8 @@ public class Constant {
     public final int DELETE = 204;
     public final String forums = "FORUMS";
     public final String users = "USERS";
+    public final String JOIN_FORUM = "JOIN_FORUM";
+    public final String EDIT_FORUM = "EDIT_FORUM";
     public final String deviceTokens = "DEVICE_TOKENS";
     public final String notifications = "NOTIFICATIONS";
     public final String shareFragment = "SHARE_FRAGMENT";

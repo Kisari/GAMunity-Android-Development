@@ -30,13 +30,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -46,18 +50,22 @@ import java.util.regex.Pattern;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.ForumTagListAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Notification;
 
 public class EditForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
     private final String TAG = "Edit Forum View";
     private WeakReference<Activity> activityReference;
+    private final FireBaseManager dbManager = new FireBaseManager();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private final Constant constant = new Constant();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-    private String forumId, title, description, forumIconUri, forumBackgroundUri, backgroundUri, iconUri;
+    private String forumId, title, description, forumIconUri, forumBackgroundUri, backgroundUri, iconUri, forumNumberId;
+    private ArrayList<String> forumMemberIds;
     private ForumTagListAdapter tagListAdapter;
     private EditText forumTitle, forumDescription, forumCategory;
     private ImageView forumBackground, forumBackgroundButton, returnBackButton, confirmEditButton;
@@ -194,7 +202,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
         view.startDrag(dragData, myShadow, null, 0);
         Log.d(TAG, "onItemLongClick: " + tagListAdapter.getItem(position));
     }
-
+    @SuppressWarnings("unchecked")
     private void setForumData() {
         forumData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -203,6 +211,8 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
                 if (document.exists()) {
                     forumTitle.setText((String) document.get("title"));
                     forumDescription.setText((String) document.get("description"));
+                    forumNumberId = document.getString("forumId");
+                    forumMemberIds = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("memberIds")));
 
                     forumIconUri = document.getString("forumIcon");
                     forumBackgroundUri = document.getString("forumBackground");
@@ -413,9 +423,34 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
 
         forumData.set(data, SetOptions.merge()).addOnCompleteListener(task -> {
-            Intent returnIntent = new Intent(EditForumView.this, ForumView.class);
-            setResult(RESULT_OK, returnIntent);
-            finish();
+            if(task.isSuccessful()){
+                dbManager.getDb().collection("users")
+                        .whereEqualTo("userId", dbManager.getCurrentUser().getUid())
+                        .get()
+                        .addOnCompleteListener(checkingUser -> {
+                            if(checkingUser.isSuccessful()){
+                                for (QueryDocumentSnapshot document: checkingUser.getResult()){
+                                    String userName = document.getString("name");
+                                    for (int i = 0; i < forumMemberIds.size(); i++) {
+                                        String forumReceiverId = forumMemberIds.get(i);
+                                        String forumIconUrl = forumIconUri;
+                                        if(iconFilePath != null){
+                                            forumIconUrl = iconFilePath.toString();
+                                        }
+
+                                        String notificationBody = userName + " has edit the content of the forum that you are currently join in " +
+                                                title;
+                                        Notification newNotification = new Notification("Join the forum", forumIconUrl, notificationBody, dbManager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
+                                        dbManager.sendNotificationToDevice(newNotification, userName, constant.EDIT_FORUM);
+                                    }
+                                    Toast.makeText(EditForumView.this, "Sent notification to members",Toast.LENGTH_SHORT).show();
+                                    Intent returnIntent = new Intent(EditForumView.this, ForumView.class);
+                                    setResult(RESULT_OK, returnIntent);
+                                    finish();
+                                }
+                            }
+                        });
+            }
         });
     }
 
