@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -186,4 +187,16 @@ public class PostListAdapter extends ArrayAdapter<Post> {
 
         return listItem;
     }
+
+//    public void deletePost(String postId) {
+//        for (int i = 0; i < getCount(); i++) {
+//            Post post = getItem(i);
+//            if (post != null && post.getPostId().equals(postId)) {
+//                remove(post);
+//                notifyDataSetChanged();
+//                return;
+//            }
+//        }
+//    }
+
 }

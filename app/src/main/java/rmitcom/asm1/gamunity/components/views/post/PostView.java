@@ -46,7 +46,7 @@ import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
 
-public class PostView extends AppCompatActivity implements CommentListAdapter.CommentDeleteListener {
+public class PostView extends AppCompatActivity {
     private final String TAG = "Post View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
@@ -516,6 +516,9 @@ public class PostView extends AppCompatActivity implements CommentListAdapter.Co
                 public void onClick(View v) {
                     deletePost(postId);
                     dialog.dismiss();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("deletedPostId", postId);
+                    setResult(RESULT_OK, resultIntent);
                     finish();
                 }
             });
@@ -673,10 +676,5 @@ public class PostView extends AppCompatActivity implements CommentListAdapter.Co
 
     private void returnToPreviousPage() {
         returnBackButton.setOnClickListener(v -> finish());
-    }
-
-    @Override
-    public void onCommentDeleted() {
-        setPostData();
     }
 }
