@@ -145,7 +145,7 @@ public class FireBaseManager extends FirebaseMessagingService {
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
     }
 
-    public void sendNotificationToDevice(Notification newNo){
+    public void sendNotificationToDevice(Notification newNo, String userName){
         db.collection(constant.deviceTokens)
                 .whereEqualTo("userId", newNo.getNotificationReceiverId())
                 .get()
@@ -160,7 +160,7 @@ public class FireBaseManager extends FirebaseMessagingService {
                             JSONObject dataObject = new JSONObject();
                             try{
                                 newNotificationObject.put("title", "Join the forum");
-                                newNotificationObject.put("body", "Someone joins your forum");
+                                newNotificationObject.put("body", userName + " joins your forum");
 
                                 assert token != null;
                                 dataObject.put("to", token.trim());
@@ -216,7 +216,7 @@ public class FireBaseManager extends FirebaseMessagingService {
         newNotification.put("notificationReceiverId", newNotificationData.getNotificationReceiverId());
         newNotification.put("notificationIsRead", false);
         newNotification.put("sendTime", newNotificationData.getSendTime());
-        newNotification.put("notificationForumId", newNotificationData.getNotificationId());
+        newNotification.put("notificationForumId", newNotificationData.getNotificationForumId());
 
         ref.set(newNotification).addOnCompleteListener(task -> {
             if(task.isSuccessful()){
