@@ -102,8 +102,6 @@ public class FireBaseManager extends FirebaseMessagingService {
                             ref.add(newNotificationToken)
                                     .addOnCompleteListener(task1 -> {
                                         if(task.isSuccessful()){
-                                            startActivity(new Intent(context, MainActivity.class));
-                                            ((Activity)(context)).finish();
                                             Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
                                         }
                                     });
