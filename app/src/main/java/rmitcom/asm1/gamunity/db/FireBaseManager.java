@@ -3,16 +3,18 @@ package rmitcom.asm1.gamunity.db;
 import static android.content.ContentValues.TAG;
 
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -66,33 +68,41 @@ public class FireBaseManager extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(@NonNull String token) {
+        Log.d(TAG, "onNewToken: " + token);
+    }
+
+    public void changeUserIdWithDeviceToken(String userID){
         Map<String, Object> newNotificationToken = new HashMap<>();
-        newNotificationToken.put("userId", currentUser.getUid());
-        newNotificationToken.put("token", token);
+        newNotificationToken.put("userId", userID);
+        newNotificationToken.put("token", msgProvider.getToken().toString());
         CollectionReference ref = db.collection(constant.deviceTokens);
-        ref.whereEqualTo("token", token)
-            .get()
-            .addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    Log.d(TAG, "Device already added to firebase");
-                }
-                else{
-                    ref.add(newNotificationToken)
-                        .addOnCompleteListener(task1 -> {
-                            if(task.isSuccessful()){
-                                Log.d(TAG, "Added new device token " + token + " to user with id " + currentUser.getUid());
-                            }
-                        });
-                }
-            });
+        ref.whereEqualTo("token", msgProvider.getToken().toString())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        for (QueryDocumentSnapshot document: task.getResult()){
+                            ref.document(document.getId())
+                                    .set(newNotificationToken, SetOptions.merge())
+                                    .addOnCompleteListener(updateToken -> {
+                                        if(updateToken.isSuccessful()){
+                                            Log.d(TAG, "Change token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        }
+                                    });
+                        }
+                    }
+                    else{
+                        ref.add(newNotificationToken)
+                                .addOnCompleteListener(task1 -> {
+                                    if(task.isSuccessful()){
+                                        Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                    }
+                                });
+                    }
+                });
     }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // TODO(developer): Handle FCM messages here.
-        // If the application is in the foreground handle both data and notification messages here.
-        // Also if you intend on generating your own notifications as a result of a received FCM
-        // message, here is where that should be initiated. See sendNotification method below.
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Log.d(TAG, "Notification Message Title: " + remoteMessage.getNotification().getTitle());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
