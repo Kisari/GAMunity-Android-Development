@@ -102,7 +102,7 @@ public class FireBaseManager extends FirebaseMessagingService {
                             ref.add(newNotificationToken)
                                     .addOnCompleteListener(task1 -> {
                                         if(task.isSuccessful()){
-                                            Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                            Log.d(TAG, "New token device " + token + " to user with id " + userID);
                                         }
                                     });
                             return;
@@ -216,6 +216,7 @@ public class FireBaseManager extends FirebaseMessagingService {
         newNotification.put("notificationReceiverId", newNotificationData.getNotificationReceiverId());
         newNotification.put("notificationIsRead", false);
         newNotification.put("sendTime", newNotificationData.getSendTime());
+        newNotification.put("notificationForumId", newNotificationData.getNotificationId());
 
         ref.set(newNotification).addOnCompleteListener(task -> {
             if(task.isSuccessful()){

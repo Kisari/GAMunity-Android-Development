@@ -3,7 +3,11 @@ package rmitcom.asm1.gamunity.components.fragments;
 import static android.content.ContentValues.TAG;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,19 +20,26 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.NotificationListAdapter;
+import rmitcom.asm1.gamunity.components.views.HomeView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
 import rmitcom.asm1.gamunity.model.Constant;
@@ -128,8 +139,9 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
                             String notificationReceiverId = document.getString("notificationReceiverId");
                             Boolean notificationIsRead = document.getBoolean("notificationIsRead");
                             String sendTime = document.getString("sendTime");
+                            String notificationForumId = document.getString("notificationForumId");
 
-                            Notification notificationObject = new Notification(notificationId, receiverToken, notificationTitle, notificationSenderUrl, notificationBody, notificationSenderId, notificationReceiverId, notificationIsRead, sendTime);
+                            Notification notificationObject = new Notification(notificationId, receiverToken, notificationTitle, notificationSenderUrl, notificationBody, notificationSenderId, notificationReceiverId, notificationIsRead, sendTime, notificationForumId);
 
                             notificationArrayList.add(notificationObject);
                         }
@@ -153,12 +165,23 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
 
         notificationListView.setAdapter(adapter);
 
-        notificationListView.setOnItemClickListener((parent, view, position, id) -> updateTheReadNotification(id, position));
+        notificationListView.setOnItemClickListener((parent, view, position, id) ->
+        {
+            Log.d(TAG, "Navigate to notification: " + id);
+            updateTheReadNotification(position);
+        });
     }
 
-    private void updateTheReadNotification(long notificationId, int position){
+
+    private void updateTheReadNotification(int position){
+        Notification notification = (Notification) adapter.getItem(position);
+        if(notification.getNotificationIsRead()){
+            //direct navigate the forum view
+            navigateToHomeFragment(notification);
+            return;
+        };
         CollectionReference ref = db.getDb().collection(constant.notifications);
-        ref.whereEqualTo("notificationId", notificationId)
+        ref.whereEqualTo("notificationId", notification.getNotificationId())
             .get()
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -167,12 +190,31 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
                         updateNotification.put("notificationIsRead", true);
                         ref.document(returnDocument.getId()).set(updateNotification, SetOptions.merge()).addOnCompleteListener(updateTask -> {
                             if(updateTask.isSuccessful()){
-                                //navigate to the specific event after update the data
                                 adapter.updateNotificationAfterClickEvent(position);
+                                //navigate to the specific event after update the data
+                                navigateToHomeFragment(notification);
                             }
                         });
                     }
                 }
             });
+    }
+    private void navigateToHomeFragment(Notification notification){
+        try {
+            db.getDb().collection(constant.forums)
+                    .whereEqualTo("forumId", notification.getNotificationForumId())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if(task.isSuccessful()){
+                            for (QueryDocumentSnapshot documentSnapshot : task.getResult()){
+                                String documentRef = documentSnapshot.getId();
+                                ((HomeView) currentView.getContext()).setFragmentItem(0, documentRef);
+                            }
+                        }
+                    });
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
