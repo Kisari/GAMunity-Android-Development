@@ -72,7 +72,7 @@ public class LoginView extends AppCompatActivity {
                     auth.signInWithEmailAndPassword(email, pass)
                             .addOnSuccessListener(authResult -> {
                                 Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                db.changeUserIdWithDeviceToken(auth.getCurrentUser().getUid());
+                                db.changeUserIdWithDeviceToken(auth.getCurrentUser().getUid(), LoginView.this);
                                 startActivity(new Intent(LoginView.this, MainActivity.class));
                                 finish();
                             }).addOnFailureListener(e -> Toast.makeText(LoginView.this, "Login Failed", Toast.LENGTH_SHORT).show());

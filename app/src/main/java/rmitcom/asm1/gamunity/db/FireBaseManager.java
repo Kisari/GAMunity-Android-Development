@@ -2,11 +2,15 @@ package rmitcom.asm1.gamunity.db;
 
 import static android.content.ContentValues.TAG;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,6 +40,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okio.Buffer;
+import rmitcom.asm1.gamunity.MainActivity;
+import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Notification;
 
@@ -71,26 +77,59 @@ public class FireBaseManager extends FirebaseMessagingService {
         Log.d(TAG, "onNewToken: " + token);
     }
 
-    public void changeUserIdWithDeviceToken(String userID){
-        Map<String, Object> newNotificationToken = new HashMap<>();
-        newNotificationToken.put("userId", userID);
-        newNotificationToken.put("token", msgProvider.getToken().toString());
+    public void changeUserIdWithDeviceToken(String userID, Context context){
+        msgProvider.getToken()
+            .addOnCompleteListener(getTokenTask -> {
+                if(getTokenTask.isSuccessful()){
+                    String token = getTokenTask.getResult();
+                    updateTheDeviceToken(userID, token, context);
+                }
+            });
+    }
+
+    public void updateTheDeviceToken(String userID, String token, Context context){
+        Log.d(TAG, "This token device: " + token);
         CollectionReference ref = db.collection(constant.deviceTokens);
-        ref.whereEqualTo("token", msgProvider.getToken().toString())
+        ref.whereEqualTo("token", token)
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
-                        for (QueryDocumentSnapshot document: task.getResult()){
-                            ref.document(document.getId())
-                                    .set(newNotificationToken, SetOptions.merge())
-                                    .addOnCompleteListener(updateToken -> {
-                                        if(updateToken.isSuccessful()){
-                                            Log.d(TAG, "Change token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                        if(task.getResult().size() == 0){
+                            Log.d(TAG, "Adding new token progress:");
+                            Map<String, Object> newNotificationToken = new HashMap<>();
+                            newNotificationToken.put("userId", userID);
+                            newNotificationToken.put("token", token);
+                            ref.add(newNotificationToken)
+                                    .addOnCompleteListener(task1 -> {
+                                        if(task.isSuccessful()){
+                                            startActivity(new Intent(context, MainActivity.class));
+                                            ((Activity)(context)).finish();
+                                            Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
                                         }
                                     });
+                            return;
+                        }
+                        for (QueryDocumentSnapshot document1: task.getResult()){
+                            Map<String, Object> newNotificationToken = new HashMap<>();
+                            newNotificationToken.put("userId", userID);
+                            newNotificationToken.put("token", token);
+                            ref.document(document1.getId())
+                                .set(newNotificationToken, SetOptions.merge())
+                                .addOnCompleteListener(updateToken -> {
+                                    if(updateToken.isSuccessful()){
+                                        Log.d(TAG, "Change token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                    }
+                                    else {
+                                        Log.d(TAG, "updateTheDeviceToken: " + "Failed");
+                                    }
+                                });
                         }
                     }
                     else{
+                        Log.d(TAG, "Adding new token progress:");
+                        Map<String, Object> newNotificationToken = new HashMap<>();
+                        newNotificationToken.put("userId", userID);
+                        newNotificationToken.put("token", token);
                         ref.add(newNotificationToken)
                                 .addOnCompleteListener(task1 -> {
                                     if(task.isSuccessful()){
