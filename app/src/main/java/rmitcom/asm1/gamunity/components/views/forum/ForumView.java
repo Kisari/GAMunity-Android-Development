@@ -59,7 +59,8 @@ public class ForumView extends AppCompatActivity {
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-    private String forumId = "gzssyUP6sRPUbsWAzvLv", chiefAdminId,
+
+    private String forumId , chiefAdminId,
             forumTitleStr, forumBackgroundUri, forumIconUri;
     private ArrayList<String> memberIds, moderatorIds, postIds;
     private ArrayList<Post> postList;
@@ -84,7 +85,7 @@ public class ForumView extends AppCompatActivity {
     private void setUI() {
         Intent getIntent = getIntent();
         if (getIntent != null) {
-//            forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
+            forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
             forumData = db.collection("FORUMS").document(forumId);
             userData = db.collection("USERS").document(userId);
 

@@ -10,6 +10,10 @@ public class Constant {
     public final int DELETE = 204;
     public final String forums = "FORUMS";
     public final String users = "USERS";
+    public final String deviceTokens = "DEVICE_TOKENS";
+    public final String notifications = "NOTIFICATIONS";
+    public final String notification_url = "https://fcm.googleapis.com/fcm/send";
+    public final String server_key = "key=AAAAvDkna0I:APA91bHs0AaSE8NerBsGT8kwS2Xy-KQJI10Jc_P_EgUZ8ErdmZQp9ORpYtz-ko9iQ15Laqf_5aPYWar8eywjQLtnSgeFOOeSbrLFUZ76JTHvamRA0ROi_k2gQxBjHM_hNbihpNkp3QSv";
     public final String groupchats = "GROUPCHATS";
 
     public final ArrayList<String> tagList = new ArrayList<>(Arrays.asList("Action", "Open World", "Fighting", "Survive", "Horror", "Turn Based"));
