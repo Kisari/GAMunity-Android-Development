@@ -5,6 +5,7 @@ import static android.content.ContentValues.TAG;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,9 +19,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
@@ -33,6 +39,7 @@ import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
@@ -79,6 +86,12 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
         } else viewForumList = convertView;
 
         Forum forumItem = (Forum) getItem(position);
+
+        viewForumList.setOnClickListener(v -> {
+            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
+            toForumDetailView.putExtra("forumId", forumItem.getForumId());
+            v.getContext().startActivity(toForumDetailView);
+        });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);
@@ -188,10 +201,20 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                             if(joinTask.isSuccessful()){
                                 updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
                                 String avatarUrl = "https://firebasestorage.googleapis.com/v0/b/gamunity-1c175.appspot.com/o/forumIcon1.png?alt=media&token=1ebe3d13-3264-4646-9d63-ecbef8f5c8e4";
-                                String notificationBody = db.getCurrentUser().getDisplayName() + " become a new member of " + forum.getTitle();
-                                Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString());
-                                db.sendNotificationToDevice(newNotification);
-                                Toast.makeText(currentView.getContext(), "You join " + forum.getTitle(),Toast.LENGTH_SHORT).show();
+                                db.getDb().collection("users")
+                                    .whereEqualTo("userId", db.getCurrentUser().getUid())
+                                    .get()
+                                    .addOnCompleteListener(checkingUser -> {
+                                        if(checkingUser.isSuccessful()){
+                                            for (QueryDocumentSnapshot document: checkingUser.getResult()){
+                                                String userName = document.getString("name");
+                                                String notificationBody = userName + " become a new member of " + forum.getTitle();
+                                                Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString());
+                                                db.sendNotificationToDevice(newNotification);
+                                                Toast.makeText(currentView.getContext(), "You join " + forum.getTitle(),Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
                             }
                         });
                     }
