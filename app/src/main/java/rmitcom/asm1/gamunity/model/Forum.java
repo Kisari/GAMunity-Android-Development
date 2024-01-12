@@ -9,6 +9,7 @@ import java.util.ArrayList;
 @SuppressWarnings("unused")
 public class Forum implements Serializable {
     private String forumId;
+    private String forumRef;
     private String chiefAdmin;
     private String title;
     private ArrayList<String> category;
@@ -34,8 +35,9 @@ public class Forum implements Serializable {
         this.forumIcon = forumIcon;
     }
 
-    public Forum(String forumId, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
+    public Forum(String forumId, String forumRef, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;
+        this.forumRef = forumRef;
         this.chiefAdmin = chiefAdmin;
         this.title = title;
         this.category = category;
@@ -50,6 +52,14 @@ public class Forum implements Serializable {
 
     public void setForumId(String forumId) {
         this.forumId = forumId;
+    }
+
+    public String getForumRef() {
+        return forumRef;
+    }
+
+    public void setForumRef(String forumRef) {
+        this.forumRef = forumRef;
     }
 
     public String getChiefAdmin() {

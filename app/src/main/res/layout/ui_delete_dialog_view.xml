@@ -4,6 +4,9 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@drawable/rounded_pill"
     android:orientation="vertical">
 
     <TextView
