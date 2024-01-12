@@ -37,10 +37,12 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import rmitcom.asm1.gamunity.MainActivity;
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 
 public class LoginView extends AppCompatActivity {
 
     private EditText loginEmail, loginPassword;
+    private final FireBaseManager db = new FireBaseManager();
     private FirebaseAuth auth;
     TextView forgotPassword;
     GoogleSignInOptions gOptions;
@@ -70,6 +72,7 @@ public class LoginView extends AppCompatActivity {
                     auth.signInWithEmailAndPassword(email, pass)
                             .addOnSuccessListener(authResult -> {
                                 Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                                db.changeUserIdWithDeviceToken(auth.getCurrentUser().getUid(), LoginView.this);
                                 startActivity(new Intent(LoginView.this, MainActivity.class));
                                 finish();
                             }).addOnFailureListener(e -> Toast.makeText(LoginView.this, "Login Failed", Toast.LENGTH_SHORT).show());

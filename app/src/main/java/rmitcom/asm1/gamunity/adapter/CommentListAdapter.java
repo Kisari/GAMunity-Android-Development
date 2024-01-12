@@ -66,12 +66,7 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
     private ProgressBar userProgressBar, postProgressBar;
     private ImageView postImage;
     private ShapeableImageView userImage;
-    private CommentDeleteListener commentDeleteListener;
     private Constant constant = new Constant();
-
-    public interface CommentDeleteListener {
-        void onCommentDeleted();
-    }
 
     public CommentListAdapter(@NonNull Context context, int resource) {
         super(context, resource);
@@ -95,9 +90,6 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
 
     public CommentListAdapter(@NonNull Context context, int resource, int textViewResourceId, @NonNull List<Comment> objects) {
         super(context, resource, textViewResourceId, objects);
-    }
-    public void setCommentDeleteListener(CommentDeleteListener listener) {
-        this.commentDeleteListener = listener;
     }
 
 
@@ -297,11 +289,8 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
             deleteButton.setOnClickListener(v -> {
                 String commentId = currComment.getCommentId();
                 deleteComment(commentId);
-
-                if (commentDeleteListener != null) {
-                    commentDeleteListener.onCommentDeleted();
-                }
                 dialog.dismiss();
+                notifyDataSetChanged();
             });
 
         } catch (Exception e) {

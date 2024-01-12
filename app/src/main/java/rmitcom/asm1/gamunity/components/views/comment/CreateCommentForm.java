@@ -76,12 +76,10 @@ public class CreateCommentForm extends AppCompatActivity {
             postId = (String) Objects.requireNonNull(getIntent.getExtras()).get("postId");
             postData = db.collection("POSTS").document(postId);
 //            userData = db.collection("users").document(userId);
-            isReply = getIntent.getExtras().get("isReply") != null;
-
-
-            if (isReply) {
-                commentRepliedId = (String) getIntent.getExtras().get("commentId");
-            }
+//            isReply = getIntent.getExtras().get("isReply") != null;
+//            if (isReply) {
+//                commentRepliedId = (String) getIntent.getExtras().get("commentId");
+//            }
         }
 
         inputCommentDescription = findViewById(R.id.addCommentDescription);
@@ -211,23 +209,23 @@ public class CreateCommentForm extends AppCompatActivity {
             data.put("image", commentImageFilePath.toString());
         }
 
-        if (isReply) {
-            data.put("commentRepliedId", commentRepliedId);
-        }
+//        if (isReply) {
+//            data.put("commentRepliedId", commentRepliedId);
+//        }
 
         db.collection("COMMENTS").add(data)
                 .addOnSuccessListener(documentReference -> {
                     String commentId = documentReference.getId();
 
                     db.collection("users").document(userId)
-                            .update("ownedCommentIds", FieldValue.arrayUnion(postId));
+                            .update("commentIds", FieldValue.arrayUnion(postId));
                     db.collection("POSTS").document(postId)
                             .update("commentIds", FieldValue.arrayUnion(commentId));
 
-                    if (isReply) {
-                        db.collection("COMMENTS").document(commentId)
-                                .update("replyCommentIds", FieldValue.arrayUnion(commentRepliedId));
-                    }
+//                    if (isReply) {
+//                        db.collection("COMMENTS").document(commentId)
+//                                .update("replyCommentIds", FieldValue.arrayUnion(commentRepliedId));
+//                    }
 
                     Intent commentIntent = new Intent(CreateCommentForm.this, PostView.class);
                     commentIntent.putExtra("commentId", commentId);

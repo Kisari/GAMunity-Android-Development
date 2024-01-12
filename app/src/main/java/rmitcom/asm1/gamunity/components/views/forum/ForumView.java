@@ -4,13 +4,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -56,7 +59,8 @@ public class ForumView extends AppCompatActivity {
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-    private String forumId = "Z6wihCA9Yo4jVb4806ke", chiefAdminId,
+
+    private String forumId , chiefAdminId,
             forumTitleStr, forumBackgroundUri, forumIconUri;
     private ArrayList<String> memberIds, moderatorIds, postIds;
     private ArrayList<Post> postList;
@@ -81,7 +85,7 @@ public class ForumView extends AppCompatActivity {
     private void setUI() {
         Intent getIntent = getIntent();
         if (getIntent != null) {
-//            forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
+            forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
             forumData = db.collection("FORUMS").document(forumId);
             userData = db.collection("USERS").document(userId);
 
@@ -470,6 +474,7 @@ public class ForumView extends AppCompatActivity {
         forumData.delete();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setButton() {
         if (Objects.equals(userId, chiefAdminId)) {
             ownedButton.setVisibility(View.VISIBLE);
@@ -498,6 +503,8 @@ public class ForumView extends AppCompatActivity {
             moreOptionButton.setVisibility(View.GONE);
             addPostButton.setVisibility(View.GONE);
         }
+
+        postListView.setOnTouchListener((v, event) -> event.getAction() == MotionEvent.ACTION_MOVE);
 
         joinForum();
         unJoinForum();

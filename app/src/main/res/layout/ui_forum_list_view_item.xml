@@ -33,18 +33,6 @@
             android:scaleType="fitXY"
             tools:ignore="ImageContrastCheck" />
 
-        <Button
-            android:id="@+id/forumAccessButton"
-            style="@style/TextAppearance.AppCompat.Subhead"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginEnd="10dp"
-            android:visibility="visible"
-            android:text="Access"
-            android:textColor="#ffffff" />
-
     </RelativeLayout>
 
 
