@@ -41,7 +41,7 @@
 
                 <EditText
                     android:id="@+id/signup_firstname"
-                    android:layout_width="170dp"
+                    android:layout_width="160dp"
                     android:layout_height="50dp"
                     android:background="@drawable/fill_box"
                     android:drawablePadding="8dp"
@@ -53,7 +53,7 @@
 
                 <EditText
                     android:id="@+id/signup_lastname"
-                    android:layout_width="170dp"
+                    android:layout_width="160dp"
                     android:layout_height="50dp"
                     android:autofillHints=""
                     android:background="@drawable/fill_box"
