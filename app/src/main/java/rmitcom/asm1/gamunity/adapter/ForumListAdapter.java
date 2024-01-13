@@ -209,8 +209,8 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                                             for (QueryDocumentSnapshot document: checkingUser.getResult()){
                                                 String userName = document.getString("name");
                                                 String notificationBody = userName + " become a new member of " + forum.getTitle();
-                                                Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString());
-                                                db.sendNotificationToDevice(newNotification);
+                                                Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString(), forum.getForumId());
+                                                db.sendNotificationToDevice(newNotification, userName, constant.JOIN_FORUM);
                                                 Toast.makeText(currentView.getContext(), "You join " + forum.getTitle(),Toast.LENGTH_SHORT).show();
                                             }
                                         }
