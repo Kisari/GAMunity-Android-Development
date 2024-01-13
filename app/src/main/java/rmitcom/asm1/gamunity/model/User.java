@@ -8,9 +8,8 @@ public class User implements Serializable {
     private String userId;
     private Boolean isAdmin = false;
     private String name;
-    private String birthdate;
+    private String phone;
     private String email;
-//    private boolean isLocated;
     private ArrayList<String> ownedForumIds;
     private ArrayList<String> adminForumIds;
     private ArrayList<String> joinedForumIds;
@@ -24,22 +23,20 @@ public class User implements Serializable {
     public User() {
     }
 
-    public User(String userId, Boolean isAdmin, String name, String birthdate, String email) {
+    public User(String userId, Boolean isAdmin, String name, String phone, String email) {
         this.userId = userId;
         this.isAdmin = isAdmin;
         this.name = name;
-        this.birthdate = birthdate;
+        this.phone = phone;
         this.email = email;
-//        this.isLocated = isLocated;
     }
 
-    public User(String userId, Boolean isAdmin, String name, String birthdate, String email, ArrayList<String> ownedForumIds, ArrayList<String> adminForumIds, ArrayList<String> joinedForumIds, ArrayList<String> postIds, ArrayList<String> commentIds, ArrayList<String> followersIds, long noFollowers, ArrayList<String> followingIds, ArrayList<String> friendIds) {
+    public User(String userId, Boolean isAdmin, String name, String phone, String email, ArrayList<String> ownedForumIds, ArrayList<String> adminForumIds, ArrayList<String> joinedForumIds, ArrayList<String> postIds, ArrayList<String> commentIds, ArrayList<String> followersIds, long noFollowers, ArrayList<String> followingIds, ArrayList<String> friendIds) {
         this.userId = userId;
         this.isAdmin = isAdmin;
         this.name = name;
-        this.birthdate = birthdate;
+        this.phone = phone;
         this.email = email;
-//        this.isLocated = isLocated;
         this.ownedForumIds = ownedForumIds;
         this.adminForumIds = adminForumIds;
         this.joinedForumIds = joinedForumIds;
@@ -75,12 +72,12 @@ public class User implements Serializable {
         this.name = name;
     }
 
-    public String getbirthdate() {
-        return birthdate;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setbirthdate(String birthdate) {
-        this.birthdate = birthdate;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getEmail() {

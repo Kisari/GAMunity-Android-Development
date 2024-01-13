@@ -2,7 +2,9 @@ package rmitcom.asm1.gamunity.components.fragments;
 
 import static android.content.ContentValues.TAG;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -64,6 +66,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         //start to initialize the function
         fetchData();
+
         return view;
     }
 

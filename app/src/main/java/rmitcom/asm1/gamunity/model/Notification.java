@@ -14,7 +14,9 @@ public class Notification implements Serializable {
     private Boolean notificationIsRead;
     private String sendTime;
 
-    public Notification(String notificationTitle, String notificationSenderUrl, String notificationBody, String notificationSenderId, String notificationReceiverId, Boolean notificationIsRead, String sendTime) {
+    private String notificationForumId;
+
+    public Notification(String notificationTitle, String notificationSenderUrl, String notificationBody, String notificationSenderId, String notificationReceiverId, Boolean notificationIsRead, String sendTime, String notificationForumId) {
         this.notificationTitle = notificationTitle;
         this.notificationSenderUrl = notificationSenderUrl;
         this.notificationBody = notificationBody;
@@ -22,9 +24,10 @@ public class Notification implements Serializable {
         this.notificationReceiverId = notificationReceiverId;
         this.notificationIsRead = notificationIsRead;
         this.sendTime = sendTime;
+        this.notificationForumId = notificationForumId;
     }
 
-    public Notification(String notificationId, String receiverToken, String notificationTitle, String notificationSenderUrl, String notificationBody, String notificationSenderId, String notificationReceiverId, Boolean notificationIsRead, String sendTime) {
+    public Notification(String notificationId, String receiverToken, String notificationTitle, String notificationSenderUrl, String notificationBody, String notificationSenderId, String notificationReceiverId, Boolean notificationIsRead, String sendTime, String notificationForumId) {
         this.notificationId = notificationId;
         this.receiverToken = receiverToken;
         this.notificationTitle = notificationTitle;
@@ -34,8 +37,12 @@ public class Notification implements Serializable {
         this.notificationReceiverId = notificationReceiverId;
         this.notificationIsRead = notificationIsRead;
         this.sendTime = sendTime;
+        this.notificationForumId = notificationForumId;
     }
 
+    public String getNotificationForumId(){
+        return notificationForumId;
+    }
     public String getNotificationSenderUrl() {
         return notificationSenderUrl;
     }
