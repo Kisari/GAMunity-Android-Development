@@ -1,9 +1,15 @@
 package rmitcom.asm1.gamunity.components.views;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
+import android.view.MotionEvent;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -11,6 +17,7 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Calendar;
 import java.util.Objects;
 
 import rmitcom.asm1.gamunity.MainActivity;
@@ -20,6 +27,22 @@ import rmitcom.asm1.gamunity.model.User;
 public class SignupView extends AppCompatActivity {
     private EditText signupFName, signupLName, signupDOB, signupEmail, signupPassword;
 
+//    private CheckBox signupLocation;
+
+    private void showDatePicker() {
+        @SuppressLint("SetTextI18n") DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, monthOfYear, dayOfMonth) -> {
+                    signupDOB.setText(dayOfMonth + "/" + (monthOfYear+1) + "/" + year);
+                },
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +53,16 @@ public class SignupView extends AppCompatActivity {
 
         signupFName = findViewById(R.id.signup_firstname);
         signupLName = findViewById(R.id.signup_lastname);
+
         signupDOB = findViewById(R.id.signup_birthday);
+        signupDOB.setInputType(InputType.TYPE_NULL); // disable soft input
+        signupDOB.setOnTouchListener((view, motionEvent) -> {
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                showDatePicker();
+            }
+            return false;
+        });
+
         signupEmail = findViewById(R.id.signup_email);
         signupPassword = findViewById(R.id.signup_password);
 
