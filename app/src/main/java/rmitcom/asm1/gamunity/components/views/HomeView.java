@@ -4,16 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.ViewPagerAdapter;
-import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 
 public class HomeView extends AppCompatActivity {
 
@@ -83,13 +79,5 @@ public class HomeView extends AppCompatActivity {
             }
             return true;
         });
-    }
-
-    public void setFragmentItem(int position, String forumRef){
-        viewPager.setCurrentItem(position);
-
-        Intent toForumDetailView = new Intent(HomeView.this, ForumView.class);
-        toForumDetailView.putExtra("forumId", forumRef);
-        startActivity(toForumDetailView);
     }
 }

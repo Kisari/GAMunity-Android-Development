@@ -38,11 +38,7 @@ public class NotificationListAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return (long) position;
-    }
-
-    public String getId(int position){
-        return notificationList.get(position).getNotificationId();
+        return Long.parseLong(notificationList.get(position).getNotificationId());
     }
 
     public void updateNotificationAfterClickEvent(int position){

@@ -41,7 +41,7 @@
 
                 <EditText
                     android:id="@+id/signup_firstname"
-                    android:layout_width="160dp"
+                    android:layout_width="170dp"
                     android:layout_height="50dp"
                     android:background="@drawable/fill_box"
                     android:drawablePadding="8dp"
@@ -53,7 +53,7 @@
 
                 <EditText
                     android:id="@+id/signup_lastname"
-                    android:layout_width="160dp"
+                    android:layout_width="170dp"
                     android:layout_height="50dp"
                     android:autofillHints=""
                     android:background="@drawable/fill_box"
@@ -108,7 +108,8 @@
                 android:button="@drawable/checkbox_selector"
                 android:text="  Allow location access"
                 android:textSize="16sp"
-                android:textColor="@color/gray_01" />
+                android:textColor="@color/gray_01"
+                android:checked="true" />
 
             <Button
                 android:id="@+id/signup_button"
