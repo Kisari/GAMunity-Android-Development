@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
@@ -41,8 +43,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.CommentListAdapter;
+import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
+import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
 
@@ -64,12 +68,12 @@ public class PostView extends AppCompatActivity {
     private TextView postUsername, postTimestamp, postTitle, postDescription, moreOptionButton,
             postLike, postDislike, postComment, postLikeTrue, postDislikeTrue,
             addCommentButton, returnBackButton;
-    private ListView commentListView;
+    private RecyclerView commentListView;
     private RelativeLayout postPicture;
     private ProgressBar userProgressBar, postProgressBar;
     private ImageView postImage;
     private ShapeableImageView postUserImage;
-    private CommentListAdapter adapter;
+    private CommentRecyclerViewAdapter adapter;
     private Constant constant = new Constant();
 
     @Override
@@ -260,7 +264,8 @@ public class PostView extends AppCompatActivity {
                     }
 
                     postTimestamp.setText(timestamp);
-                    setButton();
+
+//                    setButton();
 
                 } else {
                     Log.d(TAG, "No such document");
@@ -276,7 +281,7 @@ public class PostView extends AppCompatActivity {
             moreOptionButton.setVisibility(View.VISIBLE);
             addCommentButton.setVisibility(View.VISIBLE);
 
-        } else if (memberIds.contains(userId) || moderatorIds.contains(userId)) {
+        } else if ((memberIds != null && memberIds.contains(userId)) || (moderatorIds != null && moderatorIds.contains(userId))) {
             moreOptionButton.setVisibility(View.VISIBLE);
             addCommentButton.setVisibility(View.VISIBLE);
 
@@ -516,9 +521,10 @@ public class PostView extends AppCompatActivity {
                 public void onClick(View v) {
                     deletePost(postId);
                     dialog.dismiss();
-                    Intent resultIntent = new Intent();
+                    Intent resultIntent = new Intent(PostView.this, ForumView.class);
                     resultIntent.putExtra("deletedPostId", postId);
                     setResult(RESULT_OK, resultIntent);
+                    startActivity(resultIntent);
                     finish();
                 }
             });
@@ -670,7 +676,10 @@ public class PostView extends AppCompatActivity {
     }
 
     private void setupList(ArrayList<Comment> commentList) {
-        adapter = new CommentListAdapter(this, R.layout.ui_comment_list_view_item, commentList);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        commentListView.setLayoutManager(layoutManager);
+
+        adapter = new CommentRecyclerViewAdapter(this, commentList);
         commentListView.setAdapter(adapter);
     }
 

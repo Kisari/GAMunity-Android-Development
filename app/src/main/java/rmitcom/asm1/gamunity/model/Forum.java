@@ -20,6 +20,23 @@ public class Forum implements Serializable {
     private ArrayList<String> postIds;
     private String forumBackground;
     private String forumIcon;
+    private String chatId;
+
+    public Forum(String forumId, String forumRef, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds, String forumBackground, String forumIcon, String chatId) {
+        this.forumId = forumId;
+        this.forumRef = forumRef;
+        this.chiefAdmin = chiefAdmin;
+        this.title = title;
+        this.category = category;
+        this.description = description;
+        this.moderatorIds = moderatorIds;
+        this.memberIds = memberIds;
+        this.noJoined = noJoined;
+        this.postIds = postIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
+        this.chatId = chatId;
+    }
 
     public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;
@@ -33,6 +50,21 @@ public class Forum implements Serializable {
         this.postIds = postIds;
         this.forumBackground = forumBackground;
         this.forumIcon = forumIcon;
+    }
+
+    public Forum(String forumId, String chiefAdmin, String title, ArrayList<String> category, String description, ArrayList<String> moderatorIds, ArrayList<String> memberIds, long noJoined, ArrayList<String> postIds, String forumBackground, String forumIcon, String chatId) {
+        this.forumId = forumId;
+        this.chiefAdmin = chiefAdmin;
+        this.title = title;
+        this.category = category;
+        this.description = description;
+        this.moderatorIds = moderatorIds;
+        this.memberIds = memberIds;
+        this.noJoined = noJoined;
+        this.postIds = postIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
+        this.chatId = chatId;
     }
 
     public Forum(String forumId, String forumRef, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
@@ -142,4 +174,11 @@ public class Forum implements Serializable {
         this.forumIcon = forumIcon;
     }
 
+    public String getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(String chatId) {
+        this.chatId = chatId;
+    }
 }

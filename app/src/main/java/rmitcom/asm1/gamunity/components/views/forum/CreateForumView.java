@@ -20,17 +20,26 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,6 +49,7 @@ import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
+import rmitcom.asm1.gamunity.model.GroupChat;
 
 public class CreateForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
     private final FireBaseManager db = new FireBaseManager();
@@ -242,25 +252,62 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         newForum.put("forumBackground", backgroundFilePath.toString());
         newForum.put("forumIcon", iconFilePath.toString());
 
-        try {
-            db.getDb().collection("FORUMS")
-                    .add(newForum)
-                    .addOnCompleteListener(task -> {
-                        if(task.isSuccessful()){
-                            String forumRef = task.getResult().getId();
-                            Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
+        ArrayList<String> chatMemberIds = new ArrayList<>();
+        chatMemberIds.add(db.getCurrentUser().getUid());
 
-                            try {
-                                Intent backIntent = new Intent();
-                                backIntent.putExtra("newForum", newForumObject);
-                                setResult(constant.SUCCESS, backIntent);
-                                finish();
-                            }
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
-                        }
-                    });
+        Calendar calendar = Calendar.getInstance();
+        String format = "dd/MM/yyyy HH:mm";
+        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+
+        Date timestamp = new Date();
+        try {
+            timestamp = sdf.parse(sdf.format(calendar.getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        Map<String, Object> newChatroom = new HashMap<>();
+        newChatroom.put("chatTitle", forumNameContent + "'s Group Chat");
+        newChatroom.put("memberIds", chatMemberIds);
+        newChatroom.put("isGroup", true);
+        newChatroom.put("lastTimestamp", timestamp);
+        newChatroom.put("lastMessageSenderId", "");
+
+        try {
+            final String[] chatId = {""};
+
+            db.getDb().collection("CHATROOM")
+            .add(newChatroom)
+            .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentReference> task) {
+                    if(task.isSuccessful()) {
+                        chatId[0] = task.getResult().getId();
+                    }
+                    Log.i(TAG, "onComplete = addChatId: " + chatId[0]);
+                }
+
+            });
+            newForum.put("chatId", chatId[0]);
+
+            db.getDb().collection("FORUMS")
+            .add(newForum)
+            .addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    String forumRef = task.getResult().getId();
+                    Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
+
+                    try {
+                        Intent backIntent = new Intent();
+                        backIntent.putExtra("newForum", newForumObject);
+                        setResult(constant.SUCCESS, backIntent);
+                        finish();
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
         catch (Exception e){
             e.printStackTrace();

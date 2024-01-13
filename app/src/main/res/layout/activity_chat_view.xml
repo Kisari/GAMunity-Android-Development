@@ -1,9 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".components.views.chat.ChatView">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <ImageView
+        android:id="@+id/appIcon"
+        android:layout_centerHorizontal="true"
+        android:layout_width="292dp"
+        android:layout_height="54dp"
+        android:background="@drawable/app_icon"
+        android:importantForAccessibility="no" />
+
+    <RelativeLayout
+        android:id="@+id/chatViewTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/appIcon">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/returnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/back_icon_foreground"
+                android:layout_gravity="center"/>
+            <TextView
+                android:id="@+id/chatTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingVertical="5dp"
+                android:text="Title"/>
+        </LinearLayout>
+        <TextView
+            android:id="@+id/linkAccess"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:drawableStart="@drawable/user_acc_icon"/>
+    </RelativeLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/chatMessages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/chatViewTop"
+        android:layout_above="@id/chatViewBottom"/>
+
+    <RelativeLayout
+        android:id="@+id/chatViewBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentBottom="true">
+        <EditText
+            android:id="@+id/chatWriteMessage"
+            android:layout_width="match_parent"
+            android:hint="Write your message here"
+            android:layout_height="58dp"
+            android:layout_marginStart="20dp"
+            android:background="@drawable/rounded_pill_purple_stroke"
+            android:ems="10"
+            android:padding="10dp"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:layout_toLeftOf="@id/messageSubmit"
+            tools:ignore="VisualLintTextFieldSize"/>
+        <ImageView
+            android:id="@+id/messageSubmit"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/send_icon_foreground"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:importantForAccessibility="no">
+        </ImageView>
+
+    </RelativeLayout>
+
+</RelativeLayout>

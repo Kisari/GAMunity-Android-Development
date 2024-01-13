@@ -1,6 +1,7 @@
 package rmitcom.asm1.gamunity.components.views.forum;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -36,7 +37,7 @@ public class ForumMoreInfoView extends AppCompatActivity {
     private TextView moreInfoTitle, moreInfoDescription, returnBackButton;
     private ShapeableImageView forumIcon;
     private ProgressBar forumIconProgressBar;
-    private ListView moreInfoModerators, moreInfoMembers, moreInfoAdmin, moreInfoCategory;
+    private RecyclerView moreInfoModerators, moreInfoMembers, moreInfoAdmin, moreInfoCategory;
     private Constant constant = new Constant();
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="10dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -39,19 +40,33 @@
             android:layout_weight="0.6"
             android:padding="5dp"
             android:textSize="20sp"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:text="Username"/>
 
-        <Button
-            android:id="@+id/userButton"
+        <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.2"
             android:layout_gravity="center"
-            android:gravity="center"
-            android:textAlignment="center"
-            android:text="Text"
-            android:textSize="10sp"
-            android:drawableStart="@drawable/checkbox_selector"/>
+            android:gravity="center">
+            <Button
+                android:id="@+id/userButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:text="Text"
+                android:textSize="10sp"
+                android:visibility="gone"/>
+
+            <ImageButton
+                android:id="@+id/userCheckbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:drawableEnd="@drawable/checkbox_selector"
+                android:gravity="center"
+                android:visibility="gone"/>
+        </RelativeLayout>
     </LinearLayout>
 
 </RelativeLayout>

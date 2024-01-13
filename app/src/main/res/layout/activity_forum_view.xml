@@ -49,10 +49,11 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:visibility="visible"
+            android:layout_below="@id/forumAppIcon"
             android:drawableEnd="@drawable/chat_icon"/>
     </RelativeLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/forumTop">
@@ -159,21 +160,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAlignment="center"
-                android:layout_below="@id/forumInfo"
                 android:textSize="30sp"
                 android:text="Title"
                 android:paddingHorizontal="10dp"/>
 
-            <ListView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/forumPostList"
                 android:background="@color/white"
                 android:paddingVertical="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:isScrollContainer="true"
-                android:layout_below="@id/forumTitle"/>
+                android:nestedScrollingEnabled="false"/>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
     <ImageButton
         android:id="@+id/forumAddPost"
         android:layout_width="64dp"

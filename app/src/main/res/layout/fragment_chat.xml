@@ -5,22 +5,27 @@
     android:layout_height="match_parent"
     tools:context=".components.fragments.ChatFragment">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        tools:ignore="UselessParent">
 
         <ImageView
+            android:id="@+id/appImg"
             android:layout_gravity="center_horizontal"
             android:layout_width="292dp"
             android:layout_height="54dp"
             android:background="@drawable/app_icon"
-            android:importantForAccessibility="no" />
+            android:layout_alignParentTop="true"
+            android:importantForAccessibility="no"
+            android:layout_centerHorizontal="true"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#EDEDED"
+            android:padding="5dp"
+            android:layout_below="@id/appImg"
             android:orientation="vertical">
 
             <android.widget.SearchView
@@ -31,16 +36,30 @@
                 android:background="@drawable/rounded_pill"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:layout_marginBottom="16dp"
-                />
+                android:layout_marginBottom="16dp"/>
 
             <ListView
                 android:id="@+id/chatList"
                 android:background="@color/white"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:padding="5dp"/>
 
         </LinearLayout>
-    </LinearLayout>
+        <ImageButton
+            android:id="@+id/addChat"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="center"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="24dp"
+            android:padding="10dp"
+            android:background="@drawable/rounded_pill_gradient_background"
+            android:importantForAccessibility="no"
+            android:src="@drawable/plus_icon_foreground"
+            tools:ignore="TouchTargetSizeCheck" />
+    </RelativeLayout>
 
 </FrameLayout>

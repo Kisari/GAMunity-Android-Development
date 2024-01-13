@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -17,11 +16,10 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -38,7 +36,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -46,227 +43,196 @@ import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
-import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.components.views.comment.EditCommentView;
+import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Post;
 
-public class CommentListAdapter extends ArrayAdapter<Comment> {
+public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecyclerViewAdapter.CommentRecyclerViewHolder>{
+    private final Context context;
+    private ArrayList<Comment> commentContent;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
-    private String postId, commentId, userIds, ownerId;
     private DocumentReference userData, postData, commentData;
-    private TextView description, username, timestamp, like, dislike, comment, commentReply, moreOptionButton;
-    private ListView replyCommentListView;
-    private ArrayList<Comment> commentList, replyCommentList;
-    private boolean isReply;
-    private RelativeLayout imageLayout;
-    private ProgressBar userProgressBar, postProgressBar;
-    private ImageView postImage;
-    private ShapeableImageView userImage;
+    private String postId, commentId, userIds, ownerId;
     private Constant constant = new Constant();
-
-    public CommentListAdapter(@NonNull Context context, int resource) {
-        super(context, resource);
-    }
-
-    public CommentListAdapter(@NonNull Context context, int resource, int textViewResourceId) {
-        super(context, resource, textViewResourceId);
-    }
-
-    public CommentListAdapter(@NonNull Context context, int resource, @NonNull Comment[] objects) {
-        super(context, resource, objects);
-    }
-
-    public CommentListAdapter(@NonNull Context context, int resource, int textViewResourceId, @NonNull Comment[] objects) {
-        super(context, resource, textViewResourceId, objects);
-    }
-
-    public CommentListAdapter(@NonNull Context context, int resource, @NonNull List<Comment> objects) {
-        super(context, resource, objects);
-    }
-
-    public CommentListAdapter(@NonNull Context context, int resource, int textViewResourceId, @NonNull List<Comment> objects) {
-        super(context, resource, textViewResourceId, objects);
-    }
-
-
     @NonNull
     @Override
-    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View listItem = convertView;
+    public CommentRecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.ui_comment_list_view_item, parent, false);
+        return new CommentRecyclerViewHolder(view);
+    }
 
-        if (listItem == null) {
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            if (getItemViewType(position) == 0) {
-                listItem = inflater.inflate(R.layout.ui_comment_list_view_item, parent, false);
-            } else {
-                Toast.makeText(getContext(), "", Toast.LENGTH_SHORT).show();
-            }
+    @Override
+    public void onBindViewHolder(@NonNull CommentRecyclerViewHolder holder, int position) {
+        Comment currComment = commentContent.get(position);
+
+        String format = "dd/MM/yyyy HH:mm";
+        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+
+        holder.description.setText(currComment.getDescription());
+        holder.like.setText((int) currComment.getNoLike() + "");
+        holder.dislike.setText((int) currComment.getNoDislike() + "");
+        holder.comment.setText((int) currComment.getNoComment() + "");
+
+        Date timestampDate = currComment.getTimestamp(), updateTimestampDate = currComment.getUpdateTimestamp();
+        StringBuilder timestampStr = new StringBuilder();
+
+        if (timestampDate != null) {
+            timestampStr.append(sdf.format(timestampDate));
         }
 
-        Comment currComment = getItem(position);
+        if (updateTimestampDate != null) {
+            timestampStr.append(" (Edited: ").append(sdf.format(updateTimestampDate)).append(")");
+        }
 
-        description = listItem.findViewById(R.id.commentTabDescription);
-        username = listItem.findViewById(R.id.commentTabUsername);
-        timestamp = listItem.findViewById(R.id.commentTabTimestamp);
-        like = listItem.findViewById(R.id.commentTabLike);
-        dislike = listItem.findViewById(R.id.commentTabDislike);
-        comment = listItem.findViewById(R.id.commentTabComment);
+        holder.timestamp.setText(timestampStr);
 
-        commentReply = listItem.findViewById(R.id.commentTabReply);
-        moreOptionButton = listItem.findViewById(R.id.commentTabMoreOption);
-
-        replyCommentListView = listItem.findViewById(R.id.commentTabList);
-
-        imageLayout = listItem.findViewById(R.id.commentTabPicture);
-        userProgressBar = listItem.findViewById(R.id.commentTabProgressBar1);
-        postProgressBar = listItem.findViewById(R.id.commentTabProgressBar2);
-        postImage =listItem.findViewById(R.id.commentTabImage);
-        userImage = listItem.findViewById(R.id.commentTabUserProfile);
-
-        if (currComment != null) {
-            String format = "dd/MM/yyyy HH:mm";
-            SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
-
-            description.setText(currComment.getDescription());
-            like.setText((int) currComment.getNoLike() + "");
-            dislike.setText((int) currComment.getNoDislike() + "");
-            comment.setText((int) currComment.getNoComment() + "");
-
-            Date timestampDate = currComment.getTimestamp(), updateTimestampDate = currComment.getUpdateTimestamp();
-            StringBuilder timestampStr = new StringBuilder();
-
-            if (timestampDate != null) {
-                timestampStr.append(sdf.format(timestampDate));
+        String postImgUri = currComment.getImgUri();
+        Log.i("Post Tab", "getView - : " + postImgUri);
+        if (postImgUri != null) {
+            try {
+                holder.imageLayout.setVisibility(View.VISIBLE);
+                new AsyncImage(holder.postImage, holder.postProgressBar).loadImage(postImgUri);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        } else {
+            holder.imageLayout.setVisibility(View.GONE);
+        }
 
-            if (updateTimestampDate != null) {
-                timestampStr.append(" (Edited: ").append(sdf.format(updateTimestampDate)).append(")");
-            }
+        commentId = currComment.getCommentId();
+        commentData = db.collection("COMMENTS").document(commentId);
 
-            timestamp.setText(timestampStr);
+        postId = currComment.getPostId();
+        postData = db.collection("POSTS").document(postId);
 
-            String postImgUri = currComment.getImgUri();
-            Log.i("Post Tab", "getView - : " + postImgUri);
-            if (postImgUri != null) {
-                try {
-                    imageLayout.setVisibility(View.VISIBLE);
-                    new AsyncImage(postImage, postProgressBar).loadImage(postImgUri);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else {
-                imageLayout.setVisibility(View.GONE);
-            }
+        ownerId = currComment.getOwnerId();
+        Log.i("Comment Tab", "setCommentData - ownerId: " + ownerId);
+        userData = db.collection("users").document(ownerId);
 
-            commentId = currComment.getCommentId();
-            commentData = db.collection("COMMENTS").document(commentId);
+        if (ownerId != null) {
+            userData.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
 
-            postId = currComment.getPostId();
-            postData = db.collection("POSTS").document(postId);
+                    String userImgUri;
+                    if (document != null) {
+                        holder.username.setText((String) document.get("name"));
 
-            ownerId = currComment.getOwnerId();
-            Log.i("Comment Tab", "setCommentData - ownerId: " + ownerId);
-            userData = db.collection("users").document(ownerId);
-
-            if (ownerId != null) {
-                userData.get().addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-
-                        String userImgUri;
-                        if (document != null) {
-                            username.setText((String) document.get("name"));
-
-                            userImgUri = document.getString("image");
-                            if (userImgUri != null) {
-                                try {
-                                    new AsyncImage(userImage, userProgressBar).loadImage(userImgUri);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                        userImgUri = document.getString("image");
+                        if (userImgUri != null) {
+                            try {
+                                new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                         }
                     }
-                });
-            }
-
-            moreOption(currComment);
+                }
+            });
         }
-
-        listItem.setOnClickListener(v -> Log.i("TAG", "onClick: " + currComment.getCommentId()));
-
-        return listItem;
     }
 
-//    private void replyComment() {
-//        commentReply.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(getContext(), CreateCommentForm.class);
-//                if (currComment != null) {
-//                    intent.putExtra("commentId", currComment.getCommentId());
-//                    intent.putExtra("postId", currComment.getPostId());
-//                    intent.putExtra("isReply", true);
-//                }
-//                ((Activity) getContext()).startActivityForResult(intent, constant.CREATE);
-//            }
-//        });
-//    }
+    public class CommentRecyclerViewHolder extends RecyclerView.ViewHolder{
 
-    private void moreOption(Comment currComment) {
-        Log.i("TAG", "moreOption: " + currComment.getCommentId());
+        public TextView description, username, timestamp, like, dislike, comment, commentReply, moreOptionButton;
+        public RecyclerView replyCommentListView;
+        public ArrayList<Comment> commentList, replyCommentList;
+        public RelativeLayout imageLayout;
+        public ProgressBar userProgressBar, postProgressBar;
+        public ImageView postImage;
+        public ShapeableImageView userImage;
 
-        PopupMenu popupMenu = new PopupMenu(getContext(), moreOptionButton);
-        popupMenu.getMenuInflater().inflate(R.menu.comment_more_option, popupMenu.getMenu());
+        public CommentRecyclerViewHolder(@NonNull View itemView) {
+            super(itemView);
 
-        MenuItem editPost = popupMenu.getMenu().findItem(R.id.commentUpdate);
-        MenuItem deletePost = popupMenu.getMenu().findItem(R.id.commentDelete);
-        MenuItem bannedUser = popupMenu.getMenu().findItem(R.id.commentBanUser);
-        MenuItem reportPost = popupMenu.getMenu().findItem(R.id.commentReport);
+            description = itemView.findViewById(R.id.commentTabDescription);
+            username = itemView.findViewById(R.id.commentTabUsername);
+            timestamp = itemView.findViewById(R.id.commentTabTimestamp);
+            like = itemView.findViewById(R.id.commentTabLike);
+            dislike = itemView.findViewById(R.id.commentTabDislike);
+            comment = itemView.findViewById(R.id.commentTabComment);
+
+            commentReply = itemView.findViewById(R.id.commentTabReply);
+            moreOptionButton = itemView.findViewById(R.id.commentTabMoreOption);
+
+            replyCommentListView = itemView.findViewById(R.id.commentTabList);
+
+            imageLayout = itemView.findViewById(R.id.commentTabPicture);
+            userProgressBar = itemView.findViewById(R.id.commentTabProgressBar1);
+            postProgressBar = itemView.findViewById(R.id.commentTabProgressBar2);
+            postImage =itemView.findViewById(R.id.commentTabImage);
+            userImage = itemView.findViewById(R.id.commentTabUserProfile);
+
+            moreOptionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        Comment clickedComment = commentContent.get(position);
+                        moreOption(v, clickedComment);
+                    }
+                }
+            });
+        }
+
+        private void moreOption(View view, Comment currComment) {
+            Log.i("TAG", "moreOption: " + currComment.getCommentId());
+
+            PopupMenu popupMenu = new PopupMenu(context, view);
+            popupMenu.getMenuInflater().inflate(R.menu.comment_more_option, popupMenu.getMenu());
+
+            MenuItem editPost = popupMenu.getMenu().findItem(R.id.commentUpdate);
+            MenuItem deletePost = popupMenu.getMenu().findItem(R.id.commentDelete);
+            MenuItem bannedUser = popupMenu.getMenu().findItem(R.id.commentBanUser);
+            MenuItem reportPost = popupMenu.getMenu().findItem(R.id.commentReport);
 
 //        if (!isAdmin && !Objects.equals(userId, ownerId) && !memberIds.contains(userId)) {
 //            moreOptionButton.setVisibility(View.GONE);
 //        } else {}
 
-        moreOptionButton.setOnClickListener(v -> {
-            popupMenu.setOnMenuItemClickListener(item -> {
-                int itemId = item.getItemId();
+            moreOptionButton.setOnClickListener(v -> {
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    int itemId = item.getItemId();
 
-                if (itemId == R.id.commentUpdate) {
-                    updateComment(currComment);
-                } else if (itemId == R.id.commentDelete) {
-                    deleteCommentAlert(currComment);
-                } else if (itemId == R.id.commentBanUser) {
+                    if (itemId == R.id.commentUpdate) {
+                        updateComment(currComment);
+                    } else if (itemId == R.id.commentDelete) {
+                        deleteCommentAlert(currComment);
+                    } else if (itemId == R.id.commentBanUser) {
 
-                } else if (itemId == R.id.commentReport) {
+                    } else if (itemId == R.id.commentReport) {
 
-                }
+                    }
 
-                return false;
+                    return false;
+                });
+
+                popupMenu.show();
             });
-
-            popupMenu.show();
-        });
+        }
     }
 
+
+
     private void updateComment(Comment currComment) {
-        Intent updateIntent = new Intent(getContext(), EditCommentView.class);
+        Intent updateIntent = new Intent(context, EditCommentView.class);
         if (currComment != null) {
             updateIntent.putExtra("commentId", currComment.getCommentId());
             updateIntent.putExtra("postId", currComment.getPostId());
         }
-        ((Activity) getContext()).startActivityForResult(updateIntent, constant.EDIT);
+        ((Activity) context).startActivityForResult(updateIntent, constant.EDIT);
 
     }
 
     @SuppressLint({"InflateParams", "SetTextI18n"})
     private void deleteCommentAlert(Comment currComment) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View deleteDialogLayout = inflater.inflate(R.layout.ui_delete_dialog_view, null);
 
         TextView dialogMessage = deleteDialogLayout.findViewById(R.id.dialogMessage);
@@ -452,7 +418,13 @@ public class CommentListAdapter extends ArrayAdapter<Comment> {
         }
     }
 
-//    private void setReplyCommentList() {
-//        CommentListAdapter adapter = new CommentListAdapter(getContext(), 0, replyCommentList);
-//    }
+    @Override
+    public int getItemCount() {
+        return commentContent.size();
+    }
+
+    public CommentRecyclerViewAdapter(Context context, ArrayList<Comment> commentContent) {
+        this.context = context;
+        this.commentContent = commentContent;
+    }
 }

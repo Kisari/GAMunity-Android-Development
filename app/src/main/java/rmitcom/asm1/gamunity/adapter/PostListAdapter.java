@@ -62,7 +62,7 @@ public class PostListAdapter extends ArrayAdapter<Post> {
         super(context, resource, textViewResourceId, objects);
     }
 
-    public PostListAdapter(@NonNull Context context, int resource, @NonNull List<Post> objects) {
+    public PostListAdapter(@NonNull Context context, int resource, @NonNull List<Post> objects, boolean isChatGroup) {
         super(context, resource, objects);
     }
 

@@ -38,6 +38,7 @@ import com.google.firebase.storage.StorageReference;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +66,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
     private String forumId, title, description, forumIconUri, forumBackgroundUri, backgroundUri, iconUri, forumNumberId;
-    private ArrayList<String> forumMemberIds;
+    private ArrayList<String> forumMemberIds, forumTagList;
     private ForumTagListAdapter tagListAdapter;
     private EditText forumTitle, forumDescription, forumCategory;
     private ImageView forumBackground, forumBackgroundButton, returnBackButton, confirmEditButton;
@@ -157,7 +158,17 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
                     // Set the data to edit text
                     EditText pointerView = ((EditText)v);
-                    String addNewItemString = "#" + tagListAdapter.getItem(Integer.parseInt(dragData.toString()));
+                    String tag = tagListAdapter.getItem(Integer.parseInt(dragData.toString()));
+                    String addNewItemString = "#" + tag;
+
+                    if (forumTagList != null) {
+                        forumTagList.add(tag);
+                    } else {
+                        forumTagList = new ArrayList<>();
+                        forumTagList.add(tag);
+                    }
+
+                    Log.i(TAG, "initializeForumTagSelectionView: " + addNewItemString);
                     pointerView.setText(pointerView.getText().toString() + " " +  addNewItemString);
 
                     tagListAdapter.removeAt(Integer.parseInt(dragData.toString()));
@@ -412,7 +423,9 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
         Map<String, Object> data = new HashMap<>();
         data.put("title", title);
         data.put("description", description);
-//        data.put("category", Arrays.asList(forumTagList));
+        if (forumTagList != null) {
+            data.put("category", forumTagList);
+        }
         if (backgroundFilePath != null) {
             data.put("forumBackground", backgroundFilePath.toString());
         }
