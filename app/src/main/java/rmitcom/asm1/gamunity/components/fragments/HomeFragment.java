@@ -86,9 +86,10 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
-                requireActivity().recreate();
 
-                fetchData();
+                this.forumListAdapter.notifyDataSetChanged();
+                recreate(requireActivity());
+//                fetchData();
             }
         }
     }

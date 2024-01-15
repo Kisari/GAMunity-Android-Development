@@ -327,12 +327,6 @@ public class PostView extends AppCompatActivity {
     }
 
     private void setButton(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
-        Log.i(TAG, "setButton - chiefAdminId: " + chiefAdminId);
-        Log.i(TAG, "setButton - moderatorIds: " + moderatorIds);
-        Log.i(TAG, "setButton - memberIds: " + memberIds);
-        Log.i(TAG, "setButton - ownerId: " + ownerId);
-
-
         if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
             moreOptionButton.setVisibility(View.VISIBLE);
             addCommentButton.setVisibility(View.VISIBLE);
@@ -663,10 +657,17 @@ public class PostView extends AppCompatActivity {
 
             editPost.setVisible(Objects.equals(userId, ownerId));
 
-        } else if (Objects.equals(userId, ownerId)) {
-            editPost.setVisible(true);
-            deletePost.setVisible(true);
-        } else {
+        } else if (memberIds != null && memberIds.contains(userId)) {
+            if (Objects.equals(userId, ownerId)) {
+                editPost.setVisible(true);
+                deletePost.setVisible(true);
+            }
+            else {
+                editPost.setVisible(false);
+                deletePost.setVisible(false);
+            }
+        }
+        else {
             deletePost.setVisible(false);
             editPost.setVisible(false);
         }

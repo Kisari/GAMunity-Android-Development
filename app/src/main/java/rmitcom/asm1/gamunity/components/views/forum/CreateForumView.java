@@ -28,6 +28,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
@@ -252,50 +255,58 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         newForum.put("forumBackground", backgroundFilePath.toString());
         newForum.put("forumIcon", iconFilePath.toString());
 
-        ArrayList<String> chatMemberIds = new ArrayList<>();
-        chatMemberIds.add(db.getCurrentUser().getUid());
-
-        Calendar calendar = Calendar.getInstance();
-        String format = "dd/MM/yyyy HH:mm";
-        SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
-
-        Date timestamp = new Date();
-        try {
-            timestamp = sdf.parse(sdf.format(calendar.getTime()));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        Map<String, Object> newChatroom = new HashMap<>();
-        newChatroom.put("chatTitle", forumNameContent + "'s Group Chat");
-        newChatroom.put("memberIds", chatMemberIds);
-        newChatroom.put("isGroup", true);
-        newChatroom.put("lastTimestamp", timestamp);
-        newChatroom.put("lastMessageSenderId", "");
 
         try {
-            final String[] chatId = {""};
-
-            db.getDb().collection("CHATROOM")
-            .add(newChatroom)
-            .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentReference> task) {
-                    if(task.isSuccessful()) {
-                        chatId[0] = task.getResult().getId();
-                    }
-                    Log.i(TAG, "onComplete = addChatId: " + chatId[0]);
-                }
-
-            });
-            newForum.put("chatId", chatId[0]);
-
             db.getDb().collection("FORUMS")
             .add(newForum)
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     String forumRef = task.getResult().getId();
                     Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
+
+                    ArrayList<String> chatMemberIds = new ArrayList<>();
+                    chatMemberIds.add(db.getCurrentUser().getUid());
+
+                    Calendar calendar = Calendar.getInstance();
+                    String format = "dd/MM/yyyy HH:mm";
+                    SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
+
+                    Date timestamp = new Date();
+                    try {
+                        timestamp = sdf.parse(sdf.format(calendar.getTime()));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    Map<String, Object> newChatroom = new HashMap<>();
+                    newChatroom.put("chatTitle", forumNameContent + "'s Group Chat");
+                    newChatroom.put("memberIds", chatMemberIds);
+                    newChatroom.put("isGroup", true);
+                    newChatroom.put("lastTimestamp", timestamp);
+                    newChatroom.put("lastMessageSenderId", "");
+                    newChatroom.put("chatImg", iconFilePath.toString());
+                    newChatroom.put("forumId", forumRef);
+
+                    db.getDb().collection("CHATROOMS")
+                            .add(newChatroom)
+                            .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentReference> task) {
+                                    if(task.isSuccessful()) {
+                                        String chatId = task.getResult().getId();
+
+                                        Map<String, String> chatroomId = new HashMap<>();
+                                        chatroomId.put("chatId", chatId);
+
+                                        db.getDb().collection("FORUMS").document(forumRef).set(chatroomId, SetOptions.merge());
+
+                                    }
+                                }
+
+                            });
+
+                    db.getDb().collection("users").document(db.getCurrentUser().getUid())
+                            .update("ownedForumIds", FieldValue.arrayUnion(forumRef));
 
                     try {
                         Intent backIntent = new Intent();

@@ -105,26 +105,10 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             postImage =itemView.findViewById(R.id.commentTabImage);
             userImage = itemView.findViewById(R.id.commentTabUserProfile);
 
-//            moreOptionButton.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    int position = getAdapterPosition();
-//                    if (position != RecyclerView.NO_POSITION) {
-//                        Comment clickedComment = commentContent.get(position);
-//                        moreOption(v, clickedComment, position);
-//                    }
-//                }
-//            });
         }
 
         private void setButton(Comment currComment, String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
-            Log.i("comment tag", "userId: " + userId);
-            Log.i("comment tag", "chiefAdminId: " + chiefAdminId);
-            Log.i("comment tag", "moderatorIds: " + moderatorIds);
-            Log.i("comment tag", "memberIds: " + memberIds);
-            Log.i("comment tag", "ownerId: " + ownerId);
-
-            String ownerId = currComment.getCommentId();
+            String ownerId = currComment.getOwnerId();
 
             if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
                 moreOptionButton.setVisibility(View.VISIBLE);
@@ -164,10 +148,15 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
                 editComment.setVisible(Objects.equals(userId, ownerId));
 
-            } else if (Objects.equals(userId, ownerId)) {
-                editComment.setVisible(true);
-                deleteComment.setVisible(true);
-
+            } else if (memberIds != null && memberIds.contains(userId)) {
+                if (Objects.equals(userId, ownerId)) {
+                    editComment.setVisible(true);
+                    deleteComment.setVisible(true);
+                }
+                else {
+                    editComment.setVisible(false);
+                    deleteComment.setVisible(false);
+                }
             } else {
                 editComment.setVisible(false);
                 deleteComment.setVisible(false);

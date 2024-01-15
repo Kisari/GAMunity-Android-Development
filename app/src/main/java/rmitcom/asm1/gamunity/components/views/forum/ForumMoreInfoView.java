@@ -30,6 +30,7 @@ import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Forum;
 import rmitcom.asm1.gamunity.model.User;
 
 public class ForumMoreInfoView extends AppCompatActivity {

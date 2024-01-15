@@ -39,6 +39,7 @@ import com.google.firebase.firestore.SetOptions;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -50,9 +51,11 @@ import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.fragments.HomeFragment;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.components.views.chat.ChatView;
 import rmitcom.asm1.gamunity.components.views.post.CreatePostView;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Forum;
 import rmitcom.asm1.gamunity.model.Post;
 
 public class ForumView extends AppCompatActivity {
@@ -62,12 +65,11 @@ public class ForumView extends AppCompatActivity {
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-
-    private String forumId , chiefAdminId,
+    private String forumId , chiefAdminId, chatId,
             forumTitleStr, forumBackgroundUri, forumIconUri;
     private ArrayList<String> memberIds, moderatorIds, postIds;
     private ArrayList<Post> postList;
-    private TextView forumTitle, userRole, moreOptionButton, moreInfoButton, returnBackButton;
+    private TextView forumTitle, userRole, moreOptionButton, moreInfoButton, returnBackButton, forumChat;
     private RecyclerView postListView;
     private ProgressBar backgroundProgressBar, iconProgressBar;
     private ImageView forumBackground;
@@ -75,7 +77,7 @@ public class ForumView extends AppCompatActivity {
     private ImageButton addPostButton;
     private Button joinButton, joinedButton, ownedButton;
     private PostRecyclerViewAdapter adapter;
-    private int listViewLength;
+    private Forum currForum;
     private Constant constant = new Constant();
 
     @Override
@@ -112,6 +114,8 @@ public class ForumView extends AppCompatActivity {
         joinedButton = findViewById(R.id.forumActionJoinedButton);
         ownedButton = findViewById(R.id.forumActionOwnedButton);
 
+        forumChat = findViewById(R.id.forumChat);
+
         returnBackButton = findViewById(R.id.returnBack);
 
         setForumData();
@@ -133,6 +137,8 @@ public class ForumView extends AppCompatActivity {
 
                     memberIds = (ArrayList<String>) document.get("memberIds");
                     moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                    chatId = document.getString("chatId");
 
                     if (Objects.equals(userId, chiefAdminId)) {
                         userRole.setText("Admin");
@@ -246,8 +252,6 @@ public class ForumView extends AppCompatActivity {
                             postList.add(post);
 
                             if (counter.incrementAndGet() == listLength[0]) {
-                                Log.i(TAG, "listLen: " + listViewLen[0]);
-                                listViewLength = listViewLen[0];
                                 setupList(postList);
                             }
                         }
@@ -431,6 +435,7 @@ public class ForumView extends AppCompatActivity {
                     dialog.dismiss();
 
                     Intent deleteIntent = new Intent(ForumView.this, HomeFragment.class);
+                    deleteIntent.putExtra("forum", currForum);
                     setResult(RESULT_OK, deleteIntent);
                     finish();
                 }
@@ -457,23 +462,25 @@ public class ForumView extends AppCompatActivity {
                             userData.update("ownedForumIds", FieldValue.arrayRemove(forumId));
                         }
 
-                        if (document.get("adminForumIds") != null) {
-                            ArrayList<String> moderatorIds = (ArrayList<String>) document.get("adminForumIds");
+                        if (document.get("moderatorIds") != null) {
+                            ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                             if (moderatorIds != null) {
                                 for (String id: moderatorIds) {
                                     DocumentReference userData = db.collection("users").document(id);
+
                                     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
                                 }
                             }
                         }
 
-                        if (document.get("joinedForumIds") != null) {
-                            ArrayList<String> memberIds = (ArrayList<String>) document.get("joinedForumIds");
+                        if (document.get("memberIds") != null) {
+                            ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
 
                             if (memberIds != null) {
                                 for (String id: memberIds) {
                                     DocumentReference userData = db.collection("users").document(id);
+
                                     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
                                 }
                             }
@@ -488,6 +495,13 @@ public class ForumView extends AppCompatActivity {
                                     postView.deletePostFromForum(id, getBaseContext());
                                 }
                             }
+                        }
+
+                        String chatId = document.getString("chatId");
+
+                        if (chatId != null) {
+                            DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+
                         }
                     }
 
@@ -508,6 +522,7 @@ public class ForumView extends AppCompatActivity {
             moreInfoButton.setVisibility(View.GONE);
             moreOptionButton.setVisibility(View.VISIBLE);
             addPostButton.setVisibility(View.VISIBLE);
+            forumChat.setVisibility(View.VISIBLE);
 
         } else if ((moderatorIds != null && moderatorIds.contains(userId))) {
             ownedButton.setVisibility(View.GONE);
@@ -517,6 +532,7 @@ public class ForumView extends AppCompatActivity {
             moreInfoButton.setVisibility(View.GONE);
             moreOptionButton.setVisibility(View.VISIBLE);
             addPostButton.setVisibility(View.VISIBLE);
+            forumChat.setVisibility(View.VISIBLE);
 
         } else if (((memberIds != null && memberIds.contains(userId)))) {
             ownedButton.setVisibility(View.GONE);
@@ -526,6 +542,7 @@ public class ForumView extends AppCompatActivity {
             moreInfoButton.setVisibility(View.VISIBLE);
             moreOptionButton.setVisibility(View.GONE);
             addPostButton.setVisibility(View.VISIBLE);
+            forumChat.setVisibility(View.VISIBLE);
 
         } else {
             ownedButton.setVisibility(View.GONE);
@@ -535,12 +552,14 @@ public class ForumView extends AppCompatActivity {
             moreInfoButton.setVisibility(View.VISIBLE);
             moreOptionButton.setVisibility(View.GONE);
             addPostButton.setVisibility(View.GONE);
+            forumChat.setVisibility(View.GONE);
         }
 
         postListView.setOnTouchListener((v, event) -> event.getAction() == MotionEvent.ACTION_MOVE);
 
         joinForum();
         unJoinForum();
+        accessChatRoom();
     }
 
     private void joinForum() {
@@ -627,6 +646,15 @@ public class ForumView extends AppCompatActivity {
         Intent demoteIntent = new Intent(ForumView.this, RemoveUser.class);
         demoteIntent.putExtra("forumId", forumId);
         startActivityForResult(demoteIntent, 109);
+    }
+
+    private void accessChatRoom() {
+        forumChat.setOnClickListener(v -> {
+            Intent chatIntent = new Intent(ForumView.this, ChatView.class);
+            chatIntent.putExtra("chatId", chatId);
+            chatIntent.putExtra("forumId", forumId);
+            startActivity(chatIntent);
+        });
     }
 
     private void setupList(ArrayList<Post> postList) {
