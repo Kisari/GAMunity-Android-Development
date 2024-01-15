@@ -1,6 +1,9 @@
 package rmitcom.asm1.gamunity.components.fragments;
 
+import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
+
+import static androidx.core.app.ActivityCompat.recreate;
 
 import android.content.Context;
 import android.content.Intent;
@@ -80,6 +83,14 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
                 this.forumListAdapter.notifyDataSetChanged();
             }
         }
+
+        if (requestCode == constant.DELETE) {
+            if (resultCode == RESULT_OK) {
+                requireActivity().recreate();
+
+                fetchData();
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -121,7 +132,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
         ImageButton createForumBtn = currentView.findViewById(R.id.createForumBtn);
 
         createForumBtn.setOnClickListener(v -> {
-            Intent createForumViewIntent = new Intent(getActivity(), CreateForumView.class);
+            Intent createForumViewIntent = new Intent(requireContext(), CreateForumView.class);
             createForumViewIntent.putExtra("nextForumID", String.valueOf(forumList.size()+1));
             startActivityForResult(createForumViewIntent, constant.CREATE);
         });

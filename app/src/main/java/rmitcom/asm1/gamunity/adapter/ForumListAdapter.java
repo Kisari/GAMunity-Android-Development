@@ -2,7 +2,10 @@ package rmitcom.asm1.gamunity.adapter;
 
 import static android.content.ContentValues.TAG;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -90,7 +93,8 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
         viewForumList.setOnClickListener(v -> {
             Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
             toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-            v.getContext().startActivity(toForumDetailView);
+//            v.getContext().startActivity(toForumDetailView);
+            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
         });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
@@ -195,7 +199,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
@@ -232,7 +236,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){

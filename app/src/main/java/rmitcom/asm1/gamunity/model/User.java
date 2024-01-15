@@ -39,6 +39,20 @@ public class User implements Serializable {
         this.chatGroupIds = chatGroupIds;
     }
 
+    public User(String userId, String name, String profileImgUri) {
+        this.userId = userId;
+        this.name = name;
+        this.profileImgUri = profileImgUri;
+    }
+
+    public User(String userId, String name, String profileImgUri, ArrayList<String> adminForumIds, ArrayList<String> joinedForumIds) {
+        this.userId = userId;
+        this.name = name;
+        this.profileImgUri = profileImgUri;
+        this.adminForumIds = adminForumIds;
+        this.joinedForumIds = joinedForumIds;
+    }
+
     public User(String userId, Boolean isAdmin, String name, String phone, String email, ArrayList<String> ownedForumIds, ArrayList<String> adminForumIds, ArrayList<String> joinedForumIds, ArrayList<String> postIds, ArrayList<String> commentIds, ArrayList<String> followersIds, ArrayList<String> followingIds, ArrayList<String> friendIds) {
         this.userId = userId;
         this.isAdmin = isAdmin;

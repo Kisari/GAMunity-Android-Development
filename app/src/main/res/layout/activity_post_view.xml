@@ -35,6 +35,9 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:paddingVertical="5dp"
+                android:textStyle="bold"
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:textColor="#757575"
                 android:text="Forum name"/>
         </LinearLayout>
     </LinearLayout>
