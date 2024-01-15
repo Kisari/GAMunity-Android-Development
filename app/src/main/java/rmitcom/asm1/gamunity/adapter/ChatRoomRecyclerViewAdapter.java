@@ -97,6 +97,8 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
         private void navigateToChatView(GroupChat groupChat) {
             Intent intent = new Intent(context, ChatView.class);
             intent.putExtra("chatId", groupChat.getChatId());
+            intent.putExtra("isNew", false);
+            intent.putExtra("isGroup", groupChat.getIsGroup());
             ((Activity) context).startActivityForResult(intent, 189);
         }
     }

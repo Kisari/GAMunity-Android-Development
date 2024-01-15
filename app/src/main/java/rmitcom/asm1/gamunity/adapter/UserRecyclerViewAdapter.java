@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -72,6 +73,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         TextView username;
         ProgressBar userProgressBar;
         ShapeableImageView userImage;
+        RelativeLayout userInfo;
         Button userButton;
         public UserRecyclerViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +81,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             username = itemView.findViewById(R.id.userName);
             userProgressBar = itemView.findViewById(R.id.memberProgressBar1);
             userImage = itemView.findViewById(R.id.memberUserProfile);
+            userInfo = itemView.findViewById(R.id.userInfo);
             userButton = itemView.findViewById(R.id.userButton);
 
             if (isChangeRole && toAdmin || isChangeRole || toAdmin) {
@@ -109,7 +112,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                 }
             }
 
-            holder.userImage.setOnClickListener(new View.OnClickListener() {
+            holder.userInfo.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     accessInfoPage(currUser);
@@ -295,6 +298,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
                     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
                 }
+
+                notifyDataSetChanged();
             }
         }
 
@@ -313,7 +318,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             else {
                 accessIntent = new Intent(context, ChatView.class);
             }
-            accessIntent.putExtra("userId", currUser.getUserId());
+            accessIntent.putExtra("isNew", true);
+            accessIntent.putExtra("otherUserId", currUser.getUserId());
             context.startActivity(accessIntent);
         }
     }

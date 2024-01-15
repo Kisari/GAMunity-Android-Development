@@ -109,7 +109,7 @@ public class ChatFragment extends Fragment {
         });
     }
 
-    private void getChatRoomData(String chatId, boolean isGroup) {
+    private void getChatRoomData(String chatId) {
         if (chatId != null) {
             db.collection("CHATROOMS").document(chatId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
@@ -122,8 +122,9 @@ public class ChatFragment extends Fragment {
                         if (document.exists()) {
                             chatTitle = document.getString("chatTitle");
                             chatImage = document.getString("chatImg");
+                            boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
 
-                            GroupChat groupChat = new GroupChat(chatId, chatTitle, chatImage);
+                            GroupChat groupChat = new GroupChat(chatId, chatTitle, chatImage, isGroup);
                             chatGroupList.add(groupChat);
                         }
 

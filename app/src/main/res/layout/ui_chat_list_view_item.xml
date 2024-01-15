@@ -13,8 +13,9 @@
         android:orientation="horizontal">
         <RelativeLayout
             android:layout_width="0dp"
-            android:layout_height="81dp"
-            android:layout_weight="0.2">
+            android:layout_height="60dp"
+            android:layout_weight="0.15"
+            android:layout_gravity="center">
             <ProgressBar
                 android:id="@+id/chatTabProgressBar1"
                 android:indeterminateTint="#4900FF"
@@ -37,7 +38,7 @@
             android:id="@+id/chatTabTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.8"
+            android:layout_weight="0.85"
             android:padding="5dp"
             android:textSize="20sp"
             android:layout_gravity="center"

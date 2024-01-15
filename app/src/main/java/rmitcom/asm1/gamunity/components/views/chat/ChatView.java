@@ -58,7 +58,7 @@ public class ChatView extends AppCompatActivity {
         if (getIntent != null) {
             chatId = Objects.requireNonNull(getIntent.getExtras()).getString("chatId");
             isGroup = Objects.requireNonNull(getIntent.getExtras()).getBoolean("isGroup");
-
+            
             if (isGroup) {
                 forumId = getIntent.getExtras().getString("forumId");
                 forumData = db.collection("FORUMS").document(forumId);

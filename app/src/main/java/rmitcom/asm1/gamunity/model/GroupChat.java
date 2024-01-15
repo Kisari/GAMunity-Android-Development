@@ -18,10 +18,11 @@ public class GroupChat implements Serializable {
     public GroupChat() {
     }
 
-    public GroupChat(String chatId, String chatTitle, String chatImage) {
+    public GroupChat(String chatId, String chatTitle, String chatImage, boolean isGroup) {
         this.chatId = chatId;
         this.chatTitle = chatTitle;
         this.chatImage = chatImage;
+        this.isGroup = isGroup;
     }
 
     public GroupChat(ArrayList<String> memberIds, String chatTitle, boolean isGroup, Date lastTimestamp, String lastMessageSenderId, String chatImage) {
