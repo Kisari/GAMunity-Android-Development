@@ -130,7 +130,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 holder.like.setText(String.valueOf(likeCount));
             }
 
-        } else {
+        }
+        else {
             likeCount = 0;
 
             holder.like.setVisibility(View.VISIBLE);
@@ -154,7 +155,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 holder.dislike.setText(String.valueOf(dislikeCount));
             }
 
-        } else {
+        }
+        else {
             dislikeCount = 0;
 
             holder.dislike.setVisibility(View.VISIBLE);
@@ -165,7 +167,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
         if (commentIds != null) {
             commentCount = commentIds.size();
-        } else {
+        }
+        else {
             commentCount = 0;
         }
 
@@ -226,6 +229,15 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 }
             });
         }
+
+//        holder.userImage.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent accessIntent = new Intent(context, Profile.class);
+//                accessIntent.putExtra("userId", userId);
+//                context.startActivity(accessIntent);
+//            }
+//        });
     }
 
     @Override

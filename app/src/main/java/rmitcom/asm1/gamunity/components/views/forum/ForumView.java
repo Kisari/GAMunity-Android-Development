@@ -35,6 +35,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,6 +48,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
@@ -63,6 +67,7 @@ public class ForumView extends AppCompatActivity {
     private final String TAG = "Forum View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
     private String forumId , chiefAdminId, chatId,
@@ -176,7 +181,7 @@ public class ForumView extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-                    setButton();
+                    setButton(chatId);
                     moreOption();
 
                 } else {
@@ -192,9 +197,6 @@ public class ForumView extends AppCompatActivity {
 
         final int[] listLength = {postIds.size()};
         AtomicInteger counter = new AtomicInteger(0);
-
-        final int[] noPostImg = {0};
-        final int[] listViewLen = {listLength[0] * 170};
 
         for (String postId : postIds) {
             Log.i(TAG, "displayList - postId: " + postId);
@@ -241,8 +243,6 @@ public class ForumView extends AppCompatActivity {
 
                             if (document.getString("image") != null) {
                                 imgUri = document.getString("image");
-                                noPostImg[0]++;
-                                listViewLen[0] += 200;
                             } else {
                                 imgUri = null;
                             }
@@ -318,9 +318,6 @@ public class ForumView extends AppCompatActivity {
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
-//                finish();
-//                startActivity(getIntent());
-//                setUI();
                 recreate();
             }
         }
@@ -497,6 +494,43 @@ public class ForumView extends AppCompatActivity {
                             }
                         }
 
+                        String backgroundImgUri = document.getString("forumBackground");
+                        String iconImgUri = document.getString("forumIcon");
+
+                        if (backgroundImgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(backgroundImgUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
+                        if (iconImgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(iconImgUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
                         String chatId = document.getString("chatId");
 
                         if (chatId != null) {
@@ -513,7 +547,7 @@ public class ForumView extends AppCompatActivity {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void setButton() {
+    private void setButton(String chatId) {
         if (Objects.equals(userId, chiefAdminId)) {
             ownedButton.setVisibility(View.VISIBLE);
             joinButton.setVisibility(View.GONE);
@@ -559,7 +593,7 @@ public class ForumView extends AppCompatActivity {
 
         joinForum();
         unJoinForum();
-        accessChatRoom();
+        accessChatRoom(chatId);
     }
 
     private void joinForum() {
@@ -648,10 +682,14 @@ public class ForumView extends AppCompatActivity {
         startActivityForResult(demoteIntent, 109);
     }
 
-    private void accessChatRoom() {
+    private void accessChatRoom(String chatId) {
+        Log.i(TAG, "accessChatRoom: " + chatId);
         forumChat.setOnClickListener(v -> {
+            userData.update("chatGroupIds", FieldValue.arrayUnion(chatId));
+
             Intent chatIntent = new Intent(ForumView.this, ChatView.class);
             chatIntent.putExtra("chatId", chatId);
+            chatIntent.putExtra("isGroup", true);
             chatIntent.putExtra("forumId", forumId);
             startActivity(chatIntent);
         });

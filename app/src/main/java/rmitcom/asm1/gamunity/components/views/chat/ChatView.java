@@ -57,9 +57,8 @@ public class ChatView extends AppCompatActivity {
         Intent getIntent = getIntent();
         if (getIntent != null) {
             chatId = Objects.requireNonNull(getIntent.getExtras()).getString("chatId");
-            chatData = db.collection("CHATROOM").document(chatId);
-
             isGroup = Objects.requireNonNull(getIntent.getExtras()).getBoolean("isGroup");
+
             if (isGroup) {
                 forumId = getIntent.getExtras().getString("forumId");
                 forumData = db.collection("FORUMS").document(forumId);
@@ -67,9 +66,10 @@ public class ChatView extends AppCompatActivity {
                 otherUserId = getIntent.getExtras().getString("otherUserId");
                 otherUserData = db.collection("users").document(otherUserId);
             }
-        }
 
-        currUserData = db.collection("users").document(userId);
+            chatData = db.collection("CHATROOM").document(chatId);
+            currUserData = db.collection("users").document(userId);
+        }
 
         chatTitle = findViewById(R.id.chatTitle);
         returnBackBtn = findViewById(R.id.returnBack);
@@ -143,7 +143,7 @@ public class ChatView extends AppCompatActivity {
 
                         String chatTitle = String.valueOf(chatTitleStr);
 
-                        groupChat = new GroupChat(chatMemberIds, chatTitle, isGroup, timestamp, "");
+                        groupChat = new GroupChat(chatMemberIds, chatTitle, isGroup, timestamp, "", "");
                         chatData.set(groupChat, SetOptions.merge());
                     } else {
 

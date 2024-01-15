@@ -30,9 +30,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.components.fragments.HomeFragment;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.components.views.chat.ChatView;
 import rmitcom.asm1.gamunity.components.views.forum.ForumView;
-import rmitcom.asm1.gamunity.model.Post;
 import rmitcom.asm1.gamunity.model.User;
 
 public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerViewAdapter.UserRecyclerViewHolder>{
@@ -43,7 +44,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 //    private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData;
-    private String usernameStr, userProfileImgUri, forumId;
+    private String usernameStr, userProfileImgUri, forumId, userId;
     private ArrayList<String> userIds;
     private boolean toAdmin, isChangeRole;
 
@@ -88,8 +89,51 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         }
     }
 
+    @Override
+    public void onBindViewHolder(@NonNull UserRecyclerViewHolder holder, int position) {
+        User currUser = userContent.get(position);
+
+        if (currUser != null) {
+            usernameStr = currUser.getName();
+            userProfileImgUri = currUser.getProfileImgUri();
+
+            if (usernameStr != null) {
+                holder.username.setText(usernameStr);
+            }
+
+            if (userProfileImgUri != null) {
+                try {
+                    new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userProfileImgUri);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            holder.userImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    accessInfoPage(currUser);
+                }
+            });
+
+            holder.userButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    confirmChangeRole(currUser);
+
+                    Intent returnIntent = new Intent(context, ForumView.class);
+                    returnIntent.putExtra("forumId", forumId);
+//                    context.startActivity(returnIntent);
+
+                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                    ((Activity) context).finish();
+                }
+            });
+        }
+    }
+
     @SuppressLint("NotifyDataSetChanged")
-    public void confirmChangeRole(User currUser, boolean toAdmin) {
+    private void confirmChangeRole(User currUser) {
         String userId = currUser.getUserId();
 
         ArrayList<String> joinedIds = currUser.getJoinedForumIds();
@@ -202,92 +246,75 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             }
         }
         else {
-            joinedIds.remove(forumId);
-            adminIds.remove(forumId);
+            if (toAdmin) {
+                joinedIds.remove(forumId);
+                adminIds.remove(forumId);
 
-            if (forumId != null) {
-                DocumentReference forumData = db.collection("FORUMS").document(forumId);
-                forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
+                if (forumId != null) {
+                    DocumentReference forumData = db.collection("FORUMS").document(forumId);
+                    forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
 
-                            ArrayList<String> memberIds, moderatorIds;
+                                ArrayList<String> memberIds, moderatorIds;
 
-                            if (document.exists()) {
-                                memberIds = new ArrayList<>();
-                                moderatorIds = new ArrayList<>();
+                                if (document.exists()) {
+                                    memberIds = new ArrayList<>();
+                                    moderatorIds = new ArrayList<>();
 
-                                Map<String, ArrayList<String>> memberList = new HashMap<>();
-                                Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
 
-                                if (document.get("memberIds") != null) {
-                                    memberIds = (ArrayList<String>) document.get("memberIds");
+                                    if (document.get("memberIds") != null) {
+                                        memberIds = (ArrayList<String>) document.get("memberIds");
 
-                                    if (memberIds != null) {
-                                        memberIds.remove(userId);
-                                        memberList.put("memberIds", memberIds);
-                                        forumData.set(memberList, SetOptions.merge());
+                                        if (memberIds != null) {
+                                            memberIds.remove(userId);
+                                            memberList.put("memberIds", memberIds);
+                                            forumData.set(memberList, SetOptions.merge());
+                                        }
                                     }
-                                }
 
-                                if (document.get("moderatorIds") != null) {
-                                    moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                                    if (document.get("moderatorIds") != null) {
+                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                                    if (moderatorIds != null) {
-                                        moderatorIds.remove(userId);
-                                        moderatorList.put("moderatorIds", moderatorIds);
-                                        forumData.set(moderatorList, SetOptions.merge());
+                                        if (moderatorIds != null) {
+                                            moderatorIds.remove(userId);
+                                            moderatorList.put("moderatorIds", moderatorIds);
+                                            forumData.set(moderatorList, SetOptions.merge());
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
+                    });
 
-                DocumentReference userData = db.collection("users").document(userId);
-                userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
-                userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
+                    DocumentReference userData = db.collection("users").document(userId);
+                    userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
+                    userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
+                }
             }
+        }
 
-            notifyDataSetChanged();
+        int position = userContent.indexOf(currUser);
+        if (position != -1) {
+            notifyItemChanged(position);
         }
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull UserRecyclerViewHolder holder, int position) {
-        User currUser = userContent.get(position);
-
-        if (currUser != null) {
-            usernameStr = currUser.getName();
-            userProfileImgUri = currUser.getProfileImgUri();
-
-            if (usernameStr != null) {
-                holder.username.setText(usernameStr);
+    private void accessInfoPage(User currUser) {
+        if (!isChangeRole && !toAdmin) {
+            Intent accessIntent;
+            if (forumId != null) {
+                accessIntent = new Intent(context, HomeFragment.class);
             }
-
-            if (userProfileImgUri != null) {
-                try {
-                    new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userProfileImgUri);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            else {
+                accessIntent = new Intent(context, ChatView.class);
             }
-
-            holder.userButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    confirmChangeRole(currUser, toAdmin);
-
-                    Intent returnIntent = new Intent(context, ForumView.class);
-                    returnIntent.putExtra("forumId", forumId);
-//                    context.startActivity(returnIntent);
-
-                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
-                    ((Activity) context).finish();
-                }
-            });
+            accessIntent.putExtra("userId", currUser.getUserId());
+            context.startActivity(accessIntent);
         }
     }
 }

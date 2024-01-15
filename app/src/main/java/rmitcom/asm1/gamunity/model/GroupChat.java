@@ -13,25 +13,45 @@ public class GroupChat implements Serializable {
     private ArrayList<String> messageIds;
     private Date lastTimestamp;
     private String lastMessageSenderId;
+    private String chatImage;
 
     public GroupChat() {
     }
 
-    public GroupChat(ArrayList<String> memberIds, String chatTitle, boolean isGroup, Date lastTimestamp, String lastMessageSenderId) {
+    public GroupChat(String chatId, String chatTitle, String chatImage) {
+        this.chatId = chatId;
+        this.chatTitle = chatTitle;
+        this.chatImage = chatImage;
+    }
+
+    public GroupChat(ArrayList<String> memberIds, String chatTitle, boolean isGroup, Date lastTimestamp, String lastMessageSenderId, String chatImage) {
         this.memberIds = memberIds;
         this.chatTitle = chatTitle;
         this.isGroup = isGroup;
         this.lastTimestamp = lastTimestamp;
         this.lastMessageSenderId = lastMessageSenderId;
+        this.chatImage = chatImage;
     }
 
-    public GroupChat(String chatId, ArrayList<String> memberIds, String chatTitle, boolean isGroup, Date lastTimestamp, String lastMessageSenderId) {
+    public GroupChat(String chatId, ArrayList<String> memberIds, String chatTitle, boolean isGroup, Date lastTimestamp, String lastMessageSenderId, String chatImage) {
         this.chatId = chatId;
         this.memberIds = memberIds;
         this.chatTitle = chatTitle;
         this.isGroup = isGroup;
         this.lastTimestamp = lastTimestamp;
         this.lastMessageSenderId = lastMessageSenderId;
+        this.chatImage = chatImage;
+    }
+
+    public GroupChat(String chatId, ArrayList<String> memberIds, String chatTitle, boolean isGroup, ArrayList<String> messageIds, Date lastTimestamp, String lastMessageSenderId, String chatImage) {
+        this.chatId = chatId;
+        this.memberIds = memberIds;
+        this.chatTitle = chatTitle;
+        this.isGroup = isGroup;
+        this.messageIds = messageIds;
+        this.lastTimestamp = lastTimestamp;
+        this.lastMessageSenderId = lastMessageSenderId;
+        this.chatImage = chatImage;
     }
 
     public String getChatId() {
@@ -88,5 +108,21 @@ public class GroupChat implements Serializable {
 
     public void setLastMessageSenderId(String lastMessageSenderId) {
         this.lastMessageSenderId = lastMessageSenderId;
+    }
+
+    public boolean isGroup() {
+        return isGroup;
+    }
+
+    public void setGroup(boolean group) {
+        isGroup = group;
+    }
+
+    public String getChatImage() {
+        return chatImage;
+    }
+
+    public void setChatImage(String chatImage) {
+        this.chatImage = chatImage;
     }
 }

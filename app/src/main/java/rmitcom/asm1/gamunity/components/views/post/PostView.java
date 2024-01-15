@@ -32,6 +32,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,6 +44,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
@@ -55,6 +59,7 @@ public class PostView extends AppCompatActivity {
     private final String TAG = "Post View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData, postData;
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
@@ -158,9 +163,6 @@ public class PostView extends AppCompatActivity {
                         }
                     }
                 }
-
-                setButton(chiefAdminId, moderatorIds, memberIds);
-                moreOption(chiefAdminId, moderatorIds, memberIds);
             }
         });
 
@@ -317,6 +319,10 @@ public class PostView extends AppCompatActivity {
                 } else {
                     Log.d(TAG, "No such document");
                 }
+
+                setButton(chiefAdminId, moderatorIds, memberIds, ownerId);
+                moreOption(chiefAdminId, moderatorIds, memberIds, ownerId);
+
             } else {
                 Log.d(TAG, "get failed with ", task.getException());
             }
@@ -324,9 +330,24 @@ public class PostView extends AppCompatActivity {
 
         setLikePost();
         setDislikePost();
+
+//        postUserImage.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent accessIntent = new Intent(PostView.this, Profile.class);
+//                accessIntent.putExtra("userId", ownerId);
+//                startActivity(accessIntent);
+//            }
+//        });
     }
 
-    private void setButton(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
+    private void setButton(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds, String ownerId) {
+        Log.i(TAG, "setButton - chiefAdminId: " + chiefAdminId);
+        Log.i(TAG, "setButton - moderatorIds: " + moderatorIds);
+        Log.i(TAG, "setButton - memberIds: " + memberIds);
+        Log.i(TAG, "setButton - ownerId: " + ownerId);
+        Log.i(TAG, "setButton - userId: " + userId);
+
         if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
             moreOptionButton.setVisibility(View.VISIBLE);
             addCommentButton.setVisibility(View.VISIBLE);
@@ -510,24 +531,6 @@ public class PostView extends AppCompatActivity {
                                 imgUri = null;
                             }
 
-                            if (document.get("noLike") == null) {
-                                noLike = 0;
-                            } else {
-                                noLike = (int) document.get("noLike");
-                            }
-
-                            if (document.get("noDislike") == null) {
-                                noDislike = 0;
-                            } else {
-                                noDislike = (int) document.get("noDislike");
-                            }
-
-                            if (document.get("noComment") == null) {
-                                noComment = 0;
-                            } else {
-                                noComment = (int) document.get("noComment");
-                            }
-
                             if (document.get("likeIds") != null) {
                                 commentLikeIds = (ArrayList<String>) document.get("likeIds");
                             } else {
@@ -573,11 +576,6 @@ public class PostView extends AppCompatActivity {
 
                             Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, imgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
                             commentList.add(comment);
-
-//                            counter[0]++;
-//                            if (counter[0] == listLength -1) {
-//                                setupList(commentList);
-//                            }
 
                             if (counter.incrementAndGet() == listLength) {
                                 setupList(commentList);
@@ -643,7 +641,7 @@ public class PostView extends AppCompatActivity {
         }
     }
 
-    private void moreOption(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
+    private void moreOption(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds, String ownerId) {
         PopupMenu popupMenu = new PopupMenu(PostView.this, moreOptionButton);
         popupMenu.getMenuInflater().inflate(R.menu.post_more_option, popupMenu.getMenu());
 
@@ -651,6 +649,12 @@ public class PostView extends AppCompatActivity {
         MenuItem deletePost = popupMenu.getMenu().findItem(R.id.postDelete);
         MenuItem bannedUser = popupMenu.getMenu().findItem(R.id.postBanUser);
         MenuItem reportPost = popupMenu.getMenu().findItem(R.id.postReport);
+
+        Log.i(TAG, "moreOption - chiefAdminId: " + chiefAdminId);
+        Log.i(TAG, "moreOption - moderatorIds: " + moderatorIds);
+        Log.i(TAG, "moreOption - memberIds: " + memberIds);
+        Log.i(TAG, "moreOption - ownerId: " + ownerId);
+        Log.i(TAG, "moreOption - userId: " + userId);
 
         if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
             deletePost.setVisible(true);
@@ -749,6 +753,24 @@ public class PostView extends AppCompatActivity {
         DocumentReference forumData = db.collection("FORUMS").document(forumId);
         forumData.update("postIds", FieldValue.arrayRemove(postId));
 
+        if (postImageUri != null) {
+            String pattern = "images%2F(.*?)\\?";
+            Pattern p = Pattern.compile(pattern);
+            Matcher m = p.matcher(postImageUri);
+
+            if (m.find()) {
+                String oldUri = m.group(1);
+
+                // Create a reference to the old image and delete it
+                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                    Log.i("Delete image", "Old image deleted successfully");
+                }).addOnFailureListener(e -> {
+                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                });
+            }
+        }
+
         postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -787,7 +809,7 @@ public class PostView extends AppCompatActivity {
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
-                    String forumId, ownerId;
+                    String forumId, ownerId, imgUri;
 
                     if (document.exists()) {
                         forumId = document.getString("forumId");
@@ -798,43 +820,11 @@ public class PostView extends AppCompatActivity {
                         if(ownerId != null) {
                             DocumentReference ownerData = db.collection("users").document(ownerId);
                             ownerData.update("postIds", FieldValue.arrayRemove(postId));
-//                            ownerData.get().addOnCompleteListener(userTask -> {
-//                                if (userTask.isSuccessful()) {
-//                                    DocumentSnapshot userDocument = userTask.getResult();
-//                                    Map<String, ArrayList<String>> userPostIds = new HashMap<>();
-//
-//                                    if (userDocument.exists()) {
-//                                        ArrayList<String> postIds = (ArrayList<String>) userDocument.get("postIds");
-//
-//                                        if (postIds != null) {
-//                                            postIds.remove(postId);
-//                                            userPostIds.put("postIds", postIds);
-//                                        }
-//                                    }
-//                                    ownerData.set(userPostIds, SetOptions.merge());
-//                                }
-//                            });
                         }
 
                         if (forumId != null) {
                             DocumentReference forumData = db.collection("FORUMS").document(forumId);
                             forumData.update("postIds", FieldValue.arrayRemove(postId));
-//                            forumData.get().addOnCompleteListener(forumTask -> {
-//                                if (forumTask.isSuccessful()) {
-//                                    DocumentSnapshot forumDocument = forumTask.getResult();
-//                                    Map<String, ArrayList<String>> userPostIds = new HashMap<>();
-//
-//                                    if (forumDocument.exists()) {
-//                                        ArrayList<String> postIds = (ArrayList<String>) forumDocument.get("postIds");
-//
-//                                        if (postIds != null) {
-//                                            postIds.remove(postId);
-//                                            userPostIds.put("postIds", postIds);
-//                                        }
-//                                    }
-//                                    forumData.set(userPostIds, SetOptions.merge());
-//                                }
-//                            });
                         }
 
                         if (document.get("commentIds") != null) {
@@ -845,6 +835,25 @@ public class PostView extends AppCompatActivity {
 
                             for (String id : commentIds) {
                                 adapter.deleteCommentFromPost(id);
+                            }
+                        }
+
+                        imgUri = document.getString("image");
+                        if (imgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(imgUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                // Create a reference to the old image and delete it
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
                             }
                         }
                     }
