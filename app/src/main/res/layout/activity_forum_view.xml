@@ -43,6 +43,7 @@
                 android:textColor="#757575"
                 android:text="Role"/>
         </LinearLayout>
+
         <TextView
             android:id="@+id/forumChat"
             android:layout_width="wrap_content"
@@ -172,6 +173,7 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"/>
         </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
     <ImageButton
         android:id="@+id/forumAddPost"

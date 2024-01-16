@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp" >
+
+        <RelativeLayout
+            android:layout_width="85dp"
+            android:layout_height="85dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="3dp"
+            android:layout_marginStart="15dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center" >
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    android:indeterminateTint="#4900FF"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/profileForumPicture"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="2dp"
+                app:strokeWidth="3dp"
+                app:strokeColor="@android:color/darker_gray"
+                app:shapeAppearanceOverlay="@style/circleImageView"
+                tools:ignore="ImageContrastCheck" />
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/profileForumName"
+            android:layout_marginStart="105dp"
+            android:layout_marginBottom="40dp"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:text="@string/text_view"
+            android:textSize="23sp" >
+
+        </TextView>
+
+        <FrameLayout
+            android:layout_width="80dp"
+            android:layout_height="25dp"
+            android:background="@drawable/admin_chip"
+            android:layout_marginTop="100dp"
+            android:layout_marginStart="15dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:text="Admin"
+                android:textColor="@android:color/white"/>
+
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+
+</RelativeLayout>

@@ -5,32 +5,37 @@
     android:padding="10dp"
     android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:elevation="8dp"
+    android:layout_marginHorizontal="15dp">
 
     <LinearLayout
         android:id="@+id/postTabTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:weightSum="1"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
         <RelativeLayout
             android:layout_width="0dp"
             android:layout_height="81dp"
             android:layout_weight="0.2"
             android:layout_gravity="center|bottom">
+
             <ProgressBar
                 android:id="@+id/postTabProgressBar1"
                 android:indeterminateTint="#4900FF"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="10dp"
+                android:layout_width="80dp"
+                android:layout_height="73dp"
+                android:padding="20dp"
                 android:visibility="visible"/>
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/postTabUserProfile"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="5dp"
+                android:layout_width="80dp"
+                android:layout_height="73dp"
+                android:padding="3dp"
                 app:strokeWidth="3dp"
                 app:strokeColor="@android:color/darker_gray"
                 app:shapeAppearanceOverlay="@style/circleImageView"
