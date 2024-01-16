@@ -1,5 +1,7 @@
 package rmitcom.asm1.gamunity.model;
 
+import com.google.firebase.Timestamp;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,7 +13,7 @@ public class GroupChat implements Serializable {
     private String chatTitle;
     private boolean isGroup;
     private ArrayList<String> messageIds;
-    private Date lastTimestamp;
+    private Timestamp lastTimestamp;
     private String lastMessageSenderId;
     private String chatImage;
     private String dataId;
@@ -27,7 +29,7 @@ public class GroupChat implements Serializable {
         this.dataId = dataId;
     }
 
-    public GroupChat(ArrayList<String> adminIds, String chatTitle, boolean isGroup, Date lastTimestamp, String lastMessageSenderId, String chatImage) {
+    public GroupChat(ArrayList<String> adminIds, String chatTitle, boolean isGroup, Timestamp lastTimestamp, String lastMessageSenderId, String chatImage) {
         this.adminIds = adminIds;
         this.chatTitle = chatTitle;
         this.isGroup = isGroup;
@@ -107,11 +109,11 @@ public class GroupChat implements Serializable {
         this.messageIds = messageIds;
     }
 
-    public Date getLastTimestamp() {
+    public Timestamp getLastTimestamp() {
         return lastTimestamp;
     }
 
-    public void setLastTimestamp(Date lastTimestamp) {
+    public void setLastTimestamp(Timestamp lastTimestamp) {
         this.lastTimestamp = lastTimestamp;
     }
 

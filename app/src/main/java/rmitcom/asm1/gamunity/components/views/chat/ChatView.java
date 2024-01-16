@@ -2,6 +2,7 @@ package rmitcom.asm1.gamunity.components.views.chat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
@@ -14,14 +15,21 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import org.checkerframework.checker.units.qual.A;
@@ -37,8 +45,12 @@ import java.util.Map;
 import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.adapter.ChatMessageRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.model.GroupChat;
+import rmitcom.asm1.gamunity.model.Message;
+import rmitcom.asm1.gamunity.model.User;
 
 public class ChatView extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -46,6 +58,7 @@ public class ChatView extends AppCompatActivity {
     private final String userId = userAuth.getUid();
     private final String TAG = "Chat view";
     private DocumentReference chatData, forumData, currUserData, otherUserData;
+    private CollectionReference chatRef;
     private TextView chatTitle, returnBackBtn, accessBtn;
     private EditText inputMessage;
     private ImageView sendMessageBtn, baseImage;
@@ -57,6 +70,7 @@ public class ChatView extends AppCompatActivity {
     private ArrayList<String> chatMemberIds, chatModeratorIds, chatAdminIds, chatMemberNames;
     private GroupChat groupChat;
     private boolean isGroup;
+    private ChatMessageRecyclerViewAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,26 +97,41 @@ public class ChatView extends AppCompatActivity {
             chatId = Objects.requireNonNull(getIntent.getExtras()).getString("chatId");
             Log.i(TAG, "chatView id: " + chatId);
             chatData = db.collection("CHATROOMS").document(chatId);
+            chatRef = chatData.collection("CHATS");
+
             currUserData = db.collection("users").document(userId);
 
             isGroup = getIntent.getExtras().getBoolean("isGroup");
 
             dataId = getIntent.getExtras().getString("dataId");
 
-            if (isGroup) {
-                forumData = db.collection("FORUMS").document(dataId);
+            if (dataId != null) {
+                if (isGroup) {
+                    forumData = db.collection("FORUMS").document(dataId);
+                }
+                else {
+                    otherUserData = db.collection("users").document(dataId);
+                }
             }
-            else {
-                otherUserData = db.collection("users").document(dataId);
-            }
-
-//            dataName = getIntent.getExtras().getString("dataName");
-//            dataImg = getIntent.getExtras().getString("dataImg");
 
         }
 
-        returnToPreviousPage();
         getOrCreateChatRoom();
+        setupList(messageBody);
+
+        sendMessageBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String message = inputMessage.getText().toString().trim();
+
+                if (message.isEmpty()) {
+                    return;
+                }
+                sendMessageToChat(message);
+            }
+        });
+
+        returnToPreviousPage();
     }
 
     private void getOrCreateChatRoom() {
@@ -143,15 +172,6 @@ public class ChatView extends AppCompatActivity {
                         Log.i(TAG, "chatView getOrCreateChatRoom: empty doc");
                         Map<String, Object> newChatroom = new HashMap<>();
 
-                        Calendar calendar = Calendar.getInstance();
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-                        Date timestamp = new Date();
-                        try {
-                            timestamp = sdf.parse(sdf.format(calendar.getTime()));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-
                         chatMemberIds = new ArrayList<>();
                         chatModeratorIds = new ArrayList<>();
                         chatAdminIds = new ArrayList<>();
@@ -160,7 +180,6 @@ public class ChatView extends AppCompatActivity {
 
                         if (isGroup) {
 
-                            Date finalTimestamp = timestamp;
                             forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                 @Override
                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -190,7 +209,7 @@ public class ChatView extends AppCompatActivity {
                                             newChatroom.put("moderatorIds", chatModeratorIds);
                                             newChatroom.put("adminIds", chatAdminIds);
 
-                                            newChatroom.put("lastTimestamp", finalTimestamp);
+                                            newChatroom.put("lastTimestamp", Timestamp.now());
                                             newChatroom.put("lastMessageSenderId", "");
                                             newChatroom.put("chatImg", forumIcon);
                                             newChatroom.put("dataId", dataId);
@@ -222,7 +241,6 @@ public class ChatView extends AppCompatActivity {
                         } else {
                             StringBuilder dataName = new StringBuilder();
                             Log.i(TAG, "chatName: " + dataName);
-                            Date finalTimestamp = timestamp;
                             currUserData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                 @Override
                                 public void onSuccess(DocumentSnapshot document) {
@@ -254,7 +272,7 @@ public class ChatView extends AppCompatActivity {
                                                     chatAdminIds.add(dataId);
 
                                                     newChatroom.put("adminIds", chatAdminIds);
-                                                    newChatroom.put("lastTimestamp", finalTimestamp);
+                                                    newChatroom.put("lastTimestamp", Timestamp.now());
                                                     newChatroom.put("lastMessageSenderId", "");
                                                     newChatroom.put("chatImg", "");
                                                     newChatroom.put("dataId", dataId);
@@ -275,8 +293,66 @@ public class ChatView extends AppCompatActivity {
 
     }
 
-    private void addMessage() {
+    private void sendMessageToChat(String message) {
+        Map<String, String> lastSender = new HashMap<>();
+        lastSender.put("lastMessageSenderId", userId);
+        chatData.set(lastSender, SetOptions.merge());
 
+        Map<String, Timestamp> lastTimestamp = new HashMap<>();
+        lastTimestamp.put("lastTimestamp", Timestamp.now());
+        chatData.set(lastTimestamp, SetOptions.merge());
+
+        Message newMessage = new Message(message, userId, Timestamp.now());
+        chatRef.add(newMessage).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentReference> task) {
+                if (task.isSuccessful()) {
+//                    DocumentReference document = task.getResult();
+                    inputMessage.setText("");
+                    Log.i(TAG, "send message: " + message);
+                }
+            }
+        });
+    }
+
+    private void setupList(RecyclerView chatMessage) {
+        Query query = chatRef.orderBy("timestamp", Query.Direction.DESCENDING);
+
+        chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    QuerySnapshot document = task.getResult();
+
+                    for(QueryDocumentSnapshot queryDocument: document) {
+                        String message = queryDocument.getString("messageContent");
+                        String sender = queryDocument.getString("messageOwnerId");
+
+                        Log.i(TAG, "chat - message/sender: " + message +"/" + sender);
+                    }
+                }
+            }
+        });
+
+        FirestoreRecyclerOptions<Message> options = new FirestoreRecyclerOptions.Builder<Message>()
+                .setQuery(query,Message.class).build();
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setReverseLayout(true);
+        chatMessage.setLayoutManager(layoutManager);
+
+        adapter = new ChatMessageRecyclerViewAdapter(options, getApplicationContext());
+        chatMessage.setAdapter(adapter);
+
+        adapter.startListening();
+
+        adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                chatMessage.smoothScrollToPosition(0);
+            }
+        });
     }
 
     private void returnToPreviousPage() {
