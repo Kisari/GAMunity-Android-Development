@@ -42,6 +42,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -130,8 +133,6 @@ public class ForumView extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void setForumData() {
-        postList = new ArrayList<>();
-
         forumData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
@@ -157,8 +158,10 @@ public class ForumView extends AppCompatActivity {
 
                     if (document.get("postIds") != null) {
                         postIds = (ArrayList<String>) document.get("postIds");
-                        Log.i(TAG, "setForumData - postId: " + postIds);
-                        displayList(postIds);
+
+                        if (postIds != null) {
+                            displayList(postIds);
+                        }
                     }
 
                     forumBackgroundUri = document.getString("forumBackground");
@@ -194,6 +197,7 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void displayList(ArrayList<String> postIds) {
+        postList = new ArrayList<>();
 
         final int[] listLength = {postIds.size()};
         AtomicInteger counter = new AtomicInteger(0);
@@ -208,6 +212,7 @@ public class ForumView extends AppCompatActivity {
 
                         String postTitle, postDescription, postOwnerId, timestampStr, updateTimestampStr, imgUri;
                         Date timestamp = new Date(), updateTimestamp = new Date();
+
                         ArrayList<String> postLikeIds, postDislikeIds, postCommentIds;
 
                         if (document.exists()) {
@@ -249,7 +254,20 @@ public class ForumView extends AppCompatActivity {
 
                             Log.i(TAG, "onComplete - postId: " + postId);
                             Post post = new Post(postId, postOwnerId, forumId, postTitle, postDescription, timestamp, updateTimestamp, imgUri, postCommentIds, postLikeIds, postDislikeIds);
-                            postList.add(post);
+
+                            Collections.sort(postList, (post1, post2)
+                                    -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                            int index = Collections.binarySearch(postList, post, (post1, post2)
+                                    -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                            int insertionPoint = (index < 0) ? -index : index;
+
+                            if (insertionPoint >= postList.size()) {
+                                postList.add(post);
+                            } else {
+                                postList.add(insertionPoint, post);
+                            }
 
                             if (counter.incrementAndGet() == listLength[0]) {
                                 setupList(postList);
@@ -304,7 +322,21 @@ public class ForumView extends AppCompatActivity {
                 ArrayList<String> postLikeIds = new ArrayList<>(), postDislikeIds = new ArrayList<>(), postCommentIds = new ArrayList<>();
 
                 Post post = new Post(postId, userId, forumId, postTitle, postDescription, timestamp, null, postImgUri, postLikeIds, postDislikeIds, postCommentIds);
-                postList.add(post);
+
+                Collections.sort(postList, (post1, post2)
+                        -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                int index = Collections.binarySearch(postList, post, (post1, post2)
+                        -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                int insertionPoint = (index < 0) ? -index : index;
+
+                if (insertionPoint >= postList.size()) {
+                    postList.add(post);
+                } else {
+                    postList.add(insertionPoint, post);
+                }
+
             }
             setupList(postList);
             recreate();
@@ -312,13 +344,17 @@ public class ForumView extends AppCompatActivity {
 
         if (requestCode == constant.EDIT) {
             if (resultCode == RESULT_OK) {
-                setUI();
+                recreate();
             }
         }
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
                 recreate();
+            }
+
+            if (resultCode == 0) {
+                setUI();
             }
         }
 
@@ -339,11 +375,6 @@ public class ForumView extends AppCompatActivity {
         MenuItem addModerator = popupMenu.getMenu().findItem(R.id.forumAddModerator);
         MenuItem removeModerator = popupMenu.getMenu().findItem(R.id.forumRemoveModerator);
         MenuItem removeUser = popupMenu.getMenu().findItem(R.id.forumRemoveUser);
-
-        Log.i(TAG, "moreOption - chiefAdmin: " + chiefAdminId);
-        Log.i(TAG, "moreOption - userId: " + userId);
-        Log.i(TAG, "moreOption - memberIds: " + memberIds);
-        Log.i(TAG, "moreOption - moderatorIds: " + moderatorIds);
 
         if (Objects.equals(userId, chiefAdminId)) {
             moreInfo.setVisible(true);
@@ -683,15 +714,82 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void accessChatRoom(String chatId) {
-        Log.i(TAG, "accessChatRoom: " + chatId);
-        forumChat.setOnClickListener(v -> {
-            userData.update("chatGroupIds", FieldValue.arrayUnion(chatId));
+        forumChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (chatId == null) {
+                    ArrayList<String> chatMemberIds = new ArrayList<>();
+                    ArrayList<String> chatModeratorIds = new ArrayList<>();
+                    ArrayList<String> adminMemberIds = new ArrayList<>();
 
-            Intent chatIntent = new Intent(ForumView.this, ChatView.class);
-            chatIntent.putExtra("chatId", chatId);
-            chatIntent.putExtra("isGroup", true);
-            chatIntent.putExtra("forumId", forumId);
-            startActivity(chatIntent);
+                    if (memberIds.contains(userId)) {
+                        chatMemberIds.add(userId);
+                    }
+                    else if (moderatorIds.contains(userId)) {
+                        chatModeratorIds.add(userId);
+                    }
+                    else if (Objects.equals(userId, chiefAdminId)) {
+                        adminMemberIds.add(userId);
+                    }
+
+                    Calendar calendar = Calendar.getInstance();
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+
+                    Date timestamp = new Date();
+                    try {
+                        timestamp = sdf.parse(sdf.format(calendar.getTime()));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    Map<String, Object> newChatroom = new HashMap<>();
+                    newChatroom.put("chatTitle", forumTitle + "'s Group Chat");
+                    newChatroom.put("memberIds", chatMemberIds);
+                    newChatroom.put("moderatorIds", chatModeratorIds);
+                    newChatroom.put("adminMemberIds", adminMemberIds);
+                    newChatroom.put("isGroup", true);
+                    newChatroom.put("lastTimestamp", timestamp);
+                    newChatroom.put("lastMessageSenderId", "");
+                    newChatroom.put("chatImg", forumIconUri);
+                    newChatroom.put("forumId", forumId);
+
+                    db.collection("CHATROOMS")
+                            .add(newChatroom)
+                            .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentReference> task) {
+                                    String newChatId = "";
+                                    if(task.isSuccessful()) {
+                                        newChatId = task.getResult().getId();
+
+                                        Map<String, String> chatroomId = new HashMap<>();
+                                        chatroomId.put("chatId", newChatId);
+
+                                        forumData.set(chatroomId, SetOptions.merge());
+                                        userData.update("chatGroupIds", FieldValue.arrayUnion(newChatId));
+
+                                        Intent chatIntent = new Intent(ForumView.this, ChatView.class);
+                                        chatIntent.putExtra("chatId", newChatId);
+                                        chatIntent.putExtra("isGroup", true);
+                                        chatIntent.putExtra("forumId", forumId);
+                                        startActivity(chatIntent);
+                                    }
+                                }
+
+                            });
+                }
+                else {
+                    userData.update("chatGroupIds", FieldValue.arrayUnion(chatId));
+
+                    Intent chatIntent = new Intent(ForumView.this, ChatView.class);
+                    chatIntent.putExtra("chatId", chatId);
+                    chatIntent.putExtra("isGroup", true);
+                    chatIntent.putExtra("forumId", forumId);
+                    startActivity(chatIntent);
+                }
+            }
         });
     }
 

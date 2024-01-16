@@ -265,7 +265,9 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
 
                     ArrayList<String> chatMemberIds = new ArrayList<>();
-                    chatMemberIds.add(db.getCurrentUser().getUid());
+                    ArrayList<String> chatModeratorIds = new ArrayList<>();
+                    ArrayList<String> adminMemberIds = new ArrayList<>();
+                    adminMemberIds.add(db.getCurrentUser().getUid());
 
                     Calendar calendar = Calendar.getInstance();
                     String format = "dd/MM/yyyy HH:mm";
@@ -281,6 +283,8 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     Map<String, Object> newChatroom = new HashMap<>();
                     newChatroom.put("chatTitle", forumNameContent + "'s Group Chat");
                     newChatroom.put("memberIds", chatMemberIds);
+                    newChatroom.put("moderatorIds", chatModeratorIds);
+                    newChatroom.put("adminMemberIds", adminMemberIds);
                     newChatroom.put("isGroup", true);
                     newChatroom.put("lastTimestamp", timestamp);
                     newChatroom.put("lastMessageSenderId", "");
@@ -299,6 +303,8 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                                         chatroomId.put("chatId", chatId);
 
                                         db.getDb().collection("FORUMS").document(forumRef).set(chatroomId, SetOptions.merge());
+                                        db.getDb().collection("users").document(db.getCurrentUser().getUid())
+                                                .update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
                                     }
                                 }

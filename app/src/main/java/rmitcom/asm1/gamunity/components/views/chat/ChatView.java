@@ -67,7 +67,7 @@ public class ChatView extends AppCompatActivity {
                 otherUserData = db.collection("users").document(otherUserId);
             }
 
-            chatData = db.collection("CHATROOM").document(chatId);
+            chatData = db.collection("CHATROOMS").document(chatId);
             currUserData = db.collection("users").document(userId);
         }
 
