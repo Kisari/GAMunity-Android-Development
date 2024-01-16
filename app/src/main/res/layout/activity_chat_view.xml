@@ -29,12 +29,46 @@
                 android:layout_height="wrap_content"
                 android:drawableStart="@drawable/back_icon_foreground"
                 android:layout_gravity="center"/>
+            <RelativeLayout
+                android:id="@+id/userImg"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:gravity="center">
+                <ImageView
+                    android:id="@+id/baseImg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/account_base_img"
+                    app:strokeWidth="3dp"
+                    android:padding="5dp"
+                    app:strokeColor="@android:color/darker_gray"
+                    app:shapeAppearanceOverlay="@style/circleImageView"
+                    tools:ignore="ImageContrastCheck"/>
+                <ProgressBar
+                    android:id="@+id/chatProgressBar1"
+                    android:indeterminateTint="#4900FF"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="10dp"
+                    android:visibility="invisible"/>
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/chatImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:strokeWidth="3dp"
+                    android:padding="5dp"
+                    app:strokeColor="@android:color/darker_gray"
+                    app:shapeAppearanceOverlay="@style/circleImageView"
+                    android:visibility="invisible"
+                    tools:ignore="ImageContrastCheck"/>
+            </RelativeLayout>
             <TextView
                 android:id="@+id/chatTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:paddingVertical="5dp"
+                android:textSize="20sp"
                 android:text="Title"/>
         </LinearLayout>
         <TextView
@@ -47,6 +81,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatMessages"
+        android:padding="10dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/chatViewTop"

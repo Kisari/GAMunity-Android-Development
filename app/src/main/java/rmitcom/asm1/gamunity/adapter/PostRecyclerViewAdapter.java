@@ -58,7 +58,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         public TextView title, username, timestamp, like, likeTrue, dislike, dislikeTrue, comment;
         public RelativeLayout imageLayout;
         public ProgressBar userProgressBar, postProgressBar;
-        public ImageView postImage;
+        public ImageView postImage, baseImage;
         public ShapeableImageView userImage;
 
         public PostRecyclerViewHolder(@NonNull View itemView) {
@@ -78,6 +78,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             postProgressBar = itemView.findViewById(R.id.postTabProgressBar2);
             postImage =itemView.findViewById(R.id.postTabImage);
             userImage = itemView.findViewById(R.id.postTabUserProfile);
+
+            baseImage = itemView.findViewById(R.id.baseImg);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -219,10 +221,18 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                             userImgUri = document.getString("image");
                             if (userImgUri != null) {
                                 try {
+                                    holder.baseImage.setVisibility(View.INVISIBLE);
+                                    holder.userProgressBar.setVisibility(View.VISIBLE);
+                                    holder.userImage.setVisibility(View.VISIBLE);
                                     new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
+                            }
+                            else {
+                                holder.baseImage.setVisibility(View.VISIBLE);
+                                holder.userProgressBar.setVisibility(View.INVISIBLE);
+                                holder.userImage.setVisibility(View.INVISIBLE);
                             }
                         }
                     }

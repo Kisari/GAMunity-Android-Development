@@ -78,7 +78,7 @@ public class PostView extends AppCompatActivity {
     private RecyclerView commentListView;
     private RelativeLayout postPicture;
     private ProgressBar userProgressBar, postProgressBar;
-    private ImageView postImage;
+    private ImageView postImage, baseImage;
     private ShapeableImageView postUserImage;
     private CommentRecyclerViewAdapter adapter;
     private Constant constant = new Constant();
@@ -118,6 +118,7 @@ public class PostView extends AppCompatActivity {
         postUserImage = findViewById(R.id.postUserImage);
         userProgressBar = findViewById(R.id.postProgressBar1);
         postProgressBar = findViewById(R.id.postProgressBar2);
+        baseImage = findViewById(R.id.baseImg);
 
         postForumName = findViewById(R.id.postForumName);
 
@@ -244,6 +245,23 @@ public class PostView extends AppCompatActivity {
 
                                         if (postUsernameStr != null) {
                                             postUsername.setText(postUsernameStr);
+                                        }
+
+                                        if (postUserImageUri != null) {
+                                            try {
+                                                baseImage.setVisibility(View.INVISIBLE);
+                                                postUserImage.setVisibility(View.VISIBLE);
+                                                userProgressBar.setVisibility(View.VISIBLE);
+                                                new AsyncImage(postUserImage, userProgressBar).loadImage(postUserImageUri);
+                                            }
+                                            catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        else {
+                                            baseImage.setVisibility(View.VISIBLE);
+                                            postUserImage.setVisibility(View.INVISIBLE);
+                                            userProgressBar.setVisibility(View.INVISIBLE);
                                         }
                                     }
                                 }
@@ -634,6 +652,10 @@ public class PostView extends AppCompatActivity {
                 ArrayList<String> commentLikeIds = new ArrayList<>(), commentDislikeIds = new ArrayList<>(), replyCommentIds = new ArrayList<>();
 
                 Comment comment = new Comment(commentId, userId, postId, commentDescription, null, timestamp, null, commentImgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
+
+                if (commentList == null) {
+                    commentList = new ArrayList<>();
+                }
 
                 Collections.sort(commentList, (comment1, comment2)
                         -> comment2.getTimestamp().compareTo(comment1.getTimestamp()));

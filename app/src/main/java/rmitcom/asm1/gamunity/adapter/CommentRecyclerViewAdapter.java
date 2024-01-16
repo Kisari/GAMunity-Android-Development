@@ -76,7 +76,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         public ArrayList<Comment> commentList, replyCommentList;
         public RelativeLayout imageLayout;
         public ProgressBar userProgressBar, commentProgressBar;
-        public ImageView commentImage;
+        public ImageView commentImage, baseImage;
         public ShapeableImageView userImage;
 
         public CommentRecyclerViewHolder(@NonNull View itemView) {
@@ -102,6 +102,8 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             commentProgressBar = itemView.findViewById(R.id.commentTabProgressBar2);
             commentImage =itemView.findViewById(R.id.commentTabImage);
             userImage = itemView.findViewById(R.id.commentTabUserProfile);
+
+            baseImage = itemView.findViewById(R.id.baseImg);
 
         }
 
@@ -328,10 +330,18 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                         userImgUri = document.getString("image");
                         if (userImgUri != null) {
                             try {
+                                holder.baseImage.setVisibility(View.INVISIBLE);
+                                holder.userProgressBar.setVisibility(View.VISIBLE);
+                                holder.userImage.setVisibility(View.VISIBLE);
                                 new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                        }
+                        else {
+                            holder.baseImage.setVisibility(View.VISIBLE);
+                            holder.userProgressBar.setVisibility(View.INVISIBLE);
+                            holder.userImage.setVisibility(View.INVISIBLE);
                         }
                     }
                 }

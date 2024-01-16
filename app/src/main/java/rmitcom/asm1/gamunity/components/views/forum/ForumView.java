@@ -144,7 +144,7 @@ public class ForumView extends AppCompatActivity {
                     memberIds = (ArrayList<String>) document.get("memberIds");
                     moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                    chatId = document.getString("chatId");
+                    chatId = (String) document.get("chatId");
 
                     if (Objects.equals(userId, chiefAdminId)) {
                         userRole.setText("Admin");
@@ -322,6 +322,10 @@ public class ForumView extends AppCompatActivity {
                 ArrayList<String> postLikeIds = new ArrayList<>(), postDislikeIds = new ArrayList<>(), postCommentIds = new ArrayList<>();
 
                 Post post = new Post(postId, userId, forumId, postTitle, postDescription, timestamp, null, postImgUri, postLikeIds, postDislikeIds, postCommentIds);
+
+                if (postList == null) {
+                    postList = new ArrayList<>();
+                }
 
                 Collections.sort(postList, (post1, post2)
                         -> post2.getTimestamp().compareTo(post1.getTimestamp()));
@@ -562,11 +566,12 @@ public class ForumView extends AppCompatActivity {
                             }
                         }
 
-                        String chatId = document.getString("chatId");
+                        if (document.getString("chatId") != null) {
+                            chatId = document.getString("chatId");
 
-                        if (chatId != null) {
-                            DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
-
+                            if (chatId != null) {
+                                DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+                            }
                         }
                     }
 
@@ -718,50 +723,15 @@ public class ForumView extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (chatId == null) {
-                    ArrayList<String> chatMemberIds = new ArrayList<>();
-                    ArrayList<String> chatModeratorIds = new ArrayList<>();
-                    ArrayList<String> adminMemberIds = new ArrayList<>();
-
-                    if (memberIds.contains(userId)) {
-                        chatMemberIds.add(userId);
-                    }
-                    else if (moderatorIds.contains(userId)) {
-                        chatModeratorIds.add(userId);
-                    }
-                    else if (Objects.equals(userId, chiefAdminId)) {
-                        adminMemberIds.add(userId);
-                    }
-
-                    Calendar calendar = Calendar.getInstance();
-
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-
-                    Date timestamp = new Date();
-                    try {
-                        timestamp = sdf.parse(sdf.format(calendar.getTime()));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-
                     Map<String, Object> newChatroom = new HashMap<>();
-                    newChatroom.put("chatTitle", forumTitleStr + "'s Group Chat");
-                    newChatroom.put("memberIds", chatMemberIds);
-                    newChatroom.put("moderatorIds", chatModeratorIds);
-                    newChatroom.put("adminMemberIds", adminMemberIds);
-                    newChatroom.put("isGroup", true);
-                    newChatroom.put("lastTimestamp", timestamp);
-                    newChatroom.put("lastMessageSenderId", "");
-                    newChatroom.put("chatImg", forumIconUri);
-                    newChatroom.put("forumId", forumId);
 
                     db.collection("CHATROOMS")
                             .add(newChatroom)
                             .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                                 @Override
                                 public void onComplete(@NonNull Task<DocumentReference> task) {
-                                    String newChatId = "";
                                     if(task.isSuccessful()) {
-                                        newChatId = task.getResult().getId();
+                                        String newChatId = task.getResult().getId();
 
                                         Map<String, String> chatroomId = new HashMap<>();
                                         chatroomId.put("chatId", newChatId);
@@ -772,7 +742,9 @@ public class ForumView extends AppCompatActivity {
                                         Intent chatIntent = new Intent(ForumView.this, ChatView.class);
                                         chatIntent.putExtra("chatId", newChatId);
                                         chatIntent.putExtra("isGroup", true);
-                                        chatIntent.putExtra("forumId", forumId);
+                                        chatIntent.putExtra("dataId", forumId);
+//                                        chatIntent.putExtra("dataName", forumTitleStr);
+//                                        chatIntent.putExtra("dataImg", forumIconUri);
                                         startActivity(chatIntent);
                                     }
                                 }
@@ -782,10 +754,23 @@ public class ForumView extends AppCompatActivity {
                 else {
                     userData.update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
+                    DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+                    if (memberIds.contains(userId)) {
+                        chatData.update("memberIds", FieldValue.arrayUnion(userId));
+                    }
+                    else if (moderatorIds.contains(userId)) {
+                        chatData.update("moderatorIds", FieldValue.arrayUnion(userId));
+                    }
+                    else if (Objects.equals(userId, chiefAdminId)) {
+                        chatData.update("adminIds", FieldValue.arrayUnion(userId));
+                    }
+
                     Intent chatIntent = new Intent(ForumView.this, ChatView.class);
                     chatIntent.putExtra("chatId", chatId);
                     chatIntent.putExtra("isGroup", true);
-                    chatIntent.putExtra("forumId", forumId);
+                    chatIntent.putExtra("dataId", forumId);
+//                    chatIntent.putExtra("dataName", forumTitleStr);
+//                    chatIntent.putExtra("dataImg", forumIconUri);
                     startActivity(chatIntent);
                 }
             }

@@ -23,13 +23,23 @@
                 android:layout_height="50dp"
                 android:gravity="center"
                 android:layout_centerVertical="true">
+                <ImageView
+                    android:id="@+id/baseImg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/account_base_img"
+                    app:strokeWidth="3dp"
+                    android:padding="5dp"
+                    app:strokeColor="@android:color/darker_gray"
+                    app:shapeAppearanceOverlay="@style/circleImageView"
+                    tools:ignore="ImageContrastCheck"/>
                 <ProgressBar
                     android:id="@+id/memberProgressBar1"
                     android:indeterminateTint="#4900FF"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="10dp"
-                    android:visibility="visible"/>
+                    android:visibility="invisible"/>
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/memberUserProfile"
                     android:layout_width="match_parent"
@@ -38,6 +48,7 @@
                     android:padding="5dp"
                     app:strokeColor="@android:color/darker_gray"
                     app:shapeAppearanceOverlay="@style/circleImageView"
+                    android:visibility="invisible"
                     tools:ignore="ImageContrastCheck"/>
             </RelativeLayout>
 

@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -117,14 +118,18 @@ public class ChatFragment extends Fragment {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
 
-                        String chatTitle = "", chatImage = "";
+                        String chatTitle = "", chatImage = "", forumId = "";
 
                         if (document.exists()) {
                             chatTitle = document.getString("chatTitle");
                             chatImage = document.getString("chatImg");
                             boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
+                            forumId = document.getString("forumId");
 
-                            GroupChat groupChat = new GroupChat(chatId, chatTitle, chatImage, isGroup);
+                            Log.i("Chat", "chatName - exist: " + chatTitle);
+
+
+                            GroupChat groupChat = new GroupChat(chatId, chatTitle, chatImage, isGroup, forumId);
                             chatGroupList.add(groupChat);
                         }
 

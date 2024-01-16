@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -23,7 +24,6 @@ import java.util.ArrayList;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.chat.ChatView;
-import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.model.GroupChat;
 
 public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRecyclerViewAdapter.ChatRoomRecyclerViewHolder>{
@@ -34,7 +34,8 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
     //    private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData, chatData;
-    private String chatName, chatImg, chatId;
+    private String chatName, chatImg, chatId, dataId;
+    private boolean isGroup;
     @NonNull
     @Override
     public ChatRoomRecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -50,17 +51,27 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
             chatName = currGroupChat.getChatTitle();
             chatImg = currGroupChat.getChatImage();
             chatId = currGroupChat.getChatId();
+            isGroup = currGroupChat.isGroup();
+            dataId = currGroupChat.getDataId();
 
             if (chatName != null) {
                 holder.chatName.setText(chatName);
             }
 
-            if (chatImg != null) {
+            if (!chatImg.isEmpty()) {
+                holder.baseImage.setVisibility(View.INVISIBLE);
+                holder.chatProgressBar.setVisibility(View.VISIBLE);
+                holder.chatImage.setVisibility(View.VISIBLE);
                 try {
                     new AsyncImage(holder.chatImage, holder.chatProgressBar).loadImage(chatImg);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+            else {
+                holder.baseImage.setVisibility(View.VISIBLE);
+                holder.chatProgressBar.setVisibility(View.INVISIBLE);
+                holder.chatImage.setVisibility(View.INVISIBLE);
             }
 
         }
@@ -75,12 +86,14 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
         TextView chatName;
         ProgressBar chatProgressBar;
         ShapeableImageView chatImage;
+        ImageView baseImage;
         public ChatRoomRecyclerViewHolder(@NonNull View itemView) {
             super(itemView);
 
             chatName = itemView.findViewById(R.id.chatTabTitle);
             chatProgressBar = itemView.findViewById(R.id.chatTabProgressBar1);
             chatImage = itemView.findViewById(R.id.chatTabImg);
+            baseImage = itemView.findViewById(R.id.baseImg);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -97,8 +110,11 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
         private void navigateToChatView(GroupChat groupChat) {
             Intent intent = new Intent(context, ChatView.class);
             intent.putExtra("chatId", groupChat.getChatId());
-            intent.putExtra("isNew", false);
-            intent.putExtra("isGroup", groupChat.getIsGroup());
+            intent.putExtra("isGroup", groupChat.isGroup());
+            intent.putExtra("dataId", groupChat.getDataId());
+//            intent.putExtra("dataName", groupChat.getChatTitle());
+//            intent.putExtra("dataImg", groupChat.getChatImage());
+
             ((Activity) context).startActivityForResult(intent, 189);
         }
     }

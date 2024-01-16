@@ -4,10 +4,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -42,10 +44,10 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
     private ArrayList<User> userContent;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-//    private final String userId = userAuth.getUid();
+    private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData;
-    private String usernameStr, userProfileImgUri, forumId, userId;
+    private String usernameStr, userProfileImgUri, forumId, otherUserId;
     private ArrayList<String> userIds;
     private boolean toAdmin, isChangeRole;
 
@@ -75,6 +77,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         ShapeableImageView userImage;
         RelativeLayout userInfo;
         Button userButton;
+        ImageView baseImage;
         public UserRecyclerViewHolder(@NonNull View itemView) {
             super(itemView);
 
@@ -83,6 +86,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             userImage = itemView.findViewById(R.id.memberUserProfile);
             userInfo = itemView.findViewById(R.id.userInfo);
             userButton = itemView.findViewById(R.id.userButton);
+            baseImage = itemView.findViewById(R.id.baseImg);
 
             if (isChangeRole && toAdmin || isChangeRole || toAdmin) {
                 userButton.setVisibility(View.VISIBLE);
@@ -105,11 +109,19 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             }
 
             if (userProfileImgUri != null) {
+                holder.baseImage.setVisibility(View.INVISIBLE);
+                holder.userProgressBar.setVisibility(View.VISIBLE);
+                holder.userImage.setVisibility(View.VISIBLE);
                 try {
                     new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userProfileImgUri);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+            else {
+                holder.baseImage.setVisibility(View.VISIBLE);
+                holder.userProgressBar.setVisibility(View.INVISIBLE);
+                holder.userImage.setVisibility(View.INVISIBLE);
             }
 
             holder.userInfo.setOnClickListener(new View.OnClickListener() {
@@ -137,7 +149,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 
     @SuppressLint("NotifyDataSetChanged")
     private void confirmChangeRole(User currUser) {
-        String userId = currUser.getUserId();
+        String currUserId = currUser.getUserId();
 
         ArrayList<String> joinedIds = currUser.getJoinedForumIds();
         ArrayList<String> adminIds = currUser.getAdminForumIds();
@@ -168,7 +180,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         memberIds = (ArrayList<String>) document.get("memberIds");
 
                                         if (memberIds != null) {
-                                            memberIds.remove(userId);
+                                            memberIds.remove(currUserId);
                                             memberList.put("memberIds", memberIds);
                                             forumData.set(memberList, SetOptions.merge());
                                         }
@@ -178,7 +190,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                                         if (moderatorIds != null) {
-                                            moderatorIds.add(userId);
+                                            moderatorIds.add(currUserId);
                                             moderatorList.put("moderatorIds", moderatorIds);
                                             forumData.set(moderatorList, SetOptions.merge());
                                         }
@@ -188,7 +200,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                         }
                     });
 
-                    DocumentReference userData = db.collection("users").document(userId);
+                    DocumentReference userData = db.collection("users").document(currUserId);
                     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
                     userData.update("adminForumIds", FieldValue.arrayUnion(forumId));
                 }
@@ -220,7 +232,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                                         if (moderatorIds != null) {
-                                            moderatorIds.remove(userId);
+                                            moderatorIds.remove(currUserId);
                                             moderatorList.put("moderatorIds", moderatorIds);
                                             forumData.set(moderatorList, SetOptions.merge());
                                         }
@@ -230,7 +242,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         memberIds = (ArrayList<String>) document.get("memberIds");
 
                                         if (memberIds != null) {
-                                            memberIds.add(userId);
+                                            memberIds.add(currUserId);
                                             memberList.put("memberIds", memberIds);
                                             forumData.set(memberList, SetOptions.merge());
                                         }
@@ -240,7 +252,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                         }
                     });
 
-                    DocumentReference userData = db.collection("users").document(userId);
+                    DocumentReference userData = db.collection("users").document(currUserId);
                     userData.update("joinedForumIds", FieldValue.arrayUnion(forumId));
                     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
                 }
@@ -274,7 +286,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         memberIds = (ArrayList<String>) document.get("memberIds");
 
                                         if (memberIds != null) {
-                                            memberIds.remove(userId);
+                                            memberIds.remove(currUserId);
                                             memberList.put("memberIds", memberIds);
                                             forumData.set(memberList, SetOptions.merge());
                                         }
@@ -284,7 +296,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                                         if (moderatorIds != null) {
-                                            moderatorIds.remove(userId);
+                                            moderatorIds.remove(currUserId);
                                             moderatorList.put("moderatorIds", moderatorIds);
                                             forumData.set(moderatorList, SetOptions.merge());
                                         }
@@ -294,7 +306,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                         }
                     });
 
-                    DocumentReference userData = db.collection("users").document(userId);
+                    DocumentReference userData = db.collection("users").document(currUserId);
                     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
                     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
                 }
@@ -317,9 +329,27 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             }
             else {
                 accessIntent = new Intent(context, ChatView.class);
+                String otherId = currUser.getUserId();
+                String chatId = "";
+
+                if (userId.hashCode() < otherId.hashCode()) {
+                    chatId = userId + "_" + otherId;
+                }
+                else {
+                    chatId = otherId + "_" + userId;
+                }
+
+                db.collection("users").document(userId)
+                        .update("chatGroupIds", FieldValue.arrayUnion(chatId));
+                db.collection("users").document(currUser.getUserId())
+                        .update("chatGroupIds", FieldValue.arrayUnion(chatId));
+
+                accessIntent.putExtra("chatId", chatId);
+                accessIntent.putExtra("isGroup", false);
+                accessIntent.putExtra("dataId", currUser.getUserId());
+//                accessIntent.putExtra("dataName", currUser.getName());
+//                accessIntent.putExtra("dataImg", currUser.getProfileImgUri());
             }
-//            accessIntent.putExtra("isNew", true);
-            accessIntent.putExtra("otherUserId", currUser.getUserId());
             context.startActivity(accessIntent);
         }
     }

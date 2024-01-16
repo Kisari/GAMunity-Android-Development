@@ -63,11 +63,13 @@ public class ChatSearchUser extends AppCompatActivity {
 
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         String userId = document.getId();
-                        String userName = document.getString("name");
-                        String userImg = document.getString("profileImgUri");
+                        if (!userId.equals(currUserId)) {
+                            String userName = document.getString("name");
+                            String userImg = document.getString("profileImgUri");
 
-                        User user = new User(userId, userName, userImg);
-                        userList.add(user);
+                            User user = new User(userId, userName, userImg);
+                            userList.add(user);
+                        }
                     }
                     setupList(userList, userListView);
                 }

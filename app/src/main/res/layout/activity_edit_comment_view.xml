@@ -47,13 +47,23 @@
                 android:layout_width="0dp"
                 android:layout_height="81dp"
                 android:layout_weight="0.2">
+                <ImageView
+                    android:id="@+id/baseImg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/account_base_img"
+                    app:strokeWidth="3dp"
+                    android:padding="5dp"
+                    app:strokeColor="@android:color/darker_gray"
+                    app:shapeAppearanceOverlay="@style/circleImageView"
+                    tools:ignore="ImageContrastCheck"/>
                 <ProgressBar
                     android:id="@+id/editCommentProgressBar1"
                     android:indeterminateTint="#4900FF"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:padding="10dp"
-                    android:visibility="visible"/>
+                    android:visibility="invisible"/>
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/editCommentUserProfile"
                     android:layout_width="match_parent"
@@ -62,6 +72,7 @@
                     android:padding="5dp"
                     app:strokeColor="@android:color/darker_gray"
                     app:shapeAppearanceOverlay="@style/circleImageView"
+                    android:visibility="invisible"
                     tools:ignore="ImageContrastCheck"/>
             </RelativeLayout>
             <LinearLayout
@@ -93,7 +104,7 @@
                     android:id="@+id/editCommentImageButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add Image/Video"
+                    android:text="Add Image"
                     android:gravity="center"
                     android:drawableStart="@drawable/camera_icon_foreground"/>
             </LinearLayout>

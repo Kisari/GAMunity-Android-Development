@@ -264,32 +264,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     String forumRef = task.getResult().getId();
                     Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
 
-                    ArrayList<String> chatMemberIds = new ArrayList<>();
-                    ArrayList<String> chatModeratorIds = new ArrayList<>();
-                    ArrayList<String> adminMemberIds = new ArrayList<>();
-                    adminMemberIds.add(db.getCurrentUser().getUid());
-
-                    Calendar calendar = Calendar.getInstance();
-                    String format = "dd/MM/yyyy HH:mm";
-                    SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
-
-                    Date timestamp = new Date();
-                    try {
-                        timestamp = sdf.parse(sdf.format(calendar.getTime()));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-
                     Map<String, Object> newChatroom = new HashMap<>();
-                    newChatroom.put("chatTitle", forumNameContent + "'s Group Chat");
-                    newChatroom.put("memberIds", chatMemberIds);
-                    newChatroom.put("moderatorIds", chatModeratorIds);
-                    newChatroom.put("adminMemberIds", adminMemberIds);
-                    newChatroom.put("isGroup", true);
-                    newChatroom.put("lastTimestamp", timestamp);
-                    newChatroom.put("lastMessageSenderId", "");
-                    newChatroom.put("chatImg", iconFilePath.toString());
-                    newChatroom.put("forumId", forumRef);
 
                     db.getDb().collection("CHATROOMS")
                             .add(newChatroom)
@@ -302,7 +277,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                                         Map<String, String> chatroomId = new HashMap<>();
                                         chatroomId.put("chatId", chatId);
 
-                                        db.getDb().collection("FORUMS").document(forumRef).set(chatroomId, SetOptions.merge());
+                                        db.getDb().collection("FORUMS").document(forumRef).set("chatId", SetOptions.merge());
                                         db.getDb().collection("users").document(db.getCurrentUser().getUid())
                                                 .update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
