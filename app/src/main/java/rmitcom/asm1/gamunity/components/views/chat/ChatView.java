@@ -55,21 +55,6 @@ public class ChatView extends AppCompatActivity {
 
     private void setUI() {
         Intent getIntent = getIntent();
-        if (getIntent != null) {
-            chatId = Objects.requireNonNull(getIntent.getExtras()).getString("chatId");
-            isGroup = Objects.requireNonNull(getIntent.getExtras()).getBoolean("isGroup");
-            
-            if (isGroup) {
-                forumId = getIntent.getExtras().getString("forumId");
-                forumData = db.collection("FORUMS").document(forumId);
-            } else {
-                otherUserId = getIntent.getExtras().getString("otherUserId");
-                otherUserData = db.collection("users").document(otherUserId);
-            }
-
-            chatData = db.collection("CHATROOMS").document(chatId);
-            currUserData = db.collection("users").document(userId);
-        }
 
         chatTitle = findViewById(R.id.chatTitle);
         returnBackBtn = findViewById(R.id.returnBack);
@@ -78,16 +63,42 @@ public class ChatView extends AppCompatActivity {
         sendMessageBtn = findViewById(R.id.messageSubmit);
         messageBody = findViewById(R.id.chatMessages);
 
+        if (getIntent != null) {
+
+            if (Objects.requireNonNull(getIntent.getExtras()).getString("chatId") != null) {
+                chatId = Objects.requireNonNull(getIntent.getExtras()).getString("chatId");
+                isGroup = Objects.requireNonNull(getIntent.getExtras()).getBoolean("isGroup");
+
+                if (isGroup) {
+                    forumId = getIntent.getExtras().getString("forumId");
+                    forumData = db.collection("FORUMS").document(forumId);
+                    chatTitle.setText(forumId);
+                }
+                else {
+                    otherUserId = getIntent.getExtras().getString("otherUserId");
+                    otherUserData = db.collection("users").document(otherUserId);
+                    chatTitle.setText(otherUserId);
+                }
+
+                chatData = db.collection("CHATROOMS").document(chatId);
+
+            }
+
+            if (getIntent.getExtras().getString("otherUserId") != null) {
+                otherUserId = getIntent.getExtras().getString("otherUserId");
+                otherUserData = db.collection("users").document(otherUserId);
+
+                chatTitle.setText(otherUserId + " new chat");
+            }
+
+            currUserData = db.collection("users").document(userId);
+        }
+
         returnToPreviousPage();
         getOrCreateChatRoom();
     }
 
     private void getOrCreateChatRoom() {
-//        if (isGroup) {
-//            chatTitle.setText("Forum Name" + " Group Chat");
-//        } else {
-//            chatTitle.setText("Other username");
-//        }
 
         chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override

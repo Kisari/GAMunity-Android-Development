@@ -318,7 +318,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             else {
                 accessIntent = new Intent(context, ChatView.class);
             }
-            accessIntent.putExtra("isNew", true);
+//            accessIntent.putExtra("isNew", true);
             accessIntent.putExtra("otherUserId", currUser.getUserId());
             context.startActivity(accessIntent);
         }

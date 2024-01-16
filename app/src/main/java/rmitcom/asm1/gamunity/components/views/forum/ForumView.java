@@ -184,7 +184,7 @@ public class ForumView extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-                    setButton(chatId);
+                    setButton();
                     moreOption();
 
                 } else {
@@ -578,7 +578,7 @@ public class ForumView extends AppCompatActivity {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void setButton(String chatId) {
+    private void setButton() {
         if (Objects.equals(userId, chiefAdminId)) {
             ownedButton.setVisibility(View.VISIBLE);
             joinButton.setVisibility(View.GONE);
@@ -624,7 +624,7 @@ public class ForumView extends AppCompatActivity {
 
         joinForum();
         unJoinForum();
-        accessChatRoom(chatId);
+        accessChatRoom();
     }
 
     private void joinForum() {
@@ -713,7 +713,7 @@ public class ForumView extends AppCompatActivity {
         startActivityForResult(demoteIntent, 109);
     }
 
-    private void accessChatRoom(String chatId) {
+    private void accessChatRoom() {
         forumChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -743,9 +743,8 @@ public class ForumView extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-
                     Map<String, Object> newChatroom = new HashMap<>();
-                    newChatroom.put("chatTitle", forumTitle + "'s Group Chat");
+                    newChatroom.put("chatTitle", forumTitleStr + "'s Group Chat");
                     newChatroom.put("memberIds", chatMemberIds);
                     newChatroom.put("moderatorIds", chatModeratorIds);
                     newChatroom.put("adminMemberIds", adminMemberIds);
