@@ -38,7 +38,6 @@ import rmitcom.asm1.gamunity.model.Post;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostRecyclerViewHolder> {
     private final Context context;
     private ArrayList<Post> postContent;
-
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
@@ -79,14 +78,11 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             postImage =itemView.findViewById(R.id.postTabImage);
             userImage = itemView.findViewById(R.id.postTabUserProfile);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        Post post = postContent.get(position);
-                        navigateToPostView(post);
-                    }
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    Post post = postContent.get(position);
+                    navigateToPostView(post);
                 }
             });
         }

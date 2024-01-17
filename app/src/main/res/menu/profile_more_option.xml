@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/forumListView"
+        android:title="View forums"
+        android:visible="true"/>
+    <item
+        android:id="@+id/profileUpdate"
+        android:title="Update profile"
+        android:visible="true"/>
+    <item
+        android:id="@+id/profileLogout"
+        android:title="Log out"
+        android:visible="false" />
+</menu>

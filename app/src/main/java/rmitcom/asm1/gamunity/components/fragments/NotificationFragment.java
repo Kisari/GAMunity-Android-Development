@@ -57,8 +57,6 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     @Override

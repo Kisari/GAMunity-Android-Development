@@ -179,7 +179,7 @@
                         android:text="0"
                         android:gravity="center"
                         android:visibility="visible"
-                        android:drawableStart="@drawable/dislike_unfill_icon" />
+                        android:drawableStart="@drawable/dislike_unfilled_icon" />
                     <TextView
                         android:id="@+id/postComment"
                         android:layout_width="wrap_content"

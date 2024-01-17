@@ -24,7 +24,7 @@
             android:layout_gravity="center|bottom">
 
             <ProgressBar
-                android:id="@+id/postTabProgressBar1"
+                android:id="@+id/progress_bar"
                 android:indeterminateTint="#4900FF"
                 android:layout_width="80dp"
                 android:layout_height="73dp"
@@ -40,8 +40,8 @@
                 app:strokeColor="@android:color/darker_gray"
                 app:shapeAppearanceOverlay="@style/circleImageView"
                 tools:ignore="ImageContrastCheck"/>
-
         </RelativeLayout>
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -49,12 +49,14 @@
             android:orientation="vertical"
             android:gravity="center"
             android:layout_gravity="top">
+
             <TextView
                 android:id="@+id/postTabUserName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Username"
                 android:padding="5dp"/>
+
             <TextView
                 android:id="@+id/postTabTimestamp"
                 android:layout_width="match_parent"
@@ -62,18 +64,21 @@
                 android:text="Timestamp"
                 android:padding="5dp"/>
         </LinearLayout>
+
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/postTabContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_below="@id/postTabTop">
+
         <TextView
             android:id="@+id/postTabTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Post's Title"
+            android:text="Post Title"
             android:textSize="25sp"
             android:textStyle="bold"
             android:padding="10dp"/>
@@ -83,6 +88,7 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:visibility="gone">
+
             <ProgressBar
                 android:id="@+id/postTabProgressBar2"
                 android:indeterminateTint="#4900FF"
@@ -91,6 +97,7 @@
                 android:layout_gravity="center"
                 android:padding="30dp"
                 android:visibility="visible"/>
+
             <ImageView
                 android:id="@+id/postTabImage"
                 android:layout_width="match_parent"
@@ -98,15 +105,20 @@
                 android:importantForAccessibility="no"
                 android:scaleType="fitXY"/>
         </RelativeLayout>
+
     </LinearLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/postTabContent">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            tools:ignore="UselessParent">
+
             <TextView
                 android:id="@+id/postTabLike"
                 android:layout_width="wrap_content"
@@ -116,7 +128,8 @@
                 android:paddingHorizontal="5dp"
                 android:paddingVertical="2dp"
                 android:visibility="visible"
-                android:drawableStart="@drawable/like_unfill_icon"/>
+                app:drawableStartCompat="@drawable/like_unfill_icon" />
+
             <TextView
                 android:id="@+id/postTabDislike"
                 android:layout_width="wrap_content"
@@ -126,7 +139,8 @@
                 android:paddingHorizontal="5dp"
                 android:paddingVertical="2dp"
                 android:visibility="visible"
-                android:drawableStart="@drawable/dislike_unfill_icon"/>
+                app:drawableStartCompat="@drawable/dislike_unfilled_icon" />
+
             <TextView
                 android:id="@+id/postTabComment"
                 android:layout_width="wrap_content"
@@ -135,32 +149,9 @@
                 android:gravity="center"
                 android:paddingHorizontal="5dp"
                 android:paddingVertical="2dp"
-                android:drawableStart="@drawable/chat_icon"/>
+                app:drawableStartCompat="@drawable/chat_icon" />
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/postTabLikeTrue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:gravity="center"
-                android:paddingHorizontal="5dp"
-                android:paddingVertical="2dp"
-                android:visibility="invisible"
-                android:drawableStart="@drawable/like_fill_icon"/>
-            <TextView
-                android:id="@+id/postTabDislikeTrue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:gravity="center"
-                android:paddingHorizontal="5dp"
-                android:paddingVertical="2dp"
-                android:visibility="invisible"
-                android:drawableStart="@drawable/dislike_fill_icon"/>
-        </LinearLayout>
+
     </RelativeLayout>
+
 </RelativeLayout>

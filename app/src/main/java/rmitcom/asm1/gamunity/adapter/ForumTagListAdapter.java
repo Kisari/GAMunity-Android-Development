@@ -93,5 +93,4 @@ public class ForumTagListAdapter extends RecyclerView.Adapter<ForumTagListAdapte
     public interface ItemLongClickListener {
         void onItemLongClick(View view, int position);
     }
-
 }

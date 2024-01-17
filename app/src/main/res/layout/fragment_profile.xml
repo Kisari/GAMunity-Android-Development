@@ -7,6 +7,23 @@
     android:background="@color/gray_03"
     android:orientation="vertical">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="@android:color/white"
+        android:elevation="10dp">
+
+        <ImageView
+            android:background="@drawable/app_icon"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="146dp"
+            android:layout_height="27.16dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="10dp"
+            android:importantForAccessibility="no" />
+    </RelativeLayout>
+
     <include
         layout="@layout/ui_profile_card"
         android:layout_width="match_parent"

@@ -123,7 +123,7 @@
                     android:paddingHorizontal="5dp"
                     android:paddingVertical="2dp"
                     android:visibility="visible"
-                    android:drawableStart="@drawable/dislike_unfill_icon"/>
+                    android:drawableStart="@drawable/dislike_unfilled_icon"/>
                 <TextView
                     android:id="@+id/commentTabComment"
                     android:layout_width="wrap_content"

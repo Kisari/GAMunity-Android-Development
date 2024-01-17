@@ -57,7 +57,6 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override

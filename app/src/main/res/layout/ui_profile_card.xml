@@ -7,7 +7,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="175dp" >
+        android:layout_height="150dp" >
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,7 +21,6 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:visibility="visible" />
-
         </LinearLayout>
 
         <ImageView
@@ -31,14 +30,23 @@
             android:importantForAccessibility="no"
             android:scaleType="fitXY"
             tools:ignore="ImageContrastCheck" />
+
+        <ImageButton
+            android:id="@+id/moreOptionButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_alignParentEnd="true"
+            android:background="@android:color/transparent"
+            android:contentDescription="@android:string/untitled"
+            android:src="@drawable/more_option_icon" />
+
     </RelativeLayout>
 
     <FrameLayout
-        android:id="@+id/outerRelativeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="20dp"
-        android:layout_marginTop="175dp"
+        android:layout_marginTop="150dp"
         android:background="@android:color/white">
 
         <RelativeLayout

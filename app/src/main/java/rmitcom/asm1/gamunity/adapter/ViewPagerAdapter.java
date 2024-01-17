@@ -35,7 +35,6 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
                 return new NotificationFragment();
             case 3:
                 return new ProfileFragment();
-
             default:
                 return new Fragment();
         }

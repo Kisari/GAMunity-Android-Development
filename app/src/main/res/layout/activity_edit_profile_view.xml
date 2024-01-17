@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -92,7 +92,7 @@
                 android:layout_height="180dp"
                 android:importantForAccessibility="no"
                 android:scaleType="fitXY"
-                tools:ignore="ImageContrastCheck"/>
+                tools:ignore="ImageContrastCheck" />
             
             <ImageView
                 android:id="@+id/editProfileBackgroundButton"
@@ -224,12 +224,11 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginHorizontal="20dp"
-            android:text="Log out"
+            android:text="Delete account"
             android:textSize="16sp"
-            android:layout_marginTop="100dp"
-            android:backgroundTint="@android:color/red"
+            android:layout_marginTop="130dp"
+            android:backgroundTint="@color/red"
             app:cornerRadius="12dp"/>
-
 
     </LinearLayout>
 

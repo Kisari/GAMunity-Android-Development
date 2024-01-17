@@ -275,18 +275,15 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                 }
             }
 
-            holder.userButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    confirmChangeRole(currUser, toAdmin);
+            holder.userButton.setOnClickListener(v -> {
+                confirmChangeRole(currUser, toAdmin);
 
-                    Intent returnIntent = new Intent(context, ForumView.class);
-                    returnIntent.putExtra("forumId", forumId);
+                Intent returnIntent = new Intent(context, ForumView.class);
+                returnIntent.putExtra("forumId", forumId);
 //                    context.startActivity(returnIntent);
 
-                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
-                    ((Activity) context).finish();
-                }
+                ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                ((Activity) context).finish();
             });
         }
     }
