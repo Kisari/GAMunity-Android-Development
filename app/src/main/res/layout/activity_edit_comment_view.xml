@@ -114,7 +114,7 @@
             android:id="@+id/editCommentImage"
             android:layout_width="match_parent"
             android:layout_below="@id/editCommentContent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:visibility="gone">
             <ProgressBar
                 android:id="@+id/editCommentProgress1"

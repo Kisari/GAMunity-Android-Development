@@ -77,7 +77,9 @@ public class ChatFragment extends Fragment {
         chatList = currentView.findViewById(R.id.chatList);
         chatSearchUser = currentView.findViewById(R.id.chatSearchUser);
 
-        userData = db.collection("users").document(userId);
+        if (userId != null) {
+            userData = db.collection("users").document(userId);
+        }
 
         setData();
         accessSearchUser();

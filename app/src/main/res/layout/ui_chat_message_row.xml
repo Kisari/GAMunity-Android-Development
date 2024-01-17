@@ -57,6 +57,11 @@
                 android:textSize="20sp"
                 android:textColor="@color/black"
                 android:padding="5dp"/>
+<!--            <ImageView-->
+<!--                android:id="@+id/otherPicture"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:padding="5dp"/>-->
 
         </LinearLayout>
     </LinearLayout>
@@ -80,40 +85,45 @@
                 android:textSize="20sp"
                 android:textColor="@color/white"
                 android:padding="5dp"/>
+<!--            <ImageView-->
+<!--                android:id="@+id/userPicture"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:padding="5dp"/>-->
 
         </LinearLayout>
-        <RelativeLayout
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:gravity="center">
-            <ImageView
-                android:id="@+id/userBaseImg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/account_base_img"
-                app:strokeWidth="3dp"
-                android:padding="5dp"
-                app:strokeColor="@android:color/darker_gray"
-                app:shapeAppearanceOverlay="@style/circleImageView"
-                tools:ignore="ImageContrastCheck"/>
-            <ProgressBar
-                android:id="@+id/userProgressBar"
-                android:indeterminateTint="#4900FF"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="10dp"
-                android:visibility="invisible"/>
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/userImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:strokeWidth="3dp"
-                android:padding="5dp"
-                app:strokeColor="@android:color/darker_gray"
-                app:shapeAppearanceOverlay="@style/circleImageView"
-                android:visibility="invisible"
-                tools:ignore="ImageContrastCheck"/>
-        </RelativeLayout>
+<!--        <RelativeLayout-->
+<!--            android:layout_width="50dp"-->
+<!--            android:layout_height="50dp"-->
+<!--            android:gravity="center">-->
+<!--            <ImageView-->
+<!--                android:id="@+id/userBaseImg"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:background="@drawable/account_base_img"-->
+<!--                app:strokeWidth="3dp"-->
+<!--                android:padding="5dp"-->
+<!--                app:strokeColor="@android:color/darker_gray"-->
+<!--                app:shapeAppearanceOverlay="@style/circleImageView"-->
+<!--                tools:ignore="ImageContrastCheck"/>-->
+<!--            <ProgressBar-->
+<!--                android:id="@+id/userProgressBar"-->
+<!--                android:indeterminateTint="#4900FF"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:padding="10dp"-->
+<!--                android:visibility="invisible"/>-->
+<!--            <com.google.android.material.imageview.ShapeableImageView-->
+<!--                android:id="@+id/userImage"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                app:strokeWidth="3dp"-->
+<!--                android:padding="5dp"-->
+<!--                app:strokeColor="@android:color/darker_gray"-->
+<!--                app:shapeAppearanceOverlay="@style/circleImageView"-->
+<!--                android:visibility="invisible"-->
+<!--                tools:ignore="ImageContrastCheck"/>-->
+<!--        </RelativeLayout>-->
     </LinearLayout>
 
 </RelativeLayout>

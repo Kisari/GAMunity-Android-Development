@@ -277,7 +277,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                                         Map<String, String> chatroomId = new HashMap<>();
                                         chatroomId.put("chatId", chatId);
 
-                                        db.getDb().collection("FORUMS").document(forumRef).set("chatId", SetOptions.merge());
+                                        db.getDb().collection("FORUMS").document(forumRef).set(chatroomId, SetOptions.merge());
                                         db.getDb().collection("users").document(db.getCurrentUser().getUid())
                                                 .update("chatGroupIds", FieldValue.arrayUnion(chatId));
 

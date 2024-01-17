@@ -77,11 +77,6 @@ public class ChatSearchUser extends AppCompatActivity {
         });
     }
 
-//    private void initList() {
-//        this.adapter = new UserRecyclerViewAdapter(this, userList, false, false, null);
-//        userListView.setAdapter(adapter);
-//    }
-
     private void initSearch() {
         chatUserSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override

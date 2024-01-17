@@ -58,7 +58,7 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
                 holder.chatName.setText(chatName);
             }
 
-            if (!chatImg.isEmpty()) {
+            if (chatImg != null && !chatImg.isEmpty()) {
                 holder.baseImage.setVisibility(View.INVISIBLE);
                 holder.chatProgressBar.setVisibility(View.VISIBLE);
                 holder.chatImage.setVisibility(View.VISIBLE);

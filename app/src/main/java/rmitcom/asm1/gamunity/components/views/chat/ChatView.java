@@ -1,6 +1,7 @@
 package rmitcom.asm1.gamunity.components.views.chat;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,7 +16,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+//import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -25,14 +26,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import org.checkerframework.checker.units.qual.A;
+import org.checkerframework.checker.units.qual.Time;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -65,9 +69,9 @@ public class ChatView extends AppCompatActivity {
     private ProgressBar chatProgressBar;
     private ShapeableImageView chatImage;
     private RecyclerView messageBody;
-    private String inputMessageStr, chatId, dataId,
-            chatTitleStr, chatImgUri;
+    private String inputMessageStr, chatId, dataId, chatTitleStr, chatImgUri;
     private ArrayList<String> chatMemberIds, chatModeratorIds, chatAdminIds, chatMemberNames;
+    private ArrayList<Message> chatMessages;
     private GroupChat groupChat;
     private boolean isGroup;
     private ChatMessageRecyclerViewAdapter adapter;
@@ -117,7 +121,7 @@ public class ChatView extends AppCompatActivity {
         }
 
         getOrCreateChatRoom();
-        setupList(messageBody);
+        getChatData();
 
         sendMessageBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,6 +153,7 @@ public class ChatView extends AppCompatActivity {
                         chatTitle.setText(chatTitleStr);
 
                         chatImgUri = document.getString("chatImg");
+
                         if (chatImgUri != null) {
                             try {
                                 baseImage.setVisibility(View.INVISIBLE);
@@ -293,6 +298,36 @@ public class ChatView extends AppCompatActivity {
 
     }
 
+    private void getChatData() {
+        Query query = chatRef.orderBy("timestamp", Query.Direction.DESCENDING).limit(50);
+        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                if (error != null) {
+                    return;
+                }
+
+                if (chatMessages == null) {
+                    chatMessages = new ArrayList<>();
+                } else {
+                    // Clear the list before updating with new data
+                    chatMessages.clear();
+                }
+
+                if (value != null) {
+                    for (QueryDocumentSnapshot queryDocument: value) {
+                        Message messageInfo = queryDocument.toObject(Message.class);
+                        chatMessages.add(messageInfo);
+                        Log.i(TAG, "message - existed: " + messageInfo.getMessageContent());
+                    }
+                }
+                setupList(chatMessages);
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
     private void sendMessageToChat(String message) {
         Map<String, String> lastSender = new HashMap<>();
         lastSender.put("lastMessageSenderId", userId);
@@ -303,54 +338,32 @@ public class ChatView extends AppCompatActivity {
         chatData.set(lastTimestamp, SetOptions.merge());
 
         Message newMessage = new Message(message, userId, Timestamp.now());
-        chatRef.add(newMessage).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentReference> task) {
-                if (task.isSuccessful()) {
+        chatRef.add(newMessage).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
 //                    DocumentReference document = task.getResult();
-                    inputMessage.setText("");
-                    Log.i(TAG, "send message: " + message);
-                }
+                inputMessage.setText("");
+                Log.i(TAG, "message - just send: " + newMessage.getMessageContent());
+                setUI();
             }
         });
     }
 
-    private void setupList(RecyclerView chatMessage) {
-        Query query = chatRef.orderBy("timestamp", Query.Direction.DESCENDING);
-
-        chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    QuerySnapshot document = task.getResult();
-
-                    for(QueryDocumentSnapshot queryDocument: document) {
-                        String message = queryDocument.getString("messageContent");
-                        String sender = queryDocument.getString("messageOwnerId");
-
-                        Log.i(TAG, "chat - message/sender: " + message +"/" + sender);
-                    }
-                }
-            }
-        });
-
-        FirestoreRecyclerOptions<Message> options = new FirestoreRecyclerOptions.Builder<Message>()
-                .setQuery(query,Message.class).build();
-
+    private void setupList(ArrayList<Message> messageList) {
+        Log.i(TAG, "setupList: call setupList");
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setReverseLayout(true);
-        chatMessage.setLayoutManager(layoutManager);
+        messageBody.setLayoutManager(layoutManager);
 
-        adapter = new ChatMessageRecyclerViewAdapter(options, getApplicationContext());
-        chatMessage.setAdapter(adapter);
+        Log.i(TAG, "setupList: create adapter");
+        adapter = new ChatMessageRecyclerViewAdapter(this, messageList);
+        messageBody.setAdapter(adapter);
 
-        adapter.startListening();
-
+//        adapter.startListening();
         adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
             public void onItemRangeInserted(int positionStart, int itemCount) {
                 super.onItemRangeInserted(positionStart, itemCount);
-                chatMessage.smoothScrollToPosition(0);
+                messageBody.smoothScrollToPosition(0);
             }
         });
     }

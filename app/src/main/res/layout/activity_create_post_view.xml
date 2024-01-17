@@ -117,7 +117,7 @@
         <ImageView
             android:id="@+id/addPostPicture"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:layout_below="@id/addPostImage"
             android:visibility="gone"
             android:background="@drawable/rectangle_shadow"
