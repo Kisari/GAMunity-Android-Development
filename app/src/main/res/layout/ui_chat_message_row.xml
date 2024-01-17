@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:padding="10dp">
@@ -46,22 +46,38 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/rounded_pill_white_stroke"
-            android:padding="10dp"
+            android:padding="5dp"
             android:layout_gravity="center"
-            android:layout_marginEnd="80dp">
+            android:layout_marginEnd="80dp"
+            android:orientation="vertical">
             <TextView
-                android:id="@+id/otherChat"
+                android:id="@+id/otherUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:textColor="@color/black"
-                android:padding="5dp"/>
+                android:layout_marginStart="10dp"
+                android:text="Username"
+                android:textSize="15sp"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_pill_white_stroke"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp">
+                <TextView
+                    android:id="@+id/otherChat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textColor="@color/black"
+                    android:text="a"
+                    android:padding="5dp"/>
 <!--            <ImageView-->
 <!--                android:id="@+id/otherPicture"-->
 <!--                android:layout_width="wrap_content"-->
 <!--                android:layout_height="wrap_content"-->
 <!--                android:padding="5dp"/>-->
+
+            </LinearLayout>
 
         </LinearLayout>
     </LinearLayout>
@@ -76,7 +92,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_pill_gradient_background"
-            android:padding="10dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
             android:layout_marginStart="80dp">
             <TextView
                 android:id="@+id/userChat"

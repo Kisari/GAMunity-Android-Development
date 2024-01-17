@@ -76,16 +76,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:drawableStart="@drawable/user_acc_icon"/>
+            android:drawableStart="@drawable/more_option_icon"/>
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatMessages"
         android:padding="10dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@id/chatViewTop"
-        android:layout_above="@id/chatViewBottom"/>
+        android:layout_above="@id/chatViewBottom"
+        android:isScrollContainer="true"/>
 
     <RelativeLayout
         android:id="@+id/chatViewBottom"

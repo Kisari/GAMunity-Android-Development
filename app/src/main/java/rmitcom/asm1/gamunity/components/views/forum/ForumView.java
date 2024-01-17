@@ -571,6 +571,7 @@ public class ForumView extends AppCompatActivity {
 
                             if (chatId != null) {
                                 DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+
                             }
                         }
                     }
