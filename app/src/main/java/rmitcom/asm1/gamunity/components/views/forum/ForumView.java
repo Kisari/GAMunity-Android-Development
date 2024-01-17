@@ -77,6 +77,7 @@ public class ForumView extends AppCompatActivity {
     private ImageButton addPostButton;
     private Button joinButton, joinedButton, ownedButton;
     private PostRecyclerViewAdapter adapter;
+    private String isJoinWithForumId = "";
     private Forum currForum;
     private Constant constant = new Constant();
 
@@ -143,9 +144,12 @@ public class ForumView extends AppCompatActivity {
                     if (Objects.equals(userId, chiefAdminId)) {
                         userRole.setText("Admin");
                     } else if (moderatorIds != null && moderatorIds.contains(userId)) {
+                        isJoinWithForumId = (String) document.get("forumId");
                         userRole.setText("Moderator");
                     } else if (memberIds != null && memberIds.contains(userId)) {
+                        isJoinWithForumId = (String) document.get("forumId");
                         userRole.setText("Member");
+                        isJoinWithForumId = forumId;
                     } else {
                         userRole.setText("Guest");
                     }
@@ -318,9 +322,6 @@ public class ForumView extends AppCompatActivity {
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
-//                finish();
-//                startActivity(getIntent());
-//                setUI();
                 recreate();
             }
         }
@@ -666,6 +667,13 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void returnToPreviousPage() {
-        returnBackButton.setOnClickListener(v -> finish());
+        returnBackButton.setOnClickListener(v -> {
+            Intent backIntent = new Intent();
+            backIntent.putExtra("isJoinWithForumId", isJoinWithForumId);
+            if(!isJoinWithForumId.equals("")){
+                setResult(constant.SUCCESS, backIntent);
+            }
+            finish();
+        });
     }
 }

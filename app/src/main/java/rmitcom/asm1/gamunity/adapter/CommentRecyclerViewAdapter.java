@@ -1,8 +1,5 @@
 package rmitcom.asm1.gamunity.adapter;
 
-import static androidx.core.app.ActivityCompat.recreate;
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;

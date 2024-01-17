@@ -90,12 +90,11 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         Forum forumItem = (Forum) getItem(position);
 
-        viewForumList.setOnClickListener(v -> {
-            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
-            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-//            v.getContext().startActivity(toForumDetailView);
-            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
-        });
+//        viewForumList.setOnClickListener(v -> {
+//            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
+//            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
+//            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
+//        });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);
@@ -199,7 +198,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
@@ -236,7 +235,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
