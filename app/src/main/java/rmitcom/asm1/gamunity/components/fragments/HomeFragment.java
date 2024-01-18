@@ -88,24 +88,13 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
-
                 this.forumListAdapter.notifyDataSetChanged();
                 recreate(requireActivity());
-//                fetchData();
             }
         }
 
         if (requestCode == constant.DELETE) {
             if (resultCode == constant.SUCCESS) {
-//                Intent backIntent = new Intent();
-//                String isJoinWithForumId = backIntent.getStringExtra("isJoinWithForumId");
-//                assert isJoinWithForumId != null;
-//                if(isJoinWithForumId.equals("")){
-//
-//                }
-//                else{
-//
-//                }
                 this.forumListAdapter.notifyDataSetChanged();
                 recreate(requireActivity());
 

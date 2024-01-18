@@ -1,13 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.forum;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -24,9 +16,14 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,16 +31,12 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -77,7 +70,6 @@ public class ForumView extends AppCompatActivity {
     private ImageButton addPostButton;
     private Button joinButton, joinedButton, ownedButton;
     private PostRecyclerViewAdapter adapter;
-    private String isJoinWithForumId = "";
     private Forum currForum;
     private Constant constant = new Constant();
 
@@ -144,12 +136,9 @@ public class ForumView extends AppCompatActivity {
                     if (Objects.equals(userId, chiefAdminId)) {
                         userRole.setText("Admin");
                     } else if (moderatorIds != null && moderatorIds.contains(userId)) {
-                        isJoinWithForumId = (String) document.get("forumId");
                         userRole.setText("Moderator");
                     } else if (memberIds != null && memberIds.contains(userId)) {
-                        isJoinWithForumId = (String) document.get("forumId");
                         userRole.setText("Member");
-                        isJoinWithForumId = forumId;
                     } else {
                         userRole.setText("Guest");
                     }
@@ -669,10 +658,7 @@ public class ForumView extends AppCompatActivity {
     private void returnToPreviousPage() {
         returnBackButton.setOnClickListener(v -> {
             Intent backIntent = new Intent();
-            backIntent.putExtra("isJoinWithForumId", isJoinWithForumId);
-            if(!isJoinWithForumId.equals("")){
-                setResult(constant.SUCCESS, backIntent);
-            }
+            setResult(constant.SUCCESS, backIntent);
             finish();
         });
     }
