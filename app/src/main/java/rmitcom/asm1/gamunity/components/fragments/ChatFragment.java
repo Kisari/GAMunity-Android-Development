@@ -1,5 +1,6 @@
 package rmitcom.asm1.gamunity.components.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -34,6 +35,7 @@ import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.GroupChat;
 import rmitcom.asm1.gamunity.model.Post;
+import rmitcom.asm1.gamunity.model.User;
 
 public class ChatFragment extends Fragment {
 //    private final FireBaseManager dbManager = new FireBaseManager();
@@ -104,6 +106,8 @@ public class ChatFragment extends Fragment {
                                 for (String chatId: chatGroupIds) {
                                     getChatRoomData(chatId);
                                 }
+
+                                initChatSearch(chatGroupList);
                             }
                         }
                     }
@@ -114,6 +118,7 @@ public class ChatFragment extends Fragment {
 
     private void getChatRoomData(String chatId) {
         if (chatId != null) {
+            db.collection("CHATROOMS")
             db.collection("CHATROOMS").document(chatId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -126,12 +131,17 @@ public class ChatFragment extends Fragment {
                             chatTitle = document.getString("chatTitle");
                             chatImage = document.getString("chatImg");
                             boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
-                            forumId = document.getString("forumId");
 
                             Log.i("Chat", "chatName - exist: " + chatTitle);
 
-
-                            GroupChat groupChat = new GroupChat(chatId, chatTitle, chatImage, isGroup, forumId);
+                            GroupChat groupChat;
+                            if (isGroup) {
+                                forumId = document.getString("dataId");
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, true, forumId);
+                            }
+                            else {
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, false, null);
+                            }
                             chatGroupList.add(groupChat);
                         }
 
@@ -153,6 +163,48 @@ public class ChatFragment extends Fragment {
                 startActivity(searchIntent);
             }
         });
+    }
+
+    private void initChatSearch(ArrayList<GroupChat> chatGroupList) {
+        chatSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                ArrayList<GroupChat> chatroom = new ArrayList<>();
+
+                if (chatGroupList != null) {
+                    if (newText.isEmpty()) {
+                        chatroom.addAll(chatGroupList);
+                    }
+                    else {
+                        for (GroupChat chat : chatGroupList) {
+                            if (chat.getChatTitle().toLowerCase().contains(newText.toLowerCase()) && !isUserAlreadyAdded(chat, chatroom)) {
+                                chatroom.add(chat);
+                            }
+                        }
+                    }
+
+                    adapter.setChatGroupContent(chatroom);
+                    adapter.notifyDataSetChanged();
+
+                }
+                return false;
+            }
+        });
+    }
+
+    private boolean isUserAlreadyAdded(GroupChat chat, ArrayList<GroupChat> chatroom) {
+        for (GroupChat addedChat : chatroom) {
+            if (addedChat.getChatId().equals(chat.getChatId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setupList(ArrayList<GroupChat> chatGroupList) {

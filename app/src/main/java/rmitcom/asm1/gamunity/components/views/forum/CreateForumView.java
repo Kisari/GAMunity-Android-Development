@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -251,7 +252,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
         newForum.put("description", forumDescriptionContent);
         newForum.put("moderatorIds", Collections.emptyList());
         newForum.put("memberIds", Collections.emptyList());
-        newForum.put("noJoined", 0);
+        newForum.put("noJoined", 1);
         newForum.put("forumBackground", backgroundFilePath.toString());
         newForum.put("forumIcon", iconFilePath.toString());
 
@@ -264,27 +265,42 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     String forumRef = task.getResult().getId();
                     Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
 
-                    Map<String, Object> newChatroom = new HashMap<>();
+                    ArrayList<String> memberIds = new ArrayList<>();
+                    ArrayList<String> moderatorIds = new ArrayList<>();
+                    ArrayList<String> adminIds = new ArrayList<>();
+                    adminIds.add(db.getCurrentUser().getUid());
+                    String chatName = forumNameContent + "'s Group Chat";
+                    Timestamp now = Timestamp.now();
 
-                    db.getDb().collection("CHATROOMS")
-                            .add(newChatroom)
-                            .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentReference> task) {
-                                    if(task.isSuccessful()) {
-                                        String chatId = task.getResult().getId();
+                    Map<String, Object> newChatRoom = new HashMap<>();
+                    newChatRoom.put("memberIds", memberIds);
+                    newChatRoom.put("moderatorIds", moderatorIds);
+                    newChatRoom.put("adminIds", adminIds);
+                    newChatRoom.put("chatTitle", chatName);
+                    newChatRoom.put("isGroup", true);
+                    newChatRoom.put("lastTimestamp", now);
+                    newChatRoom.put("lastMessageSenderId", "");
+                    newChatRoom.put("chatImg", iconFilePath.toString());
+                    newChatRoom.put("dataId", forumRef);
 
-                                        Map<String, String> chatroomId = new HashMap<>();
-                                        chatroomId.put("chatId", chatId);
+                    db.getDb().collection("CHATROOMS").add(newChatRoom)
+                                    .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentReference> task) {
+                                            if (task.isSuccessful()) {
+                                                String chatId = task.getResult().getId();
 
-                                        db.getDb().collection("FORUMS").document(forumRef).set(chatroomId, SetOptions.merge());
-                                        db.getDb().collection("users").document(db.getCurrentUser().getUid())
-                                                .update("chatGroupIds", FieldValue.arrayUnion(chatId));
+//                                                GroupChat newChatGroup = new GroupChat(chatId, chatName, iconFilePath.toString(), forumRef, true,
+//                                                        memberIds, moderatorIds, adminIds, now, "");
 
-                                    }
-                                }
+                                                db.getDb().collection("FORUMS").document(forumRef).update("chatId", chatId);
 
-                            });
+                                                db.getDb().collection("users").document(db.getCurrentUser().getUid())
+                                                        .update("chatGroupIds", FieldValue.arrayUnion(chatId));
+
+                                            }
+                                        }
+                                    });
 
                     db.getDb().collection("users").document(db.getCurrentUser().getUid())
                             .update("ownedForumIds", FieldValue.arrayUnion(forumRef));

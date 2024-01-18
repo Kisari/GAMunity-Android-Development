@@ -184,6 +184,9 @@ public class ForumView extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
+                    currForum = new Forum(document.getString("forumId"), document.getId(), chiefAdminId, forumTitleStr,
+                            (ArrayList<String>) document.get("category"), memberIds, forumBackgroundUri,forumIconUri);
+
                     setButton();
                     moreOption();
 
@@ -524,7 +527,7 @@ public class ForumView extends AppCompatActivity {
                             if (postIds != null) {
                                 PostView postView = new PostView();
                                 for (String id: postIds) {
-                                    postView.deletePostFromForum(id, getBaseContext());
+                                    postView.deletePostFromForum(id);
                                 }
                             }
                         }
@@ -640,6 +643,7 @@ public class ForumView extends AppCompatActivity {
             public void onClick(View v) {
                 userData.update("joinedForumIds", FieldValue.arrayUnion(forumId));
                 forumData.update("memberIds", FieldValue.arrayUnion(userId));
+                forumData.update("noJoined", FieldValue.increment(1));
 
                 joinButton.setVisibility(View.GONE);
                 joinedButton.setVisibility(View.VISIBLE);
@@ -692,12 +696,13 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void unJoinFunction() {
-
     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
 
     forumData.update("memberIds", FieldValue.arrayRemove(userId));
     forumData.update("moderatorIds", FieldValue.arrayRemove(userId));
+
+    forumData.update("noJoined", FieldValue.increment(-1));
 
     }
 
@@ -724,38 +729,41 @@ public class ForumView extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (chatId == null) {
+                    Log.i(TAG, "chatView accessChatRoom: no chat id");
                     Map<String, Object> newChatroom = new HashMap<>();
 
                     db.collection("CHATROOMS")
                             .add(newChatroom)
-                            .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentReference> task) {
-                                    if(task.isSuccessful()) {
-                                        String newChatId = task.getResult().getId();
+                            .addOnCompleteListener(task -> {
+                                if(task.isSuccessful()) {
+                                    String newChatId = task.getResult().getId();
 
-                                        Map<String, String> chatroomId = new HashMap<>();
-                                        chatroomId.put("chatId", newChatId);
+                                    Map<String, String> chatroomId = new HashMap<>();
+                                    chatroomId.put("chatId", newChatId);
 
-                                        forumData.set(chatroomId, SetOptions.merge());
-                                        userData.update("chatGroupIds", FieldValue.arrayUnion(newChatId));
+                                    forumData.set(chatroomId, SetOptions.merge());
+                                    userData.update("chatGroupIds", FieldValue.arrayUnion(newChatId));
 
-                                        Intent chatIntent = new Intent(ForumView.this, ChatView.class);
-                                        chatIntent.putExtra("chatId", newChatId);
-                                        chatIntent.putExtra("isGroup", true);
-                                        chatIntent.putExtra("dataId", forumId);
+                                    Intent chatIntent = new Intent(ForumView.this, ChatView.class);
+                                    chatIntent.putExtra("chatId", newChatId);
+                                    chatIntent.putExtra("isGroup", true);
+                                    chatIntent.putExtra("dataId", forumId);
 //                                        chatIntent.putExtra("dataName", forumTitleStr);
 //                                        chatIntent.putExtra("dataImg", forumIconUri);
-                                        startActivity(chatIntent);
-                                    }
+                                    startActivity(chatIntent);
                                 }
-
                             });
                 }
                 else {
+                    Log.i(TAG, "chatView accessChatRoom: have chat id ");
                     userData.update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
                     DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+
+//                    chatData.update("memberIds", FieldValue.arrayRemove(userId));
+//                    chatData.update("moderatorIds", FieldValue.arrayRemove(userId));
+//                    chatData.update("adminIds", FieldValue.arrayRemove(userId));
+
                     if (memberIds.contains(userId)) {
                         chatData.update("memberIds", FieldValue.arrayUnion(userId));
                     }

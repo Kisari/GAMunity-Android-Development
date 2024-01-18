@@ -1,5 +1,6 @@
 package rmitcom.asm1.gamunity.adapter;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -80,6 +81,16 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
     @Override
     public int getItemCount() {
         return chatGroupContent.size();
+    }
+
+    public ArrayList<GroupChat> getChatGroupContent() {
+        return chatGroupContent;
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void setChatGroupContent(ArrayList<GroupChat> chatGroupContent) {
+        this.chatGroupContent = chatGroupContent;
+        notifyDataSetChanged();
     }
 
     public class ChatRoomRecyclerViewHolder extends RecyclerView.ViewHolder {

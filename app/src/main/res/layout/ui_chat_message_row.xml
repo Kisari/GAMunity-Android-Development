@@ -9,11 +9,11 @@
     <LinearLayout
         android:id="@+id/otherLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="5dp">
+        android:layout_height="wrap_content">
         <RelativeLayout
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
             android:gravity="center">
             <ImageView
                 android:id="@+id/otherBaseImg"
@@ -46,9 +46,8 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="5dp"
             android:layout_gravity="center"
-            android:layout_marginEnd="80dp"
+            android:layout_marginEnd="50dp"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/otherUserName"
@@ -69,16 +68,28 @@
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:textColor="@color/black"
-                    android:text="a"
                     android:padding="5dp"/>
-<!--            <ImageView-->
-<!--                android:id="@+id/otherPicture"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:padding="5dp"/>-->
-
+                <RelativeLayout
+                    android:id="@+id/otherPictureLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone">
+                    <ProgressBar
+                        android:id="@+id/otherPictureProgressBar"
+                        android:indeterminateTint="#4900FF"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:padding="30dp"
+                        android:visibility="visible"/>
+                    <ImageView
+                        android:id="@+id/otherPicture"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:importantForAccessibility="no"
+                        android:scaleType="fitXY"/>
+                </RelativeLayout>
             </LinearLayout>
-
         </LinearLayout>
     </LinearLayout>
     
@@ -86,15 +97,14 @@
         android:id="@+id/userLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:padding="5dp">
+        android:layout_alignParentEnd="true">
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_pill_gradient_background"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
-            android:layout_marginStart="80dp">
+            android:layout_marginStart="50dp">
             <TextView
                 android:id="@+id/userChat"
                 android:layout_width="wrap_content"
@@ -102,45 +112,27 @@
                 android:textSize="20sp"
                 android:textColor="@color/white"
                 android:padding="5dp"/>
-<!--            <ImageView-->
-<!--                android:id="@+id/userPicture"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:padding="5dp"/>-->
-
+            <RelativeLayout
+                android:id="@+id/userPictureLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+                <ProgressBar
+                    android:id="@+id/userPictureProgressBar"
+                    android:indeterminateTint="#4900FF"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:padding="30dp"
+                    android:visibility="visible"/>
+                <ImageView
+                    android:id="@+id/userPicture"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitXY"/>
+            </RelativeLayout>
         </LinearLayout>
-<!--        <RelativeLayout-->
-<!--            android:layout_width="50dp"-->
-<!--            android:layout_height="50dp"-->
-<!--            android:gravity="center">-->
-<!--            <ImageView-->
-<!--                android:id="@+id/userBaseImg"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                android:background="@drawable/account_base_img"-->
-<!--                app:strokeWidth="3dp"-->
-<!--                android:padding="5dp"-->
-<!--                app:strokeColor="@android:color/darker_gray"-->
-<!--                app:shapeAppearanceOverlay="@style/circleImageView"-->
-<!--                tools:ignore="ImageContrastCheck"/>-->
-<!--            <ProgressBar-->
-<!--                android:id="@+id/userProgressBar"-->
-<!--                android:indeterminateTint="#4900FF"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                android:padding="10dp"-->
-<!--                android:visibility="invisible"/>-->
-<!--            <com.google.android.material.imageview.ShapeableImageView-->
-<!--                android:id="@+id/userImage"-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="match_parent"-->
-<!--                app:strokeWidth="3dp"-->
-<!--                android:padding="5dp"-->
-<!--                app:strokeColor="@android:color/darker_gray"-->
-<!--                app:shapeAppearanceOverlay="@style/circleImageView"-->
-<!--                android:visibility="invisible"-->
-<!--                tools:ignore="ImageContrastCheck"/>-->
-<!--        </RelativeLayout>-->
     </LinearLayout>
 
 </RelativeLayout>

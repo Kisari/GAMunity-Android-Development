@@ -849,7 +849,7 @@ public class PostView extends AppCompatActivity {
         });
     }
 
-    public void deletePostFromForum(String postId, Context context) {
+    public void deletePostFromForum(String postId) {
         DocumentReference postData = db.collection("POSTS").document(postId);
 
         postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {

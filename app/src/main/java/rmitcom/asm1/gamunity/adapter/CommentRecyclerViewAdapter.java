@@ -607,8 +607,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             }
         }
 
-        DocumentReference commentData = db.collection("COMMENTS").document(commentId);
-        commentData.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+        db.collection("COMMENTS").document(commentId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 if (context instanceof PostView) {

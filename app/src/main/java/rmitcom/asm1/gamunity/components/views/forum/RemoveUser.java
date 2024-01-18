@@ -30,11 +30,11 @@ public class RemoveUser extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
-    private DocumentReference forumData, userData;
+    private DocumentReference forumData, chatData, userData;
     private ImageView returnBackButton;
     private SearchView removeSearchBar;
     private RecyclerView userListView;
-    private String forumId;
+    private String forumId, chatId;
     private ArrayList<String> memberIds, moderatorIds, userIds;
     private ArrayList<User> moderatorList, memberList, userList;
     private UserRecyclerViewAdapter adapter;

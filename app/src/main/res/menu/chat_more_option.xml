@@ -6,22 +6,14 @@
         android:visible="true"/>
     <item
         android:id="@+id/chatUpdate"
-        android:title="Update Forum"
+        android:title="Update Chat"
         android:visible="true"/>
     <item
         android:id="@+id/chatDelete"
-        android:title="Delete Forum"
+        android:title="Delete Chat"
         android:visible="true"/>
     <item
-        android:id="@+id/forumAddModerator"
-        android:title="Add Moderator"
-        android:visible="true"/>
-    <item
-        android:id="@+id/forumRemoveModerator"
-        android:title="Remove Moderator"
-        android:visible="true"/>
-    <item
-        android:id="@+id/forumRemoveUser"
-        android:title="Remove User"
+        android:id="@+id/chatAddUser"
+        android:title="Add User"
         android:visible="true"/>
 </menu>

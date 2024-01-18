@@ -9,14 +9,13 @@ import java.util.Date;
 @SuppressWarnings("unused")
 public class GroupChat implements Serializable {
     private String chatId;
-    private ArrayList<String> memberIds, moderatorIds, adminIds;
     private String chatTitle;
-    private boolean isGroup;
-    private ArrayList<String> messageIds;
-    private Timestamp lastTimestamp;
-    private String lastMessageSenderId;
     private String chatImage;
     private String dataId;
+    private boolean isGroup;
+    private ArrayList<String> memberIds, moderatorIds, adminIds;
+    private Timestamp lastTimestamp;
+    private String lastMessageSenderId;
 
     public GroupChat() {
     }
@@ -29,13 +28,34 @@ public class GroupChat implements Serializable {
         this.dataId = dataId;
     }
 
-    public GroupChat(ArrayList<String> adminIds, String chatTitle, boolean isGroup, Timestamp lastTimestamp, String lastMessageSenderId, String chatImage) {
-        this.adminIds = adminIds;
+    public GroupChat(String chatId, String chatTitle, String chatImage, boolean isGroup) {
+        this.chatId = chatId;
         this.chatTitle = chatTitle;
+        this.chatImage = chatImage;
         this.isGroup = isGroup;
+    }
+
+    public GroupChat(String chatId, String chatTitle, String chatImage, String dataId, boolean isGroup, ArrayList<String> memberIds, ArrayList<String> moderatorIds, ArrayList<String> adminIds, Timestamp lastTimestamp, String lastMessageSenderId) {
+        this.chatId = chatId;
+        this.chatTitle = chatTitle;
+        this.chatImage = chatImage;
+        this.dataId = dataId;
+        this.isGroup = isGroup;
+        this.memberIds = memberIds;
+        this.moderatorIds = moderatorIds;
+        this.adminIds = adminIds;
         this.lastTimestamp = lastTimestamp;
         this.lastMessageSenderId = lastMessageSenderId;
+    }
+
+    public GroupChat(String chatId, String chatTitle, String chatImage, boolean isGroup, ArrayList<String> adminIds, Timestamp lastTimestamp, String lastMessageSenderId) {
+        this.chatId = chatId;
+        this.chatTitle = chatTitle;
         this.chatImage = chatImage;
+        this.isGroup = isGroup;
+        this.adminIds = adminIds;
+        this.lastTimestamp = lastTimestamp;
+        this.lastMessageSenderId = lastMessageSenderId;
     }
 
     //
@@ -99,14 +119,6 @@ public class GroupChat implements Serializable {
 
     public void setGroup(boolean group) {
         isGroup = group;
-    }
-
-    public ArrayList<String> getMessageIds() {
-        return messageIds;
-    }
-
-    public void setMessageIds(ArrayList<String> messageIds) {
-        this.messageIds = messageIds;
     }
 
     public Timestamp getLastTimestamp() {

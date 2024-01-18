@@ -10,14 +10,16 @@ public class Message implements Serializable {
     private String messageContent;
     private String messageOwnerId;
     private Timestamp timestamp;
+    private boolean isImage;
 
     public Message() {
     }
 
-    public Message(String messageContent, String messageOwnerId, Timestamp timestamp) {
+    public Message(String messageContent, String messageOwnerId, Timestamp timestamp, boolean isImage) {
         this.messageContent = messageContent;
         this.messageOwnerId = messageOwnerId;
         this.timestamp = timestamp;
+        this.isImage = isImage;
     }
 
     public String getMessageOwnerId() {
@@ -44,4 +46,11 @@ public class Message implements Serializable {
         this.messageContent = messageContent;
     }
 
+    public boolean isImage() {
+        return isImage;
+    }
+
+    public void setImage(boolean image) {
+        isImage = image;
+    }
 }
