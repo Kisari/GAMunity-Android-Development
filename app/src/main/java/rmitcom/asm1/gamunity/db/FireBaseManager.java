@@ -1,5 +1,6 @@
 package rmitcom.asm1.gamunity.db;
 
+import static android.app.PendingIntent.getActivity;
 import static android.content.ContentValues.TAG;
 
 import android.app.NotificationChannel;
@@ -8,10 +9,12 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -42,6 +45,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.components.fragments.NotificationFragment;
+import rmitcom.asm1.gamunity.components.views.HomeView;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Notification;
 
@@ -51,8 +56,18 @@ public class FireBaseManager extends FirebaseMessagingService {
     private final FirebaseUser currentUser;
     private final FirebaseMessaging msgProvider;
     private final Constant constant = new Constant();
-
+    private String deviceToken = "";
+    private View currentView;
     public FireBaseManager() {
+        this.db = FirebaseFirestore.getInstance();
+        this.storageRef = FirebaseStorage.getInstance().getReference();
+        this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        this.msgProvider = FirebaseMessaging.getInstance();
+        msgProvider.setAutoInitEnabled(true);
+    }
+
+    public FireBaseManager(View currentView) {
+        this.currentView = currentView;
         this.db = FirebaseFirestore.getInstance();
         this.storageRef = FirebaseStorage.getInstance().getReference();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -72,6 +87,10 @@ public class FireBaseManager extends FirebaseMessagingService {
 
     public FirebaseMessaging getMsgProvider(){return msgProvider;}
 
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
     @Override
     public void onNewToken(@NonNull String token) {
         Log.d(TAG, "onNewToken: " + token);
@@ -90,6 +109,7 @@ public class FireBaseManager extends FirebaseMessagingService {
     public void updateTheDeviceToken(String userID, String token, Context context){
         Log.d(TAG, "This token device: " + token);
         CollectionReference ref = db.collection(constant.deviceTokens);
+        this.deviceToken = token;
         ref.whereEqualTo("token", token)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -141,6 +161,8 @@ public class FireBaseManager extends FirebaseMessagingService {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        ((NotificationFragment) ((HomeView) currentView.getContext()).getNotificationFragment()).forceReload();
+
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Log.d(TAG, "Notification Message Title: " + Objects.requireNonNull(remoteMessage.getNotification()).getTitle());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());

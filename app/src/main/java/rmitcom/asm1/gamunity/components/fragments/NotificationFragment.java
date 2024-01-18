@@ -2,6 +2,8 @@ package rmitcom.asm1.gamunity.components.fragments;
 
 import static android.content.ContentValues.TAG;
 
+import static androidx.core.app.ActivityCompat.recreate;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
@@ -22,6 +24,7 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.messaging.FirebaseMessagingService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,8 +40,8 @@ import rmitcom.asm1.gamunity.model.Notification;
 
 public class NotificationFragment extends Fragment implements FirebaseFetchAndSetUI {
     private NotificationListAdapter adapter;
-    private ArrayList<Notification> notificationArrayList = new ArrayList<>();
-    private final FireBaseManager db = new FireBaseManager();
+    private final ArrayList<Notification> notificationArrayList = new ArrayList<>();
+    private FireBaseManager db;
     private final Constant constant = new Constant();
     View currentView;
     private final ActivityResultLauncher<String> requestPermissionLauncher;
@@ -67,6 +70,8 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
         currentView = view;
+
+        db = new FireBaseManager(view);
 
         //ask to receive notification
         askNotificationPermission();
@@ -116,6 +121,7 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
     public void fetchData() {
         db.getDb().collection(constant.notifications)
                 .whereEqualTo("notificationReceiverId", db.getCurrentUser().getUid())
+                .whereEqualTo("receiverToken", db.getDeviceToken())
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
@@ -206,5 +212,9 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
         catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public void forceReload(){
+        recreate(requireActivity());
     }
 }
