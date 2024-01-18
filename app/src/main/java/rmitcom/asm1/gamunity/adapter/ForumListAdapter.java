@@ -197,6 +197,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
+                        Log.d(TAG, "joinForum: " + "get forum through its id");
                         Map<String, Object> newMemberIds = new HashMap<>();
                         newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
@@ -210,6 +211,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                                     .addOnCompleteListener(checkingUser -> {
                                         if(checkingUser.isSuccessful()){
                                             for (QueryDocumentSnapshot document: checkingUser.getResult()){
+                                                Log.d(TAG, "joinForum: " + "get user id");
                                                 String userName = document.getString("name");
                                                 String notificationBody = userName + " become a new member of " + forum.getTitle();
                                                 Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString(), forum.getForumId());

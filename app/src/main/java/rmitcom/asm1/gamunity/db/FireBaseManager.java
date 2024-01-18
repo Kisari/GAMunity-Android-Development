@@ -57,17 +57,7 @@ public class FireBaseManager extends FirebaseMessagingService {
     private final FirebaseMessaging msgProvider;
     private final Constant constant = new Constant();
     private String deviceToken = "";
-    private View currentView;
     public FireBaseManager() {
-        this.db = FirebaseFirestore.getInstance();
-        this.storageRef = FirebaseStorage.getInstance().getReference();
-        this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        this.msgProvider = FirebaseMessaging.getInstance();
-        msgProvider.setAutoInitEnabled(true);
-    }
-
-    public FireBaseManager(View currentView) {
-        this.currentView = currentView;
         this.db = FirebaseFirestore.getInstance();
         this.storageRef = FirebaseStorage.getInstance().getReference();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -135,7 +125,7 @@ public class FireBaseManager extends FirebaseMessagingService {
                                 .set(newNotificationToken, SetOptions.merge())
                                 .addOnCompleteListener(updateToken -> {
                                     if(updateToken.isSuccessful()){
-                                        Log.d(TAG, "Change token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        Log.d(TAG, "Change token device " + token + " to user with id " + currentUser.getUid());
                                     }
                                     else {
                                         Log.d(TAG, "updateTheDeviceToken: " + "Failed");
@@ -151,35 +141,40 @@ public class FireBaseManager extends FirebaseMessagingService {
                         ref.add(newNotificationToken)
                                 .addOnCompleteListener(task1 -> {
                                     if(task.isSuccessful()){
-                                        Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        Log.d(TAG, "New token device " + token + " to user with id " + currentUser.getUid());
                                     }
                                 });
                     }
                 });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        ((NotificationFragment) ((HomeView) currentView.getContext()).getNotificationFragment()).forceReload();
-
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Log.d(TAG, "Notification Message Title: " + Objects.requireNonNull(remoteMessage.getNotification()).getTitle());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getBaseContext())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(remoteMessage.getNotification().getTitle())
-                .setContentText(remoteMessage.getNotification().getBody());
+
+        String default_id = "DEFAULT_ID";
+
         NotificationManager notificationManager = (NotificationManager) getBaseContext().getSystemService(NOTIFICATION_SERVICE);
+
         if(Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel mChannel = new NotificationChannel("DEFAULT_ID", "GAMunity", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel mChannel = new NotificationChannel(default_id, "GAMunity", NotificationManager.IMPORTANCE_HIGH);
             mChannel.enableLights(true);
             mChannel.setLightColor(Color.RED);
             mChannel.enableVibration(true);
             mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             mChannel.setShowBadge(false);
+
             notificationManager.createNotificationChannel(mChannel);
         }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getBaseContext())
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(remoteMessage.getNotification().getTitle())
+                .setContentText(remoteMessage.getNotification().getBody())
+                .setChannelId(default_id);
+
         notificationManager.notify(0, builder.build());
     }
 
