@@ -453,7 +453,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
                                         String notificationBody = userName + " has edit the content of the forum that you are currently join in " +
                                                 title;
-                                        Notification newNotification = new Notification("Join the forum", forumIconUrl, notificationBody, dbManager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
+                                        Notification newNotification = new Notification("Edit the forum", forumIconUrl, notificationBody, dbManager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
                                         dbManager.sendNotificationToDevice(newNotification, userName, constant.EDIT_FORUM);
                                     }
                                     Toast.makeText(EditForumView.this, "Sent notification to members",Toast.LENGTH_SHORT).show();
