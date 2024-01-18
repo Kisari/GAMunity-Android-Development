@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -22,11 +21,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
@@ -38,6 +39,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +49,6 @@ import rmitcom.asm1.gamunity.components.views.comment.EditCommentView;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
-import rmitcom.asm1.gamunity.model.Post;
 
 public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecyclerViewAdapter.CommentRecyclerViewHolder>{
     private final Context context;
@@ -57,7 +58,8 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
     private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData, postData, commentData;
-    private String postId, commentId, userIds, ownerId;
+    private String postId, commentId, userIds, ownerId, chiefAdminId, forumId;
+    private ArrayList<String> commentIds, memberIds, moderatorIds;
     private Constant constant = new Constant();
     @NonNull
     @Override
@@ -66,6 +68,120 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         return new CommentRecyclerViewHolder(view);
     }
 
+    public class CommentRecyclerViewHolder extends RecyclerView.ViewHolder{
+
+        public TextView description, username, timestamp, like, dislike, likeTrue, dislikeTrue, comment, commentReply, moreOptionButton;
+        public RecyclerView replyCommentListView;
+        public ArrayList<Comment> commentList, replyCommentList;
+        public RelativeLayout imageLayout;
+        public ProgressBar userProgressBar, postProgressBar;
+        public ImageView postImage;
+        public ShapeableImageView userImage;
+
+        public CommentRecyclerViewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            description = itemView.findViewById(R.id.commentTabDescription);
+            username = itemView.findViewById(R.id.commentTabUsername);
+            timestamp = itemView.findViewById(R.id.commentTabTimestamp);
+
+            like = itemView.findViewById(R.id.commentTabLike);
+            likeTrue = itemView.findViewById(R.id.commentTabLikeTrue);
+            dislike = itemView.findViewById(R.id.commentTabDislike);
+            dislikeTrue = itemView.findViewById(R.id.commentTabDislikeTrue);
+            comment = itemView.findViewById(R.id.commentTabComment);
+
+            commentReply = itemView.findViewById(R.id.commentTabReply);
+            moreOptionButton = itemView.findViewById(R.id.commentTabMoreOption);
+
+            replyCommentListView = itemView.findViewById(R.id.commentTabList);
+
+            imageLayout = itemView.findViewById(R.id.commentTabPicture);
+            userProgressBar = itemView.findViewById(R.id.commentTabProgressBar1);
+            postProgressBar = itemView.findViewById(R.id.commentTabProgressBar2);
+            postImage =itemView.findViewById(R.id.commentTabImage);
+            userImage = itemView.findViewById(R.id.commentTabUserProfile);
+
+        }
+
+        private void setButton(Comment currComment, String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
+            String ownerId = currComment.getOwnerId();
+
+            if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
+                moreOptionButton.setVisibility(View.VISIBLE);
+//                commentReply.setVisibility(View.VISIBLE);
+
+            } else if (memberIds != null && memberIds.contains(userId)) {
+//                commentReply.setVisibility(View.VISIBLE);
+
+                if (Objects.equals(userId, ownerId)) {
+                    moreOptionButton.setVisibility(View.VISIBLE);
+                }
+                else {
+                    moreOptionButton.setVisibility(View.GONE);
+                }
+
+            } else {
+                moreOptionButton.setVisibility(View.GONE);
+//                commentReply.setVisibility(View.VISIBLE);
+            }
+        }
+
+        private void moreOption(View view, Comment currComment,
+                                String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds, int position) {
+
+            PopupMenu popupMenu = new PopupMenu(context, moreOptionButton);
+            popupMenu.getMenuInflater().inflate(R.menu.comment_more_option, popupMenu.getMenu());
+
+            MenuItem editComment = popupMenu.getMenu().findItem(R.id.commentUpdate);
+            MenuItem deleteComment = popupMenu.getMenu().findItem(R.id.commentDelete);
+            MenuItem bannedUser = popupMenu.getMenu().findItem(R.id.commentBanUser);
+            MenuItem reportUser = popupMenu.getMenu().findItem(R.id.commentReport);
+
+            String ownerId = currComment.getOwnerId();
+
+            if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
+                deleteComment.setVisible(true);
+
+                editComment.setVisible(Objects.equals(userId, ownerId));
+
+            } else if (memberIds != null && memberIds.contains(userId)) {
+                if (Objects.equals(userId, ownerId)) {
+                    editComment.setVisible(true);
+                    deleteComment.setVisible(true);
+                }
+                else {
+                    editComment.setVisible(false);
+                    deleteComment.setVisible(false);
+                }
+            } else {
+                editComment.setVisible(false);
+                deleteComment.setVisible(false);
+            }
+
+            moreOptionButton.setOnClickListener(v -> {
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    int itemId = item.getItemId();
+
+                    if (itemId == R.id.commentUpdate) {
+                        updateComment(currComment);
+                    } else if (itemId == R.id.commentDelete) {
+                        deleteCommentAlert(currComment, position);
+                    } else if (itemId == R.id.commentBanUser) {
+
+                    } else if (itemId == R.id.commentReport) {
+
+                    }
+
+                    return false;
+                });
+
+                popupMenu.show();
+            });
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull CommentRecyclerViewHolder holder, int position) {
         Comment currComment = commentContent.get(position);
@@ -74,9 +190,47 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
 
         holder.description.setText(currComment.getDescription());
-        holder.like.setText((int) currComment.getNoLike() + "");
-        holder.dislike.setText((int) currComment.getNoDislike() + "");
-        holder.comment.setText((int) currComment.getNoComment() + "");
+
+        if (currComment.getLikeIds() != null) {
+            if (currComment.getLikeIds().contains(userId)) {
+                holder.like.setVisibility(View.INVISIBLE);
+                holder.likeTrue.setVisibility(View.VISIBLE);
+                holder.likeTrue.setText(String.valueOf(currComment.getLikeIds().size()));
+            }
+            else {
+                holder.like.setVisibility(View.VISIBLE);
+                holder.likeTrue.setVisibility(View.INVISIBLE);
+                holder.like.setText(String.valueOf(currComment.getLikeIds().size()));
+            }
+
+        } else {
+            holder.like.setVisibility(View.VISIBLE);
+            holder.likeTrue.setVisibility(View.INVISIBLE);
+            holder.like.setText("0");
+        }
+
+        if (currComment.getDislikeIds() != null) {
+            if (currComment.getDislikeIds().contains(userId)) {
+                holder.dislike.setVisibility(View.INVISIBLE);
+                holder.dislikeTrue.setVisibility(View.VISIBLE);
+                holder.dislikeTrue.setText(String.valueOf(currComment.getDislikeIds().size()));
+            }
+            else {
+                holder.dislike.setVisibility(View.VISIBLE);
+                holder.dislikeTrue.setVisibility(View.INVISIBLE);
+                holder.dislike.setText(String.valueOf(currComment.getDislikeIds().size()));
+            }
+        } else {
+            holder.dislike.setVisibility(View.VISIBLE);
+            holder.dislikeTrue.setVisibility(View.INVISIBLE);
+            holder.dislike.setText("0");
+        }
+
+        if (currComment.getReplyCommentIds() != null) {
+            holder.comment.setText(String.valueOf(currComment.getReplyCommentIds().size()));
+        } else {
+            holder.comment.setText("0");
+        }
 
         Date timestampDate = currComment.getTimestamp(), updateTimestampDate = currComment.getUpdateTimestamp();
         StringBuilder timestampStr = new StringBuilder();
@@ -110,8 +264,52 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         postId = currComment.getPostId();
         postData = db.collection("POSTS").document(postId);
 
+        postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+
+                    if (document.exists()) {
+                        forumId = document.getString("forumId");
+                        Log.i("TAG comment", "forumId: " + forumId);
+
+                        if (forumId != null) {
+                            db.collection("FORUMS").document(forumId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+
+                                        if (document.exists()) {
+                                            chiefAdminId = document.getString("chiefAdmin");
+
+                                            if (document.get("memberIds") != null) {
+                                                memberIds = (ArrayList<String>) document.get("memberIds");
+                                            } else {
+                                                memberIds = new ArrayList<>();
+                                            }
+
+                                            if (document.get("moderatorIds") != null) {
+                                                moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                                            } else {
+                                                moderatorIds = new ArrayList<>();
+                                            }
+
+                                            holder.setButton(currComment, chiefAdminId, moderatorIds, memberIds);
+                                            holder.moreOption(holder.itemView, currComment, chiefAdminId, moderatorIds, memberIds, holder.getAdapterPosition());
+                                        }
+                                    }
+                                }
+                            });
+
+                        }
+                    }
+                }
+            }
+        });
+
         ownerId = currComment.getOwnerId();
-        Log.i("Comment Tab", "setCommentData - ownerId: " + ownerId);
         userData = db.collection("users").document(ownerId);
 
         if (ownerId != null) {
@@ -135,89 +333,184 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                 }
             });
         }
+
+        setLikeComment(holder, currComment, position);
+        setDislikeComment(holder, currComment, position);
     }
 
-    public class CommentRecyclerViewHolder extends RecyclerView.ViewHolder{
+    private void toggleLikeDislike(int position, Comment currComment,
+                                   ArrayList<String> currentList, ArrayList<String> otherList,
+                                   String currField, String otherField, final TextView likeView, final TextView dislikeView,
+                                   final TextView likeViewTrue, final TextView dislikeViewTrue) {
 
-        public TextView description, username, timestamp, like, dislike, comment, commentReply, moreOptionButton;
-        public RecyclerView replyCommentListView;
-        public ArrayList<Comment> commentList, replyCommentList;
-        public RelativeLayout imageLayout;
-        public ProgressBar userProgressBar, postProgressBar;
-        public ImageView postImage;
-        public ShapeableImageView userImage;
+        if (currentList != null) {
+            ArrayList<String> finalCurrList = currentList;
 
-        public CommentRecyclerViewHolder(@NonNull View itemView) {
-            super(itemView);
+            if (!currentList.contains(userId)) {
+                currentList.add(userId);
+                commentData.update(currField, FieldValue.arrayUnion(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @SuppressLint("NotifyDataSetChanged")
+                    @Override
+                    public void onSuccess(Void unused) {
+                        likeViewTrue.setVisibility(View.VISIBLE);
+                        likeView.setVisibility(View.INVISIBLE);
 
-            description = itemView.findViewById(R.id.commentTabDescription);
-            username = itemView.findViewById(R.id.commentTabUsername);
-            timestamp = itemView.findViewById(R.id.commentTabTimestamp);
-            like = itemView.findViewById(R.id.commentTabLike);
-            dislike = itemView.findViewById(R.id.commentTabDislike);
-            comment = itemView.findViewById(R.id.commentTabComment);
+                        likeViewTrue.setText(String.valueOf(finalCurrList.size()));
 
-            commentReply = itemView.findViewById(R.id.commentTabReply);
-            moreOptionButton = itemView.findViewById(R.id.commentTabMoreOption);
+                        if (otherList != null && otherList.contains(userId)) {
+                            otherList.remove(userId);
+                            commentData.update(otherField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    dislikeView.setVisibility(View.VISIBLE);
+                                    dislikeViewTrue.setVisibility(View.INVISIBLE);
 
-            replyCommentListView = itemView.findViewById(R.id.commentTabList);
+                                    dislikeView.setText(String.valueOf(otherList.size()));
+                                }
+                            });
+                        } else {
+                            dislikeView.setVisibility(View.VISIBLE);
+                            dislikeViewTrue.setVisibility(View.INVISIBLE);
 
-            imageLayout = itemView.findViewById(R.id.commentTabPicture);
-            userProgressBar = itemView.findViewById(R.id.commentTabProgressBar1);
-            postProgressBar = itemView.findViewById(R.id.commentTabProgressBar2);
-            postImage =itemView.findViewById(R.id.commentTabImage);
-            userImage = itemView.findViewById(R.id.commentTabUserProfile);
+                            dislikeView.setText("0");
+                        }
 
-            moreOptionButton.setOnClickListener(new View.OnClickListener() {
+                        if (position != RecyclerView.NO_POSITION) {
+                            notifyItemChanged(position);
+                        }
+                    }
+                });
+            } else {
+                currentList.remove(userId);
+                commentData.update(currField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @SuppressLint("NotifyDataSetChanged")
+                    @Override
+                    public void onSuccess(Void unused) {
+                        likeView.setVisibility(View.VISIBLE);
+                        likeViewTrue.setVisibility(View.INVISIBLE);
+
+                        likeView.setText(String.valueOf(finalCurrList.size()));
+
+                        if (otherList != null) {
+                            otherList.remove(userId);
+                            dislikeView.setText(String.valueOf(otherList.size()));
+
+                        } else {
+                            dislikeView.setText("0");
+                        }
+
+                        if (position != RecyclerView.NO_POSITION) {
+                            notifyItemChanged(position);
+                        }
+                    }
+                });
+            }
+        }
+        else {
+            currentList = new ArrayList<>();
+            currentList.add(userId);
+
+            Map<String, ArrayList<String>> actionData = new HashMap<>();
+            actionData.put(currField, currentList);
+
+            ArrayList<String> finalCurrList = currentList;
+            commentData.set(actionData, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @SuppressLint("NotifyDataSetChanged")
                 @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
+                public void onSuccess(Void unused) {
+                    likeView.setVisibility(View.INVISIBLE);
+                    likeViewTrue.setVisibility(View.VISIBLE);
+
+                    likeViewTrue.setText(String.valueOf(finalCurrList.size()));
+
+                    if (otherList != null && otherList.contains(userId)) {
+                        otherList.remove(userId);
+                        commentData.update(otherField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                dislikeView.setVisibility(View.VISIBLE);
+                                dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                                dislikeView.setText(String.valueOf(otherList.size() - 1));
+                            }
+                        });
+                    } else {
+                        dislikeView.setVisibility(View.VISIBLE);
+                        dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                        dislikeView.setText("0");
+                    }
+
                     if (position != RecyclerView.NO_POSITION) {
-                        Comment clickedComment = commentContent.get(position);
-                        moreOption(v, clickedComment);
+                        notifyItemChanged(position);
                     }
                 }
             });
         }
-
-        private void moreOption(View view, Comment currComment) {
-            Log.i("TAG", "moreOption: " + currComment.getCommentId());
-
-            PopupMenu popupMenu = new PopupMenu(context, view);
-            popupMenu.getMenuInflater().inflate(R.menu.comment_more_option, popupMenu.getMenu());
-
-            MenuItem editPost = popupMenu.getMenu().findItem(R.id.commentUpdate);
-            MenuItem deletePost = popupMenu.getMenu().findItem(R.id.commentDelete);
-            MenuItem bannedUser = popupMenu.getMenu().findItem(R.id.commentBanUser);
-            MenuItem reportPost = popupMenu.getMenu().findItem(R.id.commentReport);
-
-//        if (!isAdmin && !Objects.equals(userId, ownerId) && !memberIds.contains(userId)) {
-//            moreOptionButton.setVisibility(View.GONE);
-//        } else {}
-
-            moreOptionButton.setOnClickListener(v -> {
-                popupMenu.setOnMenuItemClickListener(item -> {
-                    int itemId = item.getItemId();
-
-                    if (itemId == R.id.commentUpdate) {
-                        updateComment(currComment);
-                    } else if (itemId == R.id.commentDelete) {
-                        deleteCommentAlert(currComment);
-                    } else if (itemId == R.id.commentBanUser) {
-
-                    } else if (itemId == R.id.commentReport) {
-
-                    }
-
-                    return false;
-                });
-
-                popupMenu.show();
-            });
-        }
     }
 
+    private void setLikeComment(CommentRecyclerViewHolder holder, Comment currComment, int position) {
 
+        ArrayList<String> likeIds = currComment.getLikeIds(), dislikeIds = currComment.getDislikeIds();
+        holder.like.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(position, currComment, likeIds, dislikeIds,
+                        "likeIds", "dislikeIds",
+                        holder.like, holder.dislike, holder.likeTrue, holder.dislikeTrue);
+
+                if (!likeIds.contains(userId)) {
+                    likeIds.add(userId);
+
+                    if (dislikeIds != null) {
+                        dislikeIds.remove(userId);
+                    }
+                }
+            }
+        });
+
+        holder.likeTrue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(position, currComment, likeIds, dislikeIds,
+                        "likeIds", "dislikeIds",
+                        holder.like, holder.dislike, holder.likeTrue, holder.dislikeTrue);
+
+                likeIds.remove(userId);
+            }
+        });
+    }
+
+    private void setDislikeComment(CommentRecyclerViewHolder holder, Comment currComment, int position) {
+        ArrayList<String> likeIds = currComment.getLikeIds(), dislikeIds = currComment.getDislikeIds();
+        holder.dislike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(position, currComment, dislikeIds, likeIds,
+                        "dislikeIds", "likeIds",
+                        holder.dislike, holder.like, holder.dislikeTrue, holder.likeTrue);
+
+                if (!dislikeIds.contains(userId)) {
+                    dislikeIds.add(userId);
+
+                    if (likeIds != null) {
+                        likeIds.remove(userId);
+                    }
+                }
+            }
+        });
+
+        holder.dislikeTrue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(position, currComment, dislikeIds, likeIds,
+                        "dislikeIds", "likeIds",
+                        holder.dislike, holder.like, holder.dislikeTrue, holder.likeTrue);
+
+                dislikeIds.remove(userId);
+            }
+        });
+    }
 
     private void updateComment(Comment currComment) {
         Intent updateIntent = new Intent(context, EditCommentView.class);
@@ -230,7 +523,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
     }
 
     @SuppressLint({"InflateParams", "SetTextI18n"})
-    private void deleteCommentAlert(Comment currComment) {
+    private void deleteCommentAlert(Comment currComment, int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View deleteDialogLayout = inflater.inflate(R.layout.ui_delete_dialog_view, null);
@@ -249,9 +542,12 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
             deleteButton.setOnClickListener(v -> {
                 String commentId = currComment.getCommentId();
-                deleteComment(commentId);
+                deleteComment(commentId, position);
                 dialog.dismiss();
-                notifyDataSetChanged();
+
+//                Intent intent = new Intent(context, PostView.class);
+//                intent.putExtra("postId", postId);
+//                recreate(new Activity());
             });
 
         } catch (Exception e) {
@@ -261,106 +557,27 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
     }
 
-    public void deleteComment(String commentId) {
+    public void deleteComment(String commentId, int position) {
         Log.i("Comment Tab", "deleteComment - commentId: " + commentId);
 
         DocumentReference ownerData = db.collection("users").document(ownerId);
-        ownerData.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                Map<String, ArrayList<String>> userCommentIds = new HashMap<>();
+        ownerData.update("commentIds", FieldValue.arrayRemove(commentId));
 
-                if (document.exists()) {
-                    ArrayList<String> commentIds = (ArrayList<String>) document.get("commentIds");
-
-                    if (commentIds != null) {
-                        commentIds.remove(commentId);
-                        userCommentIds.put("commentIds", commentIds);
-                    }
-                }
-                ownerData.set(userCommentIds, SetOptions.merge());
-            }
-        });
-
-        postData.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                Map<String, ArrayList<String>> postCommentIds = new HashMap<>();
-
-                if (document.exists()) {
-                    ArrayList<String> commentIds = (ArrayList<String>) document.get("commentIds");
-
-                    if (commentIds != null) {
-                        commentIds.remove(commentId);
-                        postCommentIds.put("commentIds", commentIds);
-                    }
-                }
-                postData.set(postCommentIds, SetOptions.merge());
-            }
-        });
-
-//        if (isReply) {
-//            dcommentData.get().addOnCompleteListener(task -> {
-//                if (task.isSuccessful()) {
-//                    DocumentSnapshot document = task.getResult();
-//                    Map<String, ArrayList<String>> replyIds = new HashMap<>();
-//
-//                    if (document.exists()) {
-//                        ArrayList<String> replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
-//
-//                        if (replyCommentIds != null) {
-//                            replyCommentIds.remove(commentId);
-//                            replyIds.put("replyCommentIds", replyCommentIds);
-//                        }
-//                    }
-//                    db.collection("COMMENTS").document(commentId)
-//                            .set(replyIds, SetOptions.merge());
-//                }
-//            });
-//        }
+        postData.update("commentIds", FieldValue.arrayRemove(commentId));
 
         DocumentReference commentData = db.collection("COMMENTS").document(commentId);
-        commentData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        commentData.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-
-                    if (document.exists()) {
-                        String imageUrl = document.getString("imageUrl");
-
-                        if (imageUrl != null) {
-                            Log.i("Comment Tab", "imageUrl: " + imageUrl);
-
-                            String pattern = "images%2F(.*?)\\?";
-                            Pattern p = Pattern.compile(pattern);
-                            Matcher m = p.matcher(imageUrl);
-
-                            if (m.find()) {
-                                String oldUri = m.group(1);
-                                Log.i("Comment Tab", "oldUri: " + oldUri);
-
-                                // Create a reference to the old image and delete it
-                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i("Comment Tab", "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e("Comment Tab", "Failed to delete old image: " + e.getMessage());
-                                });
-                            } else {
-                                Log.e("Comment Tab", "Regex pattern did not match imageUrl");
-                            }
-                        }
-
-                        commentData.delete();
-
-                    }
+            public void onSuccess(Void unused) {
+                if (context instanceof PostView) {
+                    ((PostView) context).refreshPostData(position);
                 }
             }
         });
+
     }
 
-    public void deleteCommentFromForum(String commentId) {
+    public void deleteCommentFromPost(String commentId) {
         if (commentId != null) {
             DocumentReference commentData = db.collection("COMMENTS").document(commentId);
             commentData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -368,51 +585,29 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
-                        String ownerId, postId;
+                        String ownerId = "", postId = "";
                         if (document.exists()) {
                             postId = document.getString("postId");
                             ownerId = document.getString("ownerId");
 
-                            DocumentReference ownerData = db.collection("users").document(ownerId);
-                            ownerData.get().addOnCompleteListener(userTask -> {
-                                if (userTask.isSuccessful()) {
-                                    DocumentSnapshot userDocument = userTask.getResult();
-                                    Map<String, ArrayList<String>> userCommentIds = new HashMap<>();
-
-                                    if (userDocument.exists()) {
-                                        ArrayList<String> commentIds = (ArrayList<String>) userDocument.get("commentIds");
-
-                                        if (commentIds != null) {
-                                            commentIds.remove(commentId);
-                                            userCommentIds.put("commentIds", commentIds);
-                                        }
-                                    }
-                                    ownerData.set(userCommentIds, SetOptions.merge());
-                                }
-                            });
-
-                            DocumentReference postData = db.collection("POSTS").document(postId);
-                            postData.get().addOnCompleteListener(postTask -> {
-                                if (postTask.isSuccessful()) {
-                                    DocumentSnapshot postDocument = postTask.getResult();
-                                    Map<String, ArrayList<String>> postCommentIds = new HashMap<>();
-
-                                    if (postDocument.exists()) {
-                                        ArrayList<String> commentIds = (ArrayList<String>) postDocument.get("commentIds");
-
-                                        if (commentIds != null) {
-                                            commentIds.remove(commentId);
-                                            postCommentIds.put("commentIds", commentIds);
-                                        }
-                                    }
-                                    postData.set(postCommentIds, SetOptions.merge());
-                                }
-                            });
+                            if (ownerId != null) {
+                                DocumentReference ownerData = db.collection("users").document(ownerId);
+                                ownerData.update("commentIds", FieldValue.arrayRemove(commentId));
+                            }
+                            if (postId != null) {
+                                DocumentReference postData = db.collection("POSTS").document(postId);
+                                postData.update("commentIds", FieldValue.arrayRemove(commentId));
+                            }
                         }
 
-                        commentData.delete();
-
                     }
+
+                    commentData.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            Log.i("delete comment", "onSuccess - delete from post: delete successfully");
+                        }
+                    });
                 }
             });
         }
@@ -426,5 +621,10 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
     public CommentRecyclerViewAdapter(Context context, ArrayList<Comment> commentContent) {
         this.context = context;
         this.commentContent = commentContent;
+    }
+
+    public CommentRecyclerViewAdapter(Context context, ArrayList<String> commentIds, boolean forDelete) {
+        this.context = context;
+        this.commentIds = commentIds;
     }
 }

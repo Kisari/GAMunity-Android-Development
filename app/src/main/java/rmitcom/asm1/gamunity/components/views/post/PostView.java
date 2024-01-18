@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,18 +17,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -42,7 +44,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
-import rmitcom.asm1.gamunity.adapter.CommentListAdapter;
 import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
@@ -66,7 +67,7 @@ public class PostView extends AppCompatActivity {
     private ArrayList<String> commentLikeIds, commentDislikeIds, replyCommentIds;
     private ArrayList<Comment> commentList;
     private TextView postUsername, postTimestamp, postTitle, postDescription, moreOptionButton,
-            postLike, postDislike, postComment, postLikeTrue, postDislikeTrue,
+            postLike, postDislike, postComment, postLikeTrue, postDislikeTrue, postForumName,
             addCommentButton, returnBackButton;
     private RecyclerView commentListView;
     private RelativeLayout postPicture;
@@ -112,6 +113,8 @@ public class PostView extends AppCompatActivity {
         userProgressBar = findViewById(R.id.postProgressBar1);
         postProgressBar = findViewById(R.id.postProgressBar2);
 
+        postForumName = findViewById(R.id.postForumName);
+
         addCommentButton = findViewById(R.id.postAddComment);
         commentListView = findViewById(R.id.postCommentList);
 
@@ -120,7 +123,6 @@ public class PostView extends AppCompatActivity {
 
         setPostData();
         addComment();
-        moreOption();
         returnToPreviousPage();
     }
 
@@ -137,13 +139,28 @@ public class PostView extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
 
                     if (document.exists()) {
+                        postForumName.setText(document.getString("title"));
+
                         chiefAdminId = (String) document.get("chiefAdmin");
 
-                        memberIds = (ArrayList<String>) document.get("memberIds");
-                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                        if (document.get("moderatorIds") != null) {
+                            moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
+                        } else {
+                            moderatorIds = new ArrayList<>();
+                        }
+
+                        if (document.get("memberIds") != null) {
+                            memberIds = (ArrayList<String>) document.get("memberIds");
+
+                        } else {
+                            memberIds = new ArrayList<>();
+                        }
                     }
                 }
+
+                setButton(chiefAdminId, moderatorIds, memberIds);
+                moreOption(chiefAdminId, moderatorIds, memberIds);
             }
         });
 
@@ -189,42 +206,74 @@ public class PostView extends AppCompatActivity {
                         }
                     }
 
-                    if (document.get("noLike") == null) {
-                        noLike = 0;
-                    } else {
-                        noLike = (int) document.get("noLike");
-                    }
-
-                    if (document.get("noDislike") == null) {
-                        noDislike = 0;
-                    } else {
-                        noDislike = (int) document.get("noDislike");
-                    }
-
-                    if (document.get("noComment") == null) {
-                        noComment = 0;
-                    } else {
-                        noComment = (int) document.get("noComment");
-                    }
-
                     if (document.get("likeIds") != null) {
                         postLikeIds = (ArrayList<String>) document.get("likeIds");
-                    } else {
-                        postLikeIds = new ArrayList<>();
+
+                        if (postLikeIds != null) {
+                            int likeCount = postLikeIds.size();
+
+                            if (postLikeIds.contains(userId)) {
+                                postLike.setVisibility(View.INVISIBLE);
+                                postLikeTrue.setVisibility(View.VISIBLE);
+
+                                postLikeTrue.setText(String.valueOf(likeCount));
+                            }
+                            else {
+                                postLike.setVisibility(View.VISIBLE);
+                                postLikeTrue.setVisibility(View.INVISIBLE);
+
+                                postLike.setText(String.valueOf(likeCount));
+                            }
+                        } else {
+                            postLike.setVisibility(View.VISIBLE);
+                            postLikeTrue.setVisibility(View.INVISIBLE);
+                            postLike.setText("0");
+                        }
+
                     }
 
                     if (document.get("dislikeIds") != null) {
                         postDislikeIds = (ArrayList<String>) document.get("dislikeIds");
-                    } else {
-                        postDislikeIds = new ArrayList<>();
+
+                        if (postDislikeIds != null) {
+                            int dislikeCount = postDislikeIds.size();
+
+                            if (postDislikeIds.contains(userId)) {
+                                postDislike.setVisibility(View.INVISIBLE);
+                                postDislikeTrue.setVisibility(View.VISIBLE);
+
+                                postDislikeTrue.setText(String.valueOf(dislikeCount));
+                            }
+                            else {
+                                postDislike.setVisibility(View.VISIBLE);
+                                postDislikeTrue.setVisibility(View.INVISIBLE);
+
+                                postDislike.setText(String.valueOf(dislikeCount));
+                            }
+                        }
+                        else {
+                            postDislike.setVisibility(View.VISIBLE);
+                            postDislikeTrue.setVisibility(View.INVISIBLE);
+                            postDislike.setText("0");
+                        }
+
                     }
 
                     if (document.get("commentIds") != null) {
                         postCommentIds = (ArrayList<String>) document.get("commentIds");
+
+                        if (postCommentIds != null) {
+                            postComment.setText(String.valueOf(postCommentIds.size()));
+                        } else {
+                            postComment.setText("0");
+                        }
+
                         displayList(postCommentIds);
 
-                    } else {
+                    }
+                    else {
                         postCommentIds = new ArrayList<>();
+                        postComment.setText("0");
                     }
 
                     if (ownerId != null) {
@@ -263,9 +312,7 @@ public class PostView extends AppCompatActivity {
                         timestamp.append(" (Edited: ").append(postUpdateTimestampStr).append(")");
                     }
 
-                    postTimestamp.setText(timestamp);
-
-//                    setButton();
+                    postTimestamp.setText(timestamp.toString());
 
                 } else {
                     Log.d(TAG, "No such document");
@@ -274,16 +321,26 @@ public class PostView extends AppCompatActivity {
                 Log.d(TAG, "get failed with ", task.getException());
             }
         });
+
+        setLikePost();
+        setDislikePost();
     }
 
-    private void setButton() {
-        if (Objects.equals(userId, chiefAdminId)) {
+    private void setButton(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
+        if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
             moreOptionButton.setVisibility(View.VISIBLE);
             addCommentButton.setVisibility(View.VISIBLE);
 
-        } else if ((memberIds != null && memberIds.contains(userId)) || (moderatorIds != null && moderatorIds.contains(userId))) {
-            moreOptionButton.setVisibility(View.VISIBLE);
+        } else if (memberIds != null && memberIds.contains(userId)) {
             addCommentButton.setVisibility(View.VISIBLE);
+//            moreOptionButton.setVisibility(View.VISIBLE);
+
+            if (Objects.equals(userId, ownerId)) {
+                moreOptionButton.setVisibility(View.VISIBLE);
+            }
+            else {
+                moreOptionButton.setVisibility(View.GONE);
+            }
 
         } else {
             moreOptionButton.setVisibility(View.GONE);
@@ -291,11 +348,142 @@ public class PostView extends AppCompatActivity {
         }
     }
 
+    private void toggleLikeDislike(ArrayList<String> currentList, ArrayList<String> otherList,
+                                   String currField, String otherField, final TextView likeView, final TextView dislikeView,
+                                   final TextView likeViewTrue, final TextView dislikeViewTrue) {
+        if (currentList != null) {
+            if (!currentList.contains(userId)) {
+                ArrayList<String> finalCurrList = currentList;
+                postData.update(currField, FieldValue.arrayUnion(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        likeViewTrue.setVisibility(View.VISIBLE);
+                        likeView.setVisibility(View.INVISIBLE);
+
+                        likeViewTrue.setText(String.valueOf(finalCurrList.size()));
+
+                        if (otherList != null && otherList.contains(userId)) {
+                            postData.update(otherField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    dislikeView.setVisibility(View.VISIBLE);
+                                    dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                                    dislikeView.setText(String.valueOf(otherList.size() - 1));
+                                }
+                            });
+                        } else {
+                            dislikeView.setVisibility(View.VISIBLE);
+                            dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                            dislikeView.setText("0");
+                        }
+                        recreate();
+                    }
+                });
+            } else {
+                currentList.remove(userId);
+                ArrayList<String> finalCurrList = currentList;
+                postData.update(currField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        likeView.setVisibility(View.VISIBLE);
+                        likeViewTrue.setVisibility(View.INVISIBLE);
+
+                        likeView.setText(String.valueOf(finalCurrList.size()));
+
+                        if (otherList != null) {
+                            dislikeView.setText(String.valueOf(otherList.size()));
+                        } else {
+                            dislikeView.setText("0");
+                        }
+
+                        recreate();
+                    }
+                });
+            }
+        }
+        else {
+            currentList = new ArrayList<>();
+            currentList.add(userId);
+
+            Map<String, ArrayList<String>> actionData = new HashMap<>();
+            actionData.put(currField, currentList);
+
+            ArrayList<String> finalCurrList = currentList;
+            postData.set(actionData, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void unused) {
+                    likeView.setVisibility(View.INVISIBLE);
+                    likeViewTrue.setVisibility(View.VISIBLE);
+
+                    likeViewTrue.setText(String.valueOf(finalCurrList.size()));
+
+                    if (otherList != null && otherList.contains(userId)) {
+                        postData.update(otherField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                dislikeView.setVisibility(View.VISIBLE);
+                                dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                                dislikeView.setText(String.valueOf(otherList.size() - 1));
+                            }
+                        });
+                    } else {
+                        dislikeView.setVisibility(View.VISIBLE);
+                        dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                        dislikeView.setText("0");
+                    }
+
+                    recreate();
+                }
+            });
+        }
+    }
+
+    private void setLikePost() {
+        postLike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(postLikeIds, postDislikeIds, "likeIds", "dislikeIds",
+                        postLike, postDislike, postLikeTrue, postDislikeTrue);
+            }
+        });
+
+        postLikeTrue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(postLikeIds, postDislikeIds, "likeIds", "dislikeIds",
+                        postLike, postDislike, postLikeTrue, postDislikeTrue);
+            }
+        });
+    }
+
+    private void setDislikePost() {
+        postDislike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(postDislikeIds, postLikeIds, "dislikeIds", "likeIds",
+                        postDislike, postLike, postDislikeTrue, postLikeTrue);
+            }
+        });
+
+        postDislikeTrue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleLikeDislike(postDislikeIds, postLikeIds, "dislikeIds", "likeIds",
+                        postDislike, postLike, postDislikeTrue, postLikeTrue);
+            }
+        });
+    }
+
     private void displayList(ArrayList<String> commentIds) {
 //        int listLength = commentIds.size();
 //        final int[] counter = {0};
 
         int listLength = commentIds.size();
+        Log.i(TAG, "displayList - listLength: " + listLength);
         AtomicInteger counter = new AtomicInteger(0);
 
         for (String commentId: commentIds) {
@@ -352,13 +540,13 @@ public class PostView extends AppCompatActivity {
                                 commentDislikeIds = new ArrayList<>();
                             }
 
-//                            if (document.get("replyCommentIds") != null) {
-//                                replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
-//                                displayList(replyCommentIds);
-//
-//                            } else {
-//                                replyCommentIds = new ArrayList<>();
-//                            }
+                            if (document.get("replyCommentIds") != null) {
+                                replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
+                                displayList(replyCommentIds);
+
+                            } else {
+                                replyCommentIds = new ArrayList<>();
+                            }
 
                             timestampStr = (String) document.get("date");
                             updateTimestampStr = (String) document.get("updateDate");
@@ -383,7 +571,7 @@ public class PostView extends AppCompatActivity {
 
                             isReply = repliedCommentId != null;
 
-                            Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, imgUri, commentLikeIds, commentDislikeIds, replyCommentIds, isReply, noLike, noDislike, noComment);
+                            Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, imgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
                             commentList.add(comment);
 
 //                            counter[0]++;
@@ -409,6 +597,7 @@ public class PostView extends AppCompatActivity {
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -430,7 +619,7 @@ public class PostView extends AppCompatActivity {
                     }
                 }
 
-                if ((String) data.getExtras().get("image") != null) {
+                if (data.getExtras().get("image") != null) {
                     commentImgUri = (String) data.getExtras().get("image");
                 } else {
                     commentImgUri = null;
@@ -438,19 +627,23 @@ public class PostView extends AppCompatActivity {
 
                 ArrayList<String> commentLikeIds = new ArrayList<>(), commentDislikeIds = new ArrayList<>(), replyCommentIds = new ArrayList<>();
 
-                Comment comment = new Comment(commentId, userId, postId, commentDescription, null, timestamp, null, commentImgUri, commentLikeIds, commentDislikeIds, replyCommentIds, false, 0, 0, 0);
+                Comment comment = new Comment(commentId, userId, postId, commentDescription, null, timestamp, null, commentImgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
                 commentList.add(comment);
 
             }
             setupList(commentList);
+
+            setUI();
+            adapter.notifyDataSetChanged();
         }
 
         if (requestCode == constant.EDIT && resultCode == RESULT_OK) {
-            setPostData();
+            setUI();
+            adapter.notifyDataSetChanged();
         }
     }
 
-    private void moreOption() {
+    private void moreOption(String chiefAdminId, ArrayList<String> moderatorIds, ArrayList<String> memberIds) {
         PopupMenu popupMenu = new PopupMenu(PostView.this, moreOptionButton);
         popupMenu.getMenuInflater().inflate(R.menu.post_more_option, popupMenu.getMenu());
 
@@ -458,6 +651,26 @@ public class PostView extends AppCompatActivity {
         MenuItem deletePost = popupMenu.getMenu().findItem(R.id.postDelete);
         MenuItem bannedUser = popupMenu.getMenu().findItem(R.id.postBanUser);
         MenuItem reportPost = popupMenu.getMenu().findItem(R.id.postReport);
+
+        if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
+            deletePost.setVisible(true);
+
+            editPost.setVisible(Objects.equals(userId, ownerId));
+
+        } else if (memberIds != null && memberIds.contains(userId)) {
+            if (Objects.equals(userId, ownerId)) {
+                editPost.setVisible(true);
+                deletePost.setVisible(true);
+            }
+            else {
+                editPost.setVisible(false);
+                deletePost.setVisible(false);
+            }
+        }
+        else {
+            deletePost.setVisible(false);
+            editPost.setVisible(false);
+        }
 
         moreOptionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -509,24 +722,17 @@ public class PostView extends AppCompatActivity {
 
         try {
             dialogMessage.setText("Are you sure you want to delete this post");
-            cancelButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialog.dismiss();
-                }
-            });
+            cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-            deleteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    deletePost(postId);
-                    dialog.dismiss();
-                    Intent resultIntent = new Intent(PostView.this, ForumView.class);
-                    resultIntent.putExtra("deletedPostId", postId);
-                    setResult(RESULT_OK, resultIntent);
-                    startActivity(resultIntent);
-                    finish();
-                }
+            deleteButton.setOnClickListener(v -> {
+                deletePost(postId);
+                dialog.dismiss();
+
+                Intent deleteIntent = new Intent(PostView.this, ForumView.class);
+                deleteIntent.putExtra("forumId", forumId);
+                deleteIntent.putExtra("postId", postId);
+                setResult(RESULT_OK, deleteIntent);
+                finish();
             });
 
         } catch (Exception e) {
@@ -538,40 +744,10 @@ public class PostView extends AppCompatActivity {
 
     private void deletePost(String postId) {
         DocumentReference ownerData = db.collection("users").document(ownerId);
-        ownerData.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                Map<String, ArrayList<String>> userPostIds = new HashMap<>();
-
-                if (document.exists()) {
-                    ArrayList<String> postIds = (ArrayList<String>) document.get("postIds");
-
-                    if (postIds != null) {
-                        postIds.remove(postId);
-                        userPostIds.put("postIds", postIds);
-                    }
-                }
-                ownerData.set(userPostIds, SetOptions.merge());
-            }
-        });
+        ownerData.update("postIds", FieldValue.arrayRemove(postId));
 
         DocumentReference forumData = db.collection("FORUMS").document(forumId);
-        forumData.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
-                Map<String, ArrayList<String>> userPostIds = new HashMap<>();
-
-                if (document.exists()) {
-                    ArrayList<String> postIds = (ArrayList<String>) document.get("postIds");
-
-                    if (postIds != null) {
-                        postIds.remove(postId);
-                        userPostIds.put("postIds", postIds);
-                    }
-                }
-                forumData.set(userPostIds, SetOptions.merge());
-            }
-        });
+        forumData.update("postIds", FieldValue.arrayRemove(postId));
 
         postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -580,21 +756,27 @@ public class PostView extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
 
                     if (document.exists()) {
-                        ArrayList<String> commentIds = (ArrayList<String>) document.get("commentIds");
+                        ArrayList<String> commentIds = new ArrayList<>();
 
-                        if (commentIds != null) {
-                            for (String id: commentIds) {
-                                adapter.deleteComment(id);
+                        if (document.get("commentIds") != null) {
+                            commentIds = new ArrayList<>((ArrayList<String>) document.get("commentIds"));
+                            Log.i(TAG, "onComplete: commentIds: " + commentIds);
+
+                            for (String id : commentIds) {
+                                adapter.deleteCommentFromPost(id);
                             }
                         }
+
+                        postData.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Log.i(TAG, "onSuccess: delete post");
+                            }
+                        });
                     }
-
-                    postData.delete();
-
                 }
             }
         });
-
     }
 
     public void deletePostFromForum(String postId, Context context) {
@@ -606,72 +788,83 @@ public class PostView extends AppCompatActivity {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     String forumId, ownerId;
-                    ArrayList<String> commentIdsList = new ArrayList<>();
 
                     if (document.exists()) {
                         forumId = document.getString("forumId");
                         ownerId = document.getString("ownerId");
 
-                        DocumentReference ownerData = db.collection("users").document(ownerId);
-                        ownerData.get().addOnCompleteListener(userTask -> {
-                            if (userTask.isSuccessful()) {
-                                DocumentSnapshot userDocument = userTask.getResult();
-                                Map<String, ArrayList<String>> userPostIds = new HashMap<>();
+                        ArrayList<String> commentIds = new ArrayList<>();
 
-                                if (userDocument.exists()) {
-                                    ArrayList<String> postIds = (ArrayList<String>) userDocument.get("postIds");
-
-                                    if (postIds != null) {
-                                        postIds.remove(postId);
-                                        userPostIds.put("postIds", postIds);
-                                    }
-                                }
-                                ownerData.set(userPostIds, SetOptions.merge());
-                            }
-                        });
-
-                        DocumentReference forumData = db.collection("FORUMS").document(forumId);
-                        forumData.get().addOnCompleteListener(forumTask -> {
-                            if (forumTask.isSuccessful()) {
-                                DocumentSnapshot forumDocument = forumTask.getResult();
-                                Map<String, ArrayList<String>> userPostIds = new HashMap<>();
-
-                                if (forumDocument.exists()) {
-                                    ArrayList<String> postIds = (ArrayList<String>) forumDocument.get("postIds");
-
-                                    if (postIds != null) {
-                                        postIds.remove(postId);
-                                        userPostIds.put("postIds", postIds);
-                                    }
-                                }
-                                forumData.set(userPostIds, SetOptions.merge());
-                            }
-                        });
-
-                        commentIdsList = (ArrayList<String>) document.get("commentIds");
-
-                        if (commentIdsList != null) {
-                            ArrayList<Comment> commentList = new ArrayList<>();
-                            for (String id: commentIdsList) {
-                                Comment comment = new Comment(id);
-                                commentList.add(comment);
-                            }
+                        if(ownerId != null) {
+                            DocumentReference ownerData = db.collection("users").document(ownerId);
+                            ownerData.update("postIds", FieldValue.arrayRemove(postId));
+//                            ownerData.get().addOnCompleteListener(userTask -> {
+//                                if (userTask.isSuccessful()) {
+//                                    DocumentSnapshot userDocument = userTask.getResult();
+//                                    Map<String, ArrayList<String>> userPostIds = new HashMap<>();
+//
+//                                    if (userDocument.exists()) {
+//                                        ArrayList<String> postIds = (ArrayList<String>) userDocument.get("postIds");
+//
+//                                        if (postIds != null) {
+//                                            postIds.remove(postId);
+//                                            userPostIds.put("postIds", postIds);
+//                                        }
+//                                    }
+//                                    ownerData.set(userPostIds, SetOptions.merge());
+//                                }
+//                            });
                         }
 
-                        if (commentList != null) {
-                            CommentListAdapter commentListAdapter = new CommentListAdapter(context, R.layout.ui_comment_list_view_item, commentList);
-                            for (String id: commentIdsList) {
-                                commentListAdapter.deleteCommentFromForum(id);
-                            }
+                        if (forumId != null) {
+                            DocumentReference forumData = db.collection("FORUMS").document(forumId);
+                            forumData.update("postIds", FieldValue.arrayRemove(postId));
+//                            forumData.get().addOnCompleteListener(forumTask -> {
+//                                if (forumTask.isSuccessful()) {
+//                                    DocumentSnapshot forumDocument = forumTask.getResult();
+//                                    Map<String, ArrayList<String>> userPostIds = new HashMap<>();
+//
+//                                    if (forumDocument.exists()) {
+//                                        ArrayList<String> postIds = (ArrayList<String>) forumDocument.get("postIds");
+//
+//                                        if (postIds != null) {
+//                                            postIds.remove(postId);
+//                                            userPostIds.put("postIds", postIds);
+//                                        }
+//                                    }
+//                                    forumData.set(userPostIds, SetOptions.merge());
+//                                }
+//                            });
                         }
 
+                        if (document.get("commentIds") != null) {
+                            commentIds = new ArrayList<>((ArrayList<String>) document.get("commentIds"));
+                            CommentRecyclerViewAdapter adapter = new CommentRecyclerViewAdapter(getBaseContext(), commentIds, true);
+
+                            Log.i(TAG, "onComplete: commentIds: " + commentIds);
+
+                            for (String id : commentIds) {
+                                adapter.deleteCommentFromPost(id);
+                            }
+                        }
                     }
 
                     postData.delete();
-
                 }
             }
         });
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void refreshPostData(int position) {
+        recreate();
+
+        Log.i(TAG, "refreshPostData - position: " + position + " - adapter.getItemCount(): " + adapter.getItemCount());
+
+        if (adapter != null) {
+            adapter.notifyItemRemoved(position);
+            adapter.notifyDataSetChanged();
+        }
 
     }
 
@@ -684,6 +877,11 @@ public class PostView extends AppCompatActivity {
     }
 
     private void returnToPreviousPage() {
-        returnBackButton.setOnClickListener(v -> finish());
+        returnBackButton.setOnClickListener(v -> {
+//            Intent returnIntent = new Intent(PostView.this, ForumView.class);
+//            returnIntent.putExtra("forumId", forumId);
+//            startActivity(returnIntent);
+            finish();
+        });
     }
 }

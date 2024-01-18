@@ -2,7 +2,10 @@ package rmitcom.asm1.gamunity.adapter;
 
 import static android.content.ContentValues.TAG;
 
+import static androidx.core.app.ActivityCompat.startActivityForResult;
+
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -87,11 +90,11 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         Forum forumItem = (Forum) getItem(position);
 
-        viewForumList.setOnClickListener(v -> {
-            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
-            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-            v.getContext().startActivity(toForumDetailView);
-        });
+//        viewForumList.setOnClickListener(v -> {
+//            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
+//            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
+//            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
+//        });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);

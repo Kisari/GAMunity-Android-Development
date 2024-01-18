@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".components.views.forum.RemoveUser"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/appIcon"
+        android:layout_gravity="center"
+        android:layout_width="292dp"
+        android:layout_height="54dp"
+        android:background="@drawable/app_icon"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:id="@+id/appTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:ignore="DisableBaselineAlignment"
+        android:layout_below="@id/appIcon">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:id="@+id/returnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:backgroundTint="@color/white"
+                android:src="@drawable/back_icon_foreground"
+                android:importantForAccessibility="no">
+            </ImageView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Remove User"
+                android:textStyle="bold"
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:textColor="#757575" />
+        </LinearLayout>
+
+        <!--        <LinearLayout-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_weight="1"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:gravity="end">-->
+
+        <!--            <ImageView-->
+        <!--                android:id="@+id/confirmButton"-->
+        <!--                android:rotation="-45"-->
+        <!--                android:layout_width="48dp"-->
+        <!--                android:layout_height="48dp"-->
+        <!--                android:backgroundTint="@color/white"-->
+        <!--                android:src="@drawable/send_icon_foreground"-->
+        <!--                android:importantForAccessibility="no">-->
+        <!--            </ImageView>-->
+
+        <!--        </LinearLayout>-->
+
+    </LinearLayout>
+
+    <android.widget.SearchView
+        android:maxWidth="10000dp"
+        android:layout_margin="12dp"
+        android:id="@+id/removeSearchBar"
+        android:backgroundTint="#ffffff"
+        android:background="@drawable/rounded_pill"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="visible"
+        />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/removeMemberList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:nestedScrollingEnabled="true"/>
+
+</LinearLayout>

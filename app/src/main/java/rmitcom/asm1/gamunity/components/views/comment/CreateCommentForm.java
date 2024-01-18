@@ -218,7 +218,7 @@ public class CreateCommentForm extends AppCompatActivity {
                     String commentId = documentReference.getId();
 
                     db.collection("users").document(userId)
-                            .update("commentIds", FieldValue.arrayUnion(postId));
+                            .update("commentIds", FieldValue.arrayUnion(commentId));
                     db.collection("POSTS").document(postId)
                             .update("commentIds", FieldValue.arrayUnion(commentId));
 

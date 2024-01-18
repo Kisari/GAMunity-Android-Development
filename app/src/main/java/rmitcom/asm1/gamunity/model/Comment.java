@@ -14,9 +14,6 @@ public class Comment {
     private String imgUri;
     private ArrayList<String> likeIds, dislikeIds, replyCommentIds;
     private boolean isReply;
-    private long noLike = 0;
-    private long noDislike = 0;
-    private long noComment = 0;
 
 //    //Create comment constructor
 //    public Comment(String commentId, String ownerId, String postId, String description, Date timestamp) {
@@ -67,7 +64,7 @@ public class Comment {
         this.commentId = commentId;
     }
 
-    public Comment(String commentId, String ownerId, String postId, String description, String repliedCommentId, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> likeIds, ArrayList<String> dislikeIds, ArrayList<String> replyCommentIds, boolean isReply, long noLike, long noDislike, long noComment) {
+    public Comment(String commentId, String ownerId, String postId, String description, String repliedCommentId, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> likeIds, ArrayList<String> dislikeIds, ArrayList<String> replyCommentIds, boolean isReply) {
         this.commentId = commentId;
         this.ownerId = ownerId;
         this.postId = postId;
@@ -80,9 +77,20 @@ public class Comment {
         this.dislikeIds = dislikeIds;
         this.replyCommentIds = replyCommentIds;
         this.isReply = isReply;
-        this.noLike = noLike;
-        this.noDislike = noDislike;
-        this.noComment = noComment;
+    }
+
+    public Comment(String commentId, String ownerId, String postId, String description, String repliedCommentId, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> likeIds, ArrayList<String> dislikeIds, ArrayList<String> replyCommentIds) {
+        this.commentId = commentId;
+        this.ownerId = ownerId;
+        this.postId = postId;
+        this.description = description;
+        this.repliedCommentId = repliedCommentId;
+        this.timestamp = timestamp;
+        this.updateTimestamp = updateTimestamp;
+        this.imgUri = imgUri;
+        this.likeIds = likeIds;
+        this.dislikeIds = dislikeIds;
+        this.replyCommentIds = replyCommentIds;
     }
 
     public String getCommentId() {
@@ -181,27 +189,4 @@ public class Comment {
         isReply = reply;
     }
 
-    public long getNoLike() {
-        return noLike;
-    }
-
-    public void setNoLike(long noLike) {
-        this.noLike = noLike;
-    }
-
-    public long getNoDislike() {
-        return noDislike;
-    }
-
-    public void setNoDislike(long noDislike) {
-        this.noDislike = noDislike;
-    }
-
-    public long getNoComment() {
-        return noComment;
-    }
-
-    public void setNoComment(long noComment) {
-        this.noComment = noComment;
-    }
 }

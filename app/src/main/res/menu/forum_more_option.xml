@@ -20,4 +20,8 @@
         android:id="@+id/forumRemoveModerator"
         android:title="Remove Moderator"
         android:visible="true"/>
+    <item
+        android:id="@+id/forumRemoveUser"
+        android:title="Remove User"
+        android:visible="true"/>
 </menu>

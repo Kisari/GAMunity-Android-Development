@@ -17,7 +17,6 @@ public class Post implements Serializable {
     private Date updateTimestamp;
     private String imgUri;
     private ArrayList<String> commentIds, likeIds, dislikeIds;
-    private long noLike = 0, noDislike = 0, noComment = 0;
 
 //    //Create Post constructor
 //    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp) {
@@ -54,7 +53,7 @@ public class Post implements Serializable {
 //        this.noComment = noComment;
 //    }
 
-    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> commentIds, ArrayList<String> likeIds, ArrayList<String> dislikeIds, long noLike, long noDislike, long noComment) {
+    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp, String imgUri, ArrayList<String> commentIds, ArrayList<String> likeIds, ArrayList<String> dislikeIds) {
         this.postId = postId;
         this.ownerId = ownerId;
         this.forumId = forumId;
@@ -66,9 +65,6 @@ public class Post implements Serializable {
         this.commentIds = commentIds;
         this.likeIds = likeIds;
         this.dislikeIds = dislikeIds;
-        this.noLike = noLike;
-        this.noDislike = noDislike;
-        this.noComment = noComment;
     }
 
     public String getPostId() {
@@ -135,38 +131,6 @@ public class Post implements Serializable {
         this.imgUri = imgUri;
     }
 
-    public long getNoLike() {
-        return noLike;
-    }
-
-    public void setNoLike(long noLike) {
-        this.noLike = noLike;
-    }
-
-    public long getNoDislike() {
-        return noDislike;
-    }
-
-    public void setNoDislike(long noDislike) {
-        this.noDislike = noDislike;
-    }
-
-    public ArrayList<String> getCommentIds() {
-        return commentIds;
-    }
-
-    public void setCommentIds(ArrayList<String> commentIds) {
-        this.commentIds = commentIds;
-    }
-
-    public long getNoComment() {
-        return noComment;
-    }
-
-    public void setNoComment(long noComment) {
-        this.noComment = noComment;
-    }
-
     public ArrayList<String> getLikeIds() {
         return likeIds;
     }
@@ -181,5 +145,13 @@ public class Post implements Serializable {
 
     public void setDislikeIds(ArrayList<String> dislikeIds) {
         this.dislikeIds = dislikeIds;
+    }
+
+    public ArrayList<String> getCommentIds() {
+        return commentIds;
+    }
+
+    public void setCommentIds(ArrayList<String> commentIds) {
+        this.commentIds = commentIds;
     }
 }

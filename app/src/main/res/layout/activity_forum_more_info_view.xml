@@ -109,12 +109,13 @@
                     android:background="@color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"/>
-                <androidx.recyclerview.widget.RecyclerView
+                <EditText
                     android:id="@+id/moreInfoCategory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
-                    android:padding="5dp"/>
+                    android:padding="5dp"
+                    android:text="categories of forum"/>
             </LinearLayout>
 
             <LinearLayout

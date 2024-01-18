@@ -1,27 +1,37 @@
 package rmitcom.asm1.gamunity.components.views.forum;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.checkerframework.checker.units.qual.A;
+
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.Forum;
+import rmitcom.asm1.gamunity.model.User;
 
 public class ForumMoreInfoView extends AppCompatActivity {
     private final String TAG = "Forum More Info View";
@@ -29,15 +39,15 @@ public class ForumMoreInfoView extends AppCompatActivity {
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-    //    private String forumId = "IYvjtX2OyUr5C4DDWS28";
     private String forumId;
-//    private String userId = "testUser1";
+    private UserRecyclerViewAdapter adapter;
     private String title, description, chiefAdminId, forumIconUri;
-    private ArrayList<String> memberIds, moderatorIds, category;
-    private TextView moreInfoTitle, moreInfoDescription, returnBackButton;
+    private ArrayList<String> adminId, memberIds, moderatorIds, category;
+    private ArrayList<User> adminList, moderatorList, memberList;
+    private TextView moreInfoTitle, moreInfoDescription, returnBackButton, moreInfoCategory;
     private ShapeableImageView forumIcon;
     private ProgressBar forumIconProgressBar;
-    private RecyclerView moreInfoModerators, moreInfoMembers, moreInfoAdmin, moreInfoCategory;
+    private RecyclerView moreInfoModerators, moreInfoMembers, moreInfoAdmin;
     private Constant constant = new Constant();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,11 +87,6 @@ public class ForumMoreInfoView extends AppCompatActivity {
                 if (document.exists()) {
                     title = (String) document.get("title");
                     description = (String) document.get("description");
-                    chiefAdminId = (String) document.get("chiefAdminId");
-
-                    category = (ArrayList<String>) document.get("category");
-                    memberIds = (ArrayList<String>) document.get("memberIds");
-                    moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                     forumIconUri = document.getString("forumIcon");
 
@@ -92,6 +97,53 @@ public class ForumMoreInfoView extends AppCompatActivity {
                     if (description != null) {
                         moreInfoDescription.setText(description);
                     }
+
+                    if (document.get("category") != null) {
+                        category = (ArrayList<String>) document.get("category");
+
+                        if (category != null) {
+                            StringBuilder categoryStr = new StringBuilder();
+                            if (category != null) {
+                                for (String cate: category) {
+                                    categoryStr.append("#").append(cate).append(" ");
+                                }
+
+                                moreInfoCategory.setText(categoryStr);
+                            }
+                        }
+                    }
+
+                    adminId = new ArrayList<>();
+                    moderatorIds = new ArrayList<>();
+                    memberIds = new ArrayList<>();
+
+                    adminList = new ArrayList<>();
+                    moderatorList = new ArrayList<>();
+                    memberList = new ArrayList<>();
+
+                    if (document.getString("chiefAdmin") != null) {
+                        chiefAdminId = document.getString("chiefAdmin");
+                        adminId.add(chiefAdminId);
+                        displayList(adminId, adminList, moreInfoAdmin);
+                    }
+
+                    if (document.get("moderatorIds") != null) {
+                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                        if (moderatorIds != null) {
+                            displayList(moderatorIds, moderatorList, moreInfoModerators);
+                        }
+
+                    }
+
+                    if (document.get("memberIds") != null) {
+                        memberIds = (ArrayList<String>) document.get("memberIds");
+
+                        if (memberIds != null) {
+                            displayList(memberIds, memberList, moreInfoMembers);
+                        }
+                    }
+
 
                     try {
                         new AsyncImage(forumIcon, forumIconProgressBar).loadImage(forumIconUri);
@@ -107,6 +159,44 @@ public class ForumMoreInfoView extends AppCompatActivity {
                 Log.d(TAG, "get failed with ", task.getException());
             }
         });
+    }
+
+    private void displayList(ArrayList<String> userIds, ArrayList<User> userList, RecyclerView userListView) {
+        int listLength = userIds.size();
+        Log.i(TAG, "displayList - listLength: " + listLength);
+        AtomicInteger counter = new AtomicInteger(0);
+
+        for (String userId: userIds) {
+            db.collection("users").document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+
+                        String username = "", userProfileImg = "";
+                        if (document.exists()) {
+                            username = document.getString("name");
+                            userProfileImg = document.getString("image");
+                        }
+
+                        User user = new User(userId, username, userProfileImg);
+                        userList.add(user);
+
+                        if (counter.incrementAndGet() == listLength) {
+                            setupList(userList, userListView);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private void setupList(ArrayList<User> userList, RecyclerView userListView) {
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        userListView.setLayoutManager(layoutManager);
+
+        adapter = new UserRecyclerViewAdapter(this, userList, false, false, null);
+        userListView.setAdapter(adapter);
     }
 
     private void returnToPreviousPage() {
