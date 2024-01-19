@@ -1,25 +1,22 @@
 package rmitcom.asm1.gamunity.model;
 
-import com.google.firebase.Timestamp;
 import com.google.type.DateTime;
 
 import java.io.Serializable;
 
 @SuppressWarnings("unused")
 public class Message implements Serializable {
-    private String messageContent;
+    private String messageId;
     private String messageOwnerId;
-    private Timestamp timestamp;
-    private boolean isImage;
+    private DateTime timestamp;
+    private String messageContent;
 
-    public Message() {
+    public String getMessageId() {
+        return messageId;
     }
 
-    public Message(String messageContent, String messageOwnerId, Timestamp timestamp, boolean isImage) {
-        this.messageContent = messageContent;
-        this.messageOwnerId = messageOwnerId;
-        this.timestamp = timestamp;
-        this.isImage = isImage;
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 
     public String getMessageOwnerId() {
@@ -30,11 +27,11 @@ public class Message implements Serializable {
         this.messageOwnerId = messageOwnerId;
     }
 
-    public Timestamp getTimestamp() {
+    public DateTime getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(DateTime timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -46,11 +43,10 @@ public class Message implements Serializable {
         this.messageContent = messageContent;
     }
 
-    public boolean isImage() {
-        return isImage;
-    }
-
-    public void setImage(boolean image) {
-        isImage = image;
+    public Message(String messageId, String messageOwnerId, DateTime timestamp, String messageContent) {
+        this.messageId = messageId;
+        this.messageOwnerId = messageOwnerId;
+        this.timestamp = timestamp;
+        this.messageContent = messageContent;
     }
 }

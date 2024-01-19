@@ -15,17 +15,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -43,7 +39,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import rmitcom.asm1.gamunity.R;
-import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.model.Constant;
 
@@ -62,9 +57,7 @@ public class CreateCommentForm extends AppCompatActivity {
     private ArrayList<String> memberIds, moderatorIds;
     private TextView returnBackButton, addImageButton, createCommentButton;
     private EditText inputCommentDescription;
-    private ProgressBar userProgressBar;
-    private ImageView commentImage, baseImage;
-    private ShapeableImageView commentUserImage;
+    private ImageView commentImage;
     private Uri commentImageFilePath;
     private boolean isReply;
     private Constant constant = new Constant();
@@ -82,7 +75,7 @@ public class CreateCommentForm extends AppCompatActivity {
         if (getIntent != null) {
             postId = (String) Objects.requireNonNull(getIntent.getExtras()).get("postId");
             postData = db.collection("POSTS").document(postId);
-            userData = db.collection("users").document(userId);
+//            userData = db.collection("users").document(userId);
 //            isReply = getIntent.getExtras().get("isReply") != null;
 //            if (isReply) {
 //                commentRepliedId = (String) getIntent.getExtras().get("commentId");
@@ -92,47 +85,12 @@ public class CreateCommentForm extends AppCompatActivity {
         inputCommentDescription = findViewById(R.id.addCommentDescription);
         addImageButton = findViewById(R.id.addCommentImage);
         createCommentButton = findViewById(R.id.addCommentConfirm);
-
         commentImage = findViewById(R.id.addCommentPicture);
-
-        baseImage = findViewById(R.id.baseImg);
-        userProgressBar = findViewById(R.id.addCommentProgressBar1);
-        commentUserImage = findViewById(R.id.addCommentUserProfile);
-
         returnBackButton = findViewById(R.id.returnBack);
 
-        setCommentData();
         addImage();
         addComment();
         returnToPreviousPage();
-    }
-
-    private void setCommentData() {
-        userData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot userDocument) {
-                if (userDocument.exists()) {
-                    String profileImg = userDocument.getString("image");
-
-                    if (profileImg != null) {
-                        try {
-                            baseImage.setVisibility(View.INVISIBLE);
-                            commentUserImage.setVisibility(View.VISIBLE);
-                            userProgressBar.setVisibility(View.VISIBLE);
-                            new AsyncImage(commentUserImage, userProgressBar).loadImage(profileImg);
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    else {
-                        baseImage.setVisibility(View.VISIBLE);
-                        commentUserImage.setVisibility(View.INVISIBLE);
-                        userProgressBar.setVisibility(View.INVISIBLE);
-                    }
-                }
-            }
-        });
     }
 
     private void convertData() {

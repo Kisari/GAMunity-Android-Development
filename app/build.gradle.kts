@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "rmitcom.asm1.gamunity"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -34,6 +34,7 @@ android {
 
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation ("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -44,7 +45,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.firebaseui:firebase-ui-firestore:8.0.2")
     implementation("androidx.core:core:1.12.0")
     implementation ("androidx.core:core-ktx:1.12.0")
     implementation ("com.squareup.okhttp3:okhttp:3.10.0")

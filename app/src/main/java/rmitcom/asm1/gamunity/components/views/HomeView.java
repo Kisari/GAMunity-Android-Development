@@ -1,6 +1,7 @@
 package rmitcom.asm1.gamunity.components.views;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -19,6 +20,8 @@ public class HomeView extends AppCompatActivity {
 
     private ViewPager viewPager;
 
+    private ViewPagerAdapter pagerAdapter;
+
     private BottomNavigationView bottomNavigationView;
 
     @Override
@@ -33,7 +36,7 @@ public class HomeView extends AppCompatActivity {
         viewPager = findViewById(R.id.viewPager);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
-        ViewPagerAdapter pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
+        pagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
 
         viewPager.setAdapter(pagerAdapter);
 
@@ -91,5 +94,11 @@ public class HomeView extends AppCompatActivity {
         Intent toForumDetailView = new Intent(HomeView.this, ForumView.class);
         toForumDetailView.putExtra("forumId", forumRef);
         startActivity(toForumDetailView);
+
     }
+
+    public Fragment getNotificationFragment(){
+        return pagerAdapter.getItem(2);
+    }
+
 }

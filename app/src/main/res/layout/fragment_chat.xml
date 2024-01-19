@@ -21,7 +21,6 @@
             android:layout_centerHorizontal="true"/>
 
         <LinearLayout
-            android:id="@+id/chatSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#EDEDED"
@@ -39,18 +38,16 @@
                 android:layout_height="40dp"
                 android:layout_marginBottom="16dp"/>
 
+            <ListView
+                android:id="@+id/chatList"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="5dp"/>
+
         </LinearLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/chatList"
-            android:background="@color/white"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/chatSearch"
-            android:padding="5dp"/>
-
         <ImageButton
-            android:id="@+id/chatSearchUser"
+            android:id="@+id/addChat"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_alignParentEnd="true"

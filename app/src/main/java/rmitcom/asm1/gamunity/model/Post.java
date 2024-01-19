@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 @SuppressWarnings("unused")
-public class Post implements Serializable, Comparable<Post>   {
+public class Post implements Serializable {
     private String postId;
     private String ownerId;
     private String forumId;
@@ -153,22 +153,5 @@ public class Post implements Serializable, Comparable<Post>   {
 
     public void setCommentIds(ArrayList<String> commentIds) {
         this.commentIds = commentIds;
-    }
-
-    @Override
-    public int compareTo(Post otherPost) {
-        if (this.timestamp == null && otherPost.timestamp == null) {
-            return 0;
-
-        } else if (this.timestamp == null) {
-            return 1;
-
-        } else if (otherPost.timestamp == null) {
-            return -1;
-
-        } else {
-            return this.timestamp.compareTo(otherPost.timestamp);
-
-        }
     }
 }

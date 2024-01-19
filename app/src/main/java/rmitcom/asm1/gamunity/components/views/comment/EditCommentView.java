@@ -1,5 +1,6 @@
 package rmitcom.asm1.gamunity.components.views.comment;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,8 +20,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -56,9 +57,8 @@ public class EditCommentView extends AppCompatActivity {
     private String postId, commentId, description, commentImageUri, updateDate, imageUri;
     private EditText commentEditDescription;
     private TextView commentEditImageButton, commentEditConfirmButton, returnBackButton;
-    private ImageView commentEditPicture, baseImage;
-    private ProgressBar commentProgressBar, userProgressBar;
-    private ShapeableImageView commentUserImage;
+    private ImageView commentEditPicture;
+    private ProgressBar commentImageProgressBar;
     private Uri commentImageFilePath;
     private RelativeLayout editCommentImage;
     private final Constant constant = new Constant();
@@ -87,15 +87,9 @@ public class EditCommentView extends AppCompatActivity {
         commentEditDescription = findViewById(R.id.editCommentDescription);
         commentEditImageButton = findViewById(R.id.editCommentImageButton);
         commentEditConfirmButton = findViewById(R.id.editCommentConfirm);
-
         commentEditPicture = findViewById(R.id.editCommentPicture);
-        commentProgressBar = findViewById(R.id.editCommentProgress1);
+        commentImageProgressBar = findViewById(R.id.editCommentProgress1);
         editCommentImage = findViewById(R.id.editCommentImage);
-
-        baseImage = findViewById(R.id.baseImg);
-        userProgressBar = findViewById(R.id.editCommentProgressBar1);
-        commentUserImage = findViewById(R.id.editCommentUserProfile);
-
         returnBackButton = findViewById(R.id.returnBack);
 
         setCommentData();
@@ -121,40 +115,14 @@ public class EditCommentView extends AppCompatActivity {
                         editCommentImage.setVisibility(View.VISIBLE);
 
                         try {
-                            new AsyncImage(commentEditPicture, commentProgressBar).loadImage(commentImageUri);
+                            new AsyncImage(commentEditPicture, commentImageProgressBar).loadImage(commentImageUri);
+
                         }
                         catch (Exception e) {
                             Log.e(TAG, "getView: ", e);
                             e.printStackTrace();
                         }
                     }
-
-                    userData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot userDocument) {
-                            if (userDocument.exists()) {
-                                String profileImg = userDocument.getString("image");
-
-                                if (profileImg != null) {
-                                    try {
-                                        baseImage.setVisibility(View.INVISIBLE);
-                                        commentUserImage.setVisibility(View.VISIBLE);
-                                        userProgressBar.setVisibility(View.VISIBLE);
-                                        new AsyncImage(commentUserImage, userProgressBar).loadImage(profileImg);
-                                    }
-                                    catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                else {
-                                    baseImage.setVisibility(View.VISIBLE);
-                                    commentUserImage.setVisibility(View.INVISIBLE);
-                                    userProgressBar.setVisibility(View.INVISIBLE);
-                                }
-                            }
-                        }
-                    });
-
                 } else {
                     Log.d(TAG, "No such document");
                 }

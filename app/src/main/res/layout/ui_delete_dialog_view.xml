@@ -19,7 +19,9 @@
         android:text="Text view"
         android:textColor="#A5A5A5"
         android:textStyle="bold"
-        tools:ignore="TextContrastCheck"/>
+        tools:ignore="TextContrastCheck">
+
+    </TextView>
 
     <LinearLayout
         android:layout_width="match_parent"

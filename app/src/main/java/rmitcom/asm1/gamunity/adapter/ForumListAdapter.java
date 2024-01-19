@@ -90,12 +90,11 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         Forum forumItem = (Forum) getItem(position);
 
-        viewForumList.setOnClickListener(v -> {
-            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
-            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-//            v.getContext().startActivity(toForumDetailView);
-            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
-        });
+//        viewForumList.setOnClickListener(v -> {
+//            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
+//            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
+//            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
+//        });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);
@@ -198,8 +197,9 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
+                        Log.d(TAG, "joinForum: " + "get forum through its id");
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
@@ -211,6 +211,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                                     .addOnCompleteListener(checkingUser -> {
                                         if(checkingUser.isSuccessful()){
                                             for (QueryDocumentSnapshot document: checkingUser.getResult()){
+                                                Log.d(TAG, "joinForum: " + "get user id");
                                                 String userName = document.getString("name");
                                                 String notificationBody = userName + " become a new member of " + forum.getTitle();
                                                 Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString(), forum.getForumId());
@@ -236,7 +237,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
