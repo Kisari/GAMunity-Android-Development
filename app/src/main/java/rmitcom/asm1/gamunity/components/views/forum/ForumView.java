@@ -367,6 +367,7 @@ public class ForumView extends AppCompatActivity {
 
         if (requestCode == 107 || requestCode == 108 || requestCode == 109) {
             if (resultCode == RESULT_OK) {
+                setUI();
                 recreate();
             }
         }

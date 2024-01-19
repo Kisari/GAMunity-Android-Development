@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -82,7 +83,7 @@ public class ChatView extends AppCompatActivity {
     private ShapeableImageView chatImage;
     private RecyclerView messageBody;
     private String inputMessageStr, chatId, dataId, forumId, chatTitleStr, chatImgUri;
-    private ArrayList<String> chatMemberIds, chatModeratorIds, chatAdminIds, chatUserIds;
+    private ArrayList<String> chatMemberIds, chatModeratorIds, chatAdminIds;
     private ArrayList<Message> chatMessages;
     private GroupChat groupChat;
     private Uri chatImageFilePath;
@@ -158,7 +159,6 @@ public class ChatView extends AppCompatActivity {
     }
 
     private void getOrCreateChatRoom() {
-        chatUserIds = new ArrayList<>();
         chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -191,6 +191,24 @@ public class ChatView extends AppCompatActivity {
                             chatImage.setVisibility(View.INVISIBLE);
                             chatProgressBar.setVisibility(View.INVISIBLE);
                         }
+
+                        chatAdminIds = new ArrayList<>();
+                        chatModeratorIds = new ArrayList<>();
+                        chatMemberIds = new ArrayList<>();
+
+                        if (document.get("adminIds") != null) {
+                            chatAdminIds = (ArrayList<String>) document.get("adminIds");
+                        }
+
+                        if (document.get("moderatorIds") != null) {
+                            chatModeratorIds = (ArrayList<String>) document.get("moderatorIds");
+                        }
+
+                        if (document.get("memberIds") != null) {
+                            chatMemberIds = (ArrayList<String>) document.get("memberIds");
+                        }
+
+                        setMoreInfo();
                     }
                     else {
                         Log.i(TAG, "chatView getOrCreateChatRoom: empty doc");
@@ -217,20 +235,17 @@ public class ChatView extends AppCompatActivity {
 
                                             String chiefAdminId = document.getString("chiefAdmin");
                                             chatAdminIds.add(chiefAdminId);
-                                            chatUserIds.add(chiefAdminId);
 
                                             ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
                                             ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                                             if (memberIds != null) {
-                                                chatUserIds.addAll(memberIds);
                                                 if (memberIds.contains(userId)) {
                                                     chatMemberIds.add(userId);
                                                 }
                                             }
 
                                             if (moderatorIds != null) {
-                                                chatUserIds.addAll(moderatorIds);
                                                 if (moderatorIds.contains(userId)) {
                                                     chatModeratorIds.add(userId);
                                                 }
@@ -267,6 +282,9 @@ public class ChatView extends AppCompatActivity {
                                                 chatImage.setVisibility(View.INVISIBLE);
                                                 chatProgressBar.setVisibility(View.INVISIBLE);
                                             }
+
+                                            setMoreInfo();
+
                                         }
                                     }
                                 }
@@ -312,6 +330,8 @@ public class ChatView extends AppCompatActivity {
                                                     newChatroom.put("chatImg", "");
 
                                                     chatData.set(newChatroom, SetOptions.merge());
+
+                                                    setMoreInfo();
                                                 }
                                             }
                                         });
@@ -486,10 +506,23 @@ public class ChatView extends AppCompatActivity {
     }
 
     private void setMoreInfo() {
+        Log.i(TAG, "setMoreInfo - call setupMoreInfo");
+        Log.i(TAG, "setMoreInfo - forumId: " + forumId);
 
-//        if
+        Log.i(TAG, "setMoreInfo - chatAdminIds: " + chatAdminIds);
+        Log.i(TAG, "setMoreInfo - chatModeratorIds: " + chatModeratorIds);
+        Log.i(TAG, "setMoreInfo - chatMemberIds: " + chatMemberIds);
 
-        PopupMenu popupMenu = new PopupMenu(ChatView.this, moreInfoBtn);
+        if ((chatAdminIds != null && chatAdminIds.contains(userId)) || (chatModeratorIds != null && chatModeratorIds.contains(userId))) {
+            moreOptionBtn.setVisibility(View.VISIBLE);
+            moreInfoBtn.setVisibility(View.GONE);
+
+        } else {
+            moreOptionBtn.setVisibility(View.GONE);
+            moreInfoBtn.setVisibility(View.VISIBLE);
+        }
+
+        PopupMenu popupMenu = new PopupMenu(ChatView.this, moreOptionBtn);
         popupMenu.getMenuInflater().inflate(R.menu.chat_more_option, popupMenu.getMenu());
 
         MenuItem moreInfo = popupMenu.getMenu().findItem(R.id.chatMoreInfo);
@@ -497,52 +530,43 @@ public class ChatView extends AppCompatActivity {
         MenuItem deleteChat = popupMenu.getMenu().findItem(R.id.chatDelete);
         MenuItem addMember = popupMenu.getMenu().findItem(R.id.chatAddUser);
 
-        if (isGroup) {
-            if (forumId != null) {
-                if (chatAdminIds.contains(userId)) {
-                    moreInfo.setVisible(true);
-                    editChat.setVisible(true);
-                    deleteChat.setVisible(true);
-                    addMember.setVisible(false);
+        if (chatAdminIds != null && chatAdminIds.contains(userId)) {
+            moreInfo.setVisible(true);
+            editChat.setVisible(true);
+            deleteChat.setVisible(true);
+            addMember.setVisible(!isGroup);
 
-                } else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
-                    moreInfo.setVisible(true);
-                    editChat.setVisible(true);
-                    deleteChat.setVisible(false);
-                    addMember.setVisible(false);
+        }
+        else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
+            moreInfo.setVisible(true);
+            editChat.setVisible(true);
+            deleteChat.setVisible(false);
+            addMember.setVisible(!isGroup);
 
-                } else {
-//                    moreOptionButton.setVisibility(View.GONE);
-//                    moreInfoButton.setVisibility(View.VISIBLE);
+        }
+//        else {
+//            moreOptionBtn.setVisibility(View.GONE);
+//            moreInfoBtn.setVisibility(View.VISIBLE);
+//        }
+
+        moreOptionBtn.setOnClickListener(v -> {
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
+
+                if (itemId == R.id.chatMoreInfo) {
+
+                } else if (itemId == R.id.chatUpdate) {
+
+                } else if (itemId == R.id.chatDelete) {
+                    deleteChatAlert();
+                } else if (itemId == R.id.chatAddUser) {
+
                 }
-            }
-        }
-        else {
 
-        }
+                return false;
+            });
 
-        moreInfoBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        int itemId = item.getItemId();
-
-                        if (itemId == R.id.chatMoreInfo) {
-
-                        } else if (itemId == R.id.chatUpdate) {
-
-                        } else if (itemId == R.id.chatDelete) {
-                            deleteChatAlert();
-                        } else if (itemId == R.id.chatAddUser) {
-
-                        }
-
-                        return false;
-                    }
-                });
-            }
+            popupMenu.show();
         });
     }
 
@@ -593,10 +617,22 @@ public class ChatView extends AppCompatActivity {
     }
 
     private void deleteChatRoom() {
-        if (chatUserIds != null) {
-            for (String id: chatUserIds) {
+        if (chatAdminIds != null && chatAdminIds.contains(userId)) {
+            for (String id: chatAdminIds) {
                 db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
             }
+
+        }
+        else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
+            for (String id: chatModeratorIds) {
+                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+            }
+
+        } else if (chatMemberIds != null && chatMemberIds.contains(userId)) {
+            for (String id: chatMemberIds) {
+                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+            }
+
         }
 
         if (isGroup) {
@@ -661,12 +697,11 @@ public class ChatView extends AppCompatActivity {
         returnBackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isNew) {
-                    finish();
-                }
-                else {
-
-                }
+//                Intent newIntent = new Intent(ChatView.this, ChatFragment.class);
+//                startActivity(newIntent);
+                finish();
+//                FragmentManager fragmentManager = getSupportFragmentManager();
+//                fragmentManager.popBackStack();
             }
         });
     }

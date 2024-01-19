@@ -136,13 +136,13 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                 @Override
                 public void onClick(View v) {
                     confirmChangeRole(currUser);
-                    notifyDataSetChanged();
+//                    notifyDataSetChanged();
 
-//                    Intent returnIntent = new Intent(context, ForumView.class);
-//                    returnIntent.putExtra("forumId", forumId);
-//
-//                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
-//                    ((Activity) context).finish();
+                    Intent returnIntent = new Intent(context, ForumView.class);
+                    returnIntent.putExtra("forumId", forumId);
+
+                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                    ((Activity) context).finish();
                 }
             });
         }
@@ -171,35 +171,36 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                 ArrayList<String> memberIds, moderatorIds;
 
                                 if (document.exists()) {
-//                                    memberIds = new ArrayList<>();
-//                                    moderatorIds = new ArrayList<>();
-//
-//                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
-//                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
-//
-//                                    if (document.get("memberIds") != null) {
-//                                        memberIds = (ArrayList<String>) document.get("memberIds");
-//
-//                                        if (memberIds != null) {
-//                                            memberIds.remove(currUserId);
-//                                            memberList.put("memberIds", memberIds);
-//                                            forumData.set(memberList, SetOptions.merge());
-//                                        }
-//                                    }
-//
-//                                    if (document.get("moderatorIds") != null) {
-//                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
-//
-//                                        if (moderatorIds != null) {
-//                                            moderatorIds.add(currUserId);
-//                                            moderatorList.put("moderatorIds", moderatorIds);
-//                                            forumData.set(moderatorList, SetOptions.merge());
-//                                        }
-//                                    }
-                                    forumData.update("memberIds", FieldValue.arrayUnion(currUserId));
-                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
+                                    memberIds = new ArrayList<>();
+                                    moderatorIds = new ArrayList<>();
+
+                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+
+                                    if (document.get("memberIds") != null) {
+                                        memberIds = (ArrayList<String>) document.get("memberIds");
+
+                                        if (memberIds != null) {
+                                            memberIds.remove(currUserId);
+                                            memberList.put("memberIds", memberIds);
+                                            forumData.set(memberList, SetOptions.merge());
+                                        }
+                                    }
+
+                                    if (document.get("moderatorIds") != null) {
+                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                                        if (moderatorIds != null) {
+                                            moderatorIds.add(currUserId);
+                                            moderatorList.put("moderatorIds", moderatorIds);
+                                            forumData.set(moderatorList, SetOptions.merge());
+                                        }
+                                    }
+//                                    forumData.update("memberIds", FieldValue.arrayUnion(currUserId));
+//                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
 
                                     String chatId = document.getString("chatId");
+                                    Log.i("confirmChangeRole", "chatId: " + chatId);
                                     if (chatId != null) {
                                         DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
                                         chatData.update("memberIds", FieldValue.arrayUnion(currUserId));
@@ -232,35 +233,36 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                 ArrayList<String> memberIds, moderatorIds;
 
                                 if (document.exists()) {
-//                                    memberIds = new ArrayList<>();
-//                                    moderatorIds = new ArrayList<>();
-//
-//                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
-//                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
-//
-//                                    if (document.get("moderatorIds") != null) {
-//                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
-//
-//                                        if (moderatorIds != null) {
-//                                            moderatorIds.remove(currUserId);
-//                                            moderatorList.put("moderatorIds", moderatorIds);
-//                                            forumData.set(moderatorList, SetOptions.merge());
-//                                        }
-//                                    }
-//
-//                                    if (document.get("memberIds") != null) {
-//                                        memberIds = (ArrayList<String>) document.get("memberIds");
-//
-//                                        if (memberIds != null) {
-//                                            memberIds.add(currUserId);
-//                                            memberList.put("memberIds", memberIds);
-//                                            forumData.set(memberList, SetOptions.merge());
-//                                        }
-//                                    }
-                                    forumData.update("memberIds", FieldValue.arrayUnion(currUserId));
-                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
+                                    memberIds = new ArrayList<>();
+                                    moderatorIds = new ArrayList<>();
+
+                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+
+                                    if (document.get("moderatorIds") != null) {
+                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                                        if (moderatorIds != null) {
+                                            moderatorIds.remove(currUserId);
+                                            moderatorList.put("moderatorIds", moderatorIds);
+                                            forumData.set(moderatorList, SetOptions.merge());
+                                        }
+                                    }
+
+                                    if (document.get("memberIds") != null) {
+                                        memberIds = (ArrayList<String>) document.get("memberIds");
+
+                                        if (memberIds != null) {
+                                            memberIds.add(currUserId);
+                                            memberList.put("memberIds", memberIds);
+                                            forumData.set(memberList, SetOptions.merge());
+                                        }
+                                    }
+//                                    forumData.update("memberIds", FieldValue.arrayUnion(currUserId));
+//                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
 
                                     String chatId = document.getString("chatId");
+                                    Log.i("confirmChangeRole", "chatId: " + chatId);
                                     if (chatId != null) {
                                         DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
                                         chatData.update("memberIds", FieldValue.arrayUnion(currUserId));
@@ -291,41 +293,42 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if (task.isSuccessful()) {
                                 DocumentSnapshot document = task.getResult();
-//                                ArrayList<String> memberIds, moderatorIds;
+                                ArrayList<String> memberIds, moderatorIds;
 
                                 if (document.exists()) {
-//                                    memberIds = new ArrayList<>();
-//                                    moderatorIds = new ArrayList<>();
-//
-//                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
-//                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
-//                                    if (document.get("memberIds") != null) {
-//                                        memberIds = (ArrayList<String>) document.get("memberIds");
-//
-//                                        if (memberIds != null) {
-//                                            memberIds.remove(currUserId);
-//                                            memberList.put("memberIds", memberIds);
-//                                            forumData.set(memberList, SetOptions.merge());
-//                                        }
-//                                    }
-//
-//                                    if (document.get("moderatorIds") != null) {
-//                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
-//
-//                                        if (moderatorIds != null) {
-//                                            moderatorIds.remove(currUserId);
-//                                            moderatorList.put("moderatorIds", moderatorIds);
-//                                            forumData.set(moderatorList, SetOptions.merge());
-//                                        }
-//                                    }
-                                    forumData.update("memberIds", FieldValue.arrayRemove(currUserId));
-                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
+                                    memberIds = new ArrayList<>();
+                                    moderatorIds = new ArrayList<>();
+
+                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+                                    if (document.get("memberIds") != null) {
+                                        memberIds = (ArrayList<String>) document.get("memberIds");
+
+                                        if (memberIds != null) {
+                                            memberIds.remove(currUserId);
+                                            memberList.put("memberIds", memberIds);
+                                            forumData.set(memberList, SetOptions.merge());
+                                        }
+                                    }
+
+                                    if (document.get("moderatorIds") != null) {
+                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                                        if (moderatorIds != null) {
+                                            moderatorIds.remove(currUserId);
+                                            moderatorList.put("moderatorIds", moderatorIds);
+                                            forumData.set(moderatorList, SetOptions.merge());
+                                        }
+                                    }
+//                                    forumData.update("memberIds", FieldValue.arrayRemove(currUserId));
+//                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
 
                                     DocumentReference userData = db.collection("users").document(currUserId);
                                     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
                                     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
 
                                     String chatId = document.getString("chatId");
+                                    Log.i("confirmChangeRole", "chatId: " + chatId);
                                     if (chatId != null) {
                                         DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
                                         chatData.update("memberIds", FieldValue.arrayRemove(currUserId));

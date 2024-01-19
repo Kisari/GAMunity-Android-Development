@@ -19,13 +19,16 @@ import android.widget.SearchView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.ChatRoomRecyclerViewAdapter;
@@ -118,31 +121,47 @@ public class ChatFragment extends Fragment {
 
     private void getChatRoomData(String chatId) {
         if (chatId != null) {
-            db.collection("CHATROOMS")
             db.collection("CHATROOMS").document(chatId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
 
-                        String chatTitle = "", chatImage = "", forumId = "";
+//                        String chatTitle = "", chatImage = "", forumId = "";
 
                         if (document.exists()) {
-                            chatTitle = document.getString("chatTitle");
-                            chatImage = document.getString("chatImg");
+                            String chatTitle = document.getString("chatTitle");
+                            String chatImage = document.getString("chatImg");
+                            Timestamp chatTimestamp = (Timestamp) document.get("lastTimestamp");
                             boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
 
                             Log.i("Chat", "chatName - exist: " + chatTitle);
+                            String forumId;
 
                             GroupChat groupChat;
                             if (isGroup) {
                                 forumId = document.getString("dataId");
-                                groupChat = new GroupChat(chatId, chatTitle, chatImage, true, forumId);
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, true, forumId, chatTimestamp);
                             }
                             else {
-                                groupChat = new GroupChat(chatId, chatTitle, chatImage, false, null);
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, false, null, chatTimestamp);
                             }
-                            chatGroupList.add(groupChat);
+
+                            Collections.sort(chatGroupList, (groupChat1, groupChat2)
+                                    -> groupChat2.compareTo(groupChat1));
+
+                            int index = Collections.binarySearch(chatGroupList, groupChat, (groupChat1, groupChat2)
+                                    -> groupChat2.compareTo(groupChat1));
+
+                            int insertionPoint = (index < 0) ? -index : index;
+
+                            if (insertionPoint >= chatGroupList.size()) {
+                                chatGroupList.add(groupChat);
+                            } else {
+                                chatGroupList.add(insertionPoint, groupChat);
+                            }
+
+//                            chatGroupList.add(groupChat);
                         }
 
                         if (chatGroupList.size() == chatGroupIds.size()) {

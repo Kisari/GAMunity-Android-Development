@@ -28,11 +28,13 @@ public class GroupChat implements Serializable {
         this.dataId = dataId;
     }
 
-    public GroupChat(String chatId, String chatTitle, String chatImage, boolean isGroup) {
+    public GroupChat(String chatId, String chatTitle, String chatImage, boolean isGroup, String dataId, Timestamp lastTimestamp) {
         this.chatId = chatId;
         this.chatTitle = chatTitle;
         this.chatImage = chatImage;
         this.isGroup = isGroup;
+        this.dataId = dataId;
+        this.lastTimestamp = lastTimestamp;
     }
 
     public GroupChat(String chatId, String chatTitle, String chatImage, String dataId, boolean isGroup, ArrayList<String> memberIds, ArrayList<String> moderatorIds, ArrayList<String> adminIds, Timestamp lastTimestamp, String lastMessageSenderId) {
@@ -58,7 +60,6 @@ public class GroupChat implements Serializable {
         this.lastMessageSenderId = lastMessageSenderId;
     }
 
-    //
 //    public GroupChat(String chatId, ArrayList<String> memberIds, ArrayList<String> moderatorIds, ArrayList<String> adminIds, String chatTitle, boolean isGroup, ArrayList<String> messageIds, Date lastTimestamp, String lastMessageSenderId, String chatImage, String forumId) {
 //        this.chatId = chatId;
 //        this.memberIds = memberIds;
@@ -151,5 +152,20 @@ public class GroupChat implements Serializable {
 
     public void setDataId(String dataId) {
         this.dataId = dataId;
+    }
+
+    public int compareTo(GroupChat otherGroupChat) {
+        if (this.lastTimestamp == null && otherGroupChat.lastTimestamp == null) {
+            return 0;
+
+        } else if (this.lastTimestamp == null) {
+            return 1;
+
+        } else if (otherGroupChat.lastTimestamp == null) {
+            return -1;
+
+        } else {
+            return this.lastTimestamp.compareTo(otherGroupChat.lastTimestamp);
+        }
     }
 }
