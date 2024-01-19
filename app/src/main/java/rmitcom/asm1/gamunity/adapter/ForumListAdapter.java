@@ -199,7 +199,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
@@ -236,7 +236,7 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
                 if(task.isSuccessful()){
                     for (QueryDocumentSnapshot returnDocument : task.getResult()) {
                         Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("joinedForumIds", Arrays.asList(newMemberIdsList));
+                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
                         newMemberIds.put("noJoined", newMemberIdsList.length);
                         ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
                             if(joinTask.isSuccessful()){
