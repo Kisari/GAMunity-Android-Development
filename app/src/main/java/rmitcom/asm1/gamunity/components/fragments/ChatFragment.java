@@ -1,10 +1,15 @@
 package rmitcom.asm1.gamunity.components.fragments;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,17 +19,26 @@ import android.widget.SearchView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.adapter.ChatRoomRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.components.views.chat.ChatSearchUser;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.model.GroupChat;
+import rmitcom.asm1.gamunity.model.Post;
+import rmitcom.asm1.gamunity.model.User;
 
 public class ChatFragment extends Fragment {
 //    private final FireBaseManager dbManager = new FireBaseManager();
@@ -33,10 +47,12 @@ public class ChatFragment extends Fragment {
     private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData, chatRoomData;
-    private SearchView searchBar;
-    private ListView chatList;
-    private ImageButton addChat;
+    private SearchView chatSearchBar;
+    private RecyclerView chatList;
+    private ImageButton chatSearchUser;
     private ArrayList<String> chatGroupIds;
+    private  ArrayList<GroupChat> chatGroupList;
+    private ChatRoomRecyclerViewAdapter adapter;
     private final Constant constant = new Constant();
     View currentView;
     public ChatFragment() {
@@ -55,23 +71,166 @@ public class ChatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         currentView = view;
         // Inflate the layout for this fragment
+
+        setUI();
+
         return view;
     }
 
+    private void setUI() {
+        chatSearchBar = currentView.findViewById(R.id.chatSearchBar);
+        chatList = currentView.findViewById(R.id.chatList);
+        chatSearchUser = currentView.findViewById(R.id.chatSearchUser);
+
+        if (userId != null) {
+            userData = db.collection("users").document(userId);
+        }
+
+        setData();
+        accessSearchUser();
+    }
+
     private void setData() {
-        userData = db.collection("users").document(userId);
         userData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
 
-                    if (document.exists()) {
-                        chatGroupIds = (ArrayList<String>) document.get("chatGroupIds");
+                    chatGroupIds = new ArrayList<>();
 
+                    if (document.exists()) {
+                        if (document.get("chatGroupIds") != null) {
+                            chatGroupIds = (ArrayList<String>) document.get("chatGroupIds");
+
+                            if (chatGroupIds != null) {
+                                chatGroupList = new ArrayList<>();
+
+                                for (String chatId: chatGroupIds) {
+                                    getChatRoomData(chatId);
+                                }
+
+                                initChatSearch(chatGroupList);
+                            }
+                        }
                     }
                 }
             }
         });
+    }
+
+    private void getChatRoomData(String chatId) {
+        if (chatId != null) {
+            db.collection("CHATROOMS").document(chatId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+
+//                        String chatTitle = "", chatImage = "", forumId = "";
+
+                        if (document.exists()) {
+                            String chatTitle = document.getString("chatTitle");
+                            String chatImage = document.getString("chatImg");
+                            Timestamp chatTimestamp = (Timestamp) document.get("lastTimestamp");
+                            boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
+
+                            Log.i("Chat", "chatName - exist: " + chatTitle);
+                            String forumId;
+
+                            GroupChat groupChat;
+                            if (isGroup) {
+                                forumId = document.getString("dataId");
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, true, forumId, chatTimestamp);
+                            }
+                            else {
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, false, null, chatTimestamp);
+                            }
+
+                            Collections.sort(chatGroupList, (groupChat1, groupChat2)
+                                    -> groupChat2.compareTo(groupChat1));
+
+                            int index = Collections.binarySearch(chatGroupList, groupChat, (groupChat1, groupChat2)
+                                    -> groupChat2.compareTo(groupChat1));
+
+                            int insertionPoint = (index < 0) ? -index : index;
+
+                            if (insertionPoint >= chatGroupList.size()) {
+                                chatGroupList.add(groupChat);
+                            } else {
+                                chatGroupList.add(insertionPoint, groupChat);
+                            }
+
+//                            chatGroupList.add(groupChat);
+                        }
+
+                        if (chatGroupList.size() == chatGroupIds.size()) {
+                            setupList(chatGroupList);
+                        }
+
+                    }
+                }
+            });
+        }
+    }
+
+    private void accessSearchUser() {
+        chatSearchUser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent searchIntent = new Intent(getContext(), ChatSearchUser.class);
+                startActivity(searchIntent);
+            }
+        });
+    }
+
+    private void initChatSearch(ArrayList<GroupChat> chatGroupList) {
+        chatSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                ArrayList<GroupChat> chatroom = new ArrayList<>();
+
+                if (chatGroupList != null) {
+                    if (newText.isEmpty()) {
+                        chatroom.addAll(chatGroupList);
+                    }
+                    else {
+                        for (GroupChat chat : chatGroupList) {
+                            if (chat.getChatTitle().toLowerCase().contains(newText.toLowerCase()) && !isUserAlreadyAdded(chat, chatroom)) {
+                                chatroom.add(chat);
+                            }
+                        }
+                    }
+
+                    adapter.setChatGroupContent(chatroom);
+                    adapter.notifyDataSetChanged();
+
+                }
+                return false;
+            }
+        });
+    }
+
+    private boolean isUserAlreadyAdded(GroupChat chat, ArrayList<GroupChat> chatroom) {
+        for (GroupChat addedChat : chatroom) {
+            if (addedChat.getChatId().equals(chat.getChatId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setupList(ArrayList<GroupChat> chatGroupList) {
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        chatList.setLayoutManager(layoutManager);
+
+        adapter = new ChatRoomRecyclerViewAdapter(getContext(), chatGroupList);
+        chatList.setAdapter(adapter);
     }
 }
