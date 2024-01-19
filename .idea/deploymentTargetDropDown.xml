@@ -2,7 +2,8 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="Unnamed">
+
+<!--       <entry key="Unnamed">
         <State>
           <targetSelectedWithDropDown>
             <Target>
@@ -16,7 +17,10 @@
             </Target>
           </targetSelectedWithDropDown>
           <timeTargetWasSelectedWithDropDown value="2024-01-18T07:13:44.518007500Z" />
-        </State>
+        </State> -->
+
+      <entry key="SplashView">
+        <State />
       </entry>
     </value>
   </component>

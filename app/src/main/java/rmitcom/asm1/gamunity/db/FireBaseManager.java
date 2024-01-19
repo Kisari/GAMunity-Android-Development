@@ -1,5 +1,6 @@
 package rmitcom.asm1.gamunity.db;
 
+import static android.app.PendingIntent.getActivity;
 import static android.content.ContentValues.TAG;
 
 import android.app.NotificationChannel;
@@ -8,10 +9,12 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -42,6 +45,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.components.fragments.NotificationFragment;
+import rmitcom.asm1.gamunity.components.views.HomeView;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Notification;
 
@@ -51,7 +56,7 @@ public class FireBaseManager extends FirebaseMessagingService {
     private final FirebaseUser currentUser;
     private final FirebaseMessaging msgProvider;
     private final Constant constant = new Constant();
-
+    private String deviceToken = "";
     public FireBaseManager() {
         this.db = FirebaseFirestore.getInstance();
         this.storageRef = FirebaseStorage.getInstance().getReference();
@@ -72,6 +77,10 @@ public class FireBaseManager extends FirebaseMessagingService {
 
     public FirebaseMessaging getMsgProvider(){return msgProvider;}
 
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
     @Override
     public void onNewToken(@NonNull String token) {
         Log.d(TAG, "onNewToken: " + token);
@@ -90,6 +99,7 @@ public class FireBaseManager extends FirebaseMessagingService {
     public void updateTheDeviceToken(String userID, String token, Context context){
         Log.d(TAG, "This token device: " + token);
         CollectionReference ref = db.collection(constant.deviceTokens);
+        this.deviceToken = token;
         ref.whereEqualTo("token", token)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -115,7 +125,7 @@ public class FireBaseManager extends FirebaseMessagingService {
                                 .set(newNotificationToken, SetOptions.merge())
                                 .addOnCompleteListener(updateToken -> {
                                     if(updateToken.isSuccessful()){
-                                        Log.d(TAG, "Change token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        Log.d(TAG, "Change token device " + token + " to user with id " + currentUser.getUid());
                                     }
                                     else {
                                         Log.d(TAG, "updateTheDeviceToken: " + "Failed");
@@ -131,33 +141,40 @@ public class FireBaseManager extends FirebaseMessagingService {
                         ref.add(newNotificationToken)
                                 .addOnCompleteListener(task1 -> {
                                     if(task.isSuccessful()){
-                                        Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        Log.d(TAG, "New token device " + token + " to user with id " + currentUser.getUid());
                                     }
                                 });
                     }
                 });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Log.d(TAG, "Notification Message Title: " + Objects.requireNonNull(remoteMessage.getNotification()).getTitle());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getBaseContext())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(remoteMessage.getNotification().getTitle())
-                .setContentText(remoteMessage.getNotification().getBody());
+
+        String default_id = "DEFAULT_ID";
+
         NotificationManager notificationManager = (NotificationManager) getBaseContext().getSystemService(NOTIFICATION_SERVICE);
+
         if(Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel mChannel = new NotificationChannel("DEFAULT_ID", "GAMunity", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel mChannel = new NotificationChannel(default_id, "GAMunity", NotificationManager.IMPORTANCE_HIGH);
             mChannel.enableLights(true);
             mChannel.setLightColor(Color.RED);
             mChannel.enableVibration(true);
             mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
             mChannel.setShowBadge(false);
+
             notificationManager.createNotificationChannel(mChannel);
         }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getBaseContext())
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(remoteMessage.getNotification().getTitle())
+                .setContentText(remoteMessage.getNotification().getBody())
+                .setChannelId(default_id);
+
         notificationManager.notify(0, builder.build());
     }
 
