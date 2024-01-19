@@ -705,6 +705,8 @@ public class ForumView extends AppCompatActivity {
 
     forumData.update("noJoined", FieldValue.increment(-1));
 
+
+
     }
 
     private void promoteToModerator() {
