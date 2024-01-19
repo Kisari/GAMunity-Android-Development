@@ -93,8 +93,6 @@
             android:layout_gravity="center|end"
             android:backgroundTint="#757575"
             android:visibility="gone"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
             android:text="@string/joined"
             android:textColor="#ffffff" />
 
@@ -105,8 +103,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center|end"
             android:visibility="gone"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
             android:backgroundTint="#757575"
             android:text="@string/join"
             android:textColor="#ffffff" />
@@ -117,8 +113,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center|end"
-            android:focusable="false"
-            android:focusableInTouchMode="false"
             android:visibility="gone"
             android:backgroundTint="#757575"
             android:text="@string/owned"

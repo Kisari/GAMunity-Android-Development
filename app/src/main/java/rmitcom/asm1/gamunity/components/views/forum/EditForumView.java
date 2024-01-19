@@ -357,47 +357,47 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
                 Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
                 if (isBackground) {
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        if (forumBackgroundUri != null) {
-                            String pattern = "images%2F(.*?)\\?";
-                            Pattern p = Pattern.compile(pattern);
-                            Matcher m = p.matcher(forumBackgroundUri);
+                    if (forumBackgroundUri != null) {
+                        String pattern = "images%2F(.*?)\\?";
+                        Pattern p = Pattern.compile(pattern);
+                        Matcher m = p.matcher(forumBackgroundUri);
 
-                            if (m.find()) {
-                                String oldUri = m.group(1);
+                        if (m.find()) {
+                            String oldUri = m.group(1);
 
-                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i(TAG, "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to delete old image: " + e.getMessage());
-                                });
-                            }
+                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                Log.i("Delete image", "Old image deleted successfully");
+                            }).addOnFailureListener(e -> {
+                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                            });
                         }
+                    }
 
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         backgroundFilePath = uri;
                         backgroundUri = backgroundFilePath.toString();
                     });
 
                 } else {
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        if (forumIconUri != null) {
-                            String pattern = "images%2F(.*?)\\?";
-                            Pattern p = Pattern.compile(pattern);
-                            Matcher m = p.matcher(forumIconUri);
+                    if (forumIconUri != null) {
+                        String pattern = "images%2F(.*?)\\?";
+                        Pattern p = Pattern.compile(pattern);
+                        Matcher m = p.matcher(forumIconUri);
 
-                            if (m.find()) {
-                                String oldUri = m.group(1);
+                        if (m.find()) {
+                            String oldUri = m.group(1);
 
-                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i(TAG, "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e(TAG, "Failed to delete old image: " + e.getMessage());
-                                });
-                            }
+                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                Log.i("Delete image", "Old image deleted successfully");
+                            }).addOnFailureListener(e -> {
+                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                            });
                         }
+                    }
 
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                         iconFilePath = uri;
                         forumIconUri = iconFilePath.toString();
                     });
@@ -453,7 +453,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
                                         String notificationBody = userName + " has edit the content of the forum that you are currently join in " +
                                                 title;
-                                        Notification newNotification = new Notification("Edit the forum", forumIconUrl, notificationBody, dbManager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
+                                        Notification newNotification = new Notification("Join the forum", forumIconUrl, notificationBody, dbManager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
                                         dbManager.sendNotificationToDevice(newNotification, userName, constant.EDIT_FORUM);
                                     }
                                     Toast.makeText(EditForumView.this, "Sent notification to members",Toast.LENGTH_SHORT).show();

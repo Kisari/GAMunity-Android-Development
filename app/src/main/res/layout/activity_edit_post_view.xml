@@ -100,7 +100,7 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:layout_centerHorizontal="true"
-            android:text="Add Image/Video"
+            android:text="Add Image"
             android:gravity="center"
             android:layout_below="@id/editPostContent"
             android:drawableStart="@drawable/camera_icon_foreground"/>
@@ -118,7 +118,7 @@
         <RelativeLayout
             android:id="@+id/editPostImage"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:visibility="gone"
             android:layout_below="@id/editPostImageButton">
             <ProgressBar
