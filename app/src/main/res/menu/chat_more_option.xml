@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/chatMoreInfo"
+        android:title="More Information"
+        android:visible="true"/>
+    <item
+        android:id="@+id/chatUpdate"
+        android:title="Update Chat"
+        android:visible="true"/>
+    <item
+        android:id="@+id/chatDelete"
+        android:title="Delete Chat"
+        android:visible="true"/>
+    <item
+        android:id="@+id/chatAddUser"
+        android:title="Add User"
+        android:visible="true"/>
+</menu>

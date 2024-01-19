@@ -1,9 +1,13 @@
 package rmitcom.asm1.gamunity.model;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Locale;
 
-public class Comment {
+public class Comment implements Serializable, Comparable<Comment> {
     private String commentId;
     private String ownerId;
     private String postId;
@@ -189,4 +193,20 @@ public class Comment {
         isReply = reply;
     }
 
+    @Override
+    public int compareTo(Comment otherComment) {
+        if (this.timestamp == null && otherComment.timestamp == null) {
+            return 0;
+
+        } else if (this.timestamp == null) {
+            return 1;
+
+        } else if (otherComment.timestamp == null) {
+            return -1;
+
+        } else {
+            return this.timestamp.compareTo(otherComment.timestamp);
+
+        }
+    }
 }

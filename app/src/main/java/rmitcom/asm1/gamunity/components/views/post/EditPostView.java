@@ -48,7 +48,7 @@ public class EditPostView extends AppCompatActivity {
     private WeakReference<Activity> activityReference;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, postData, userData;
     private String forumId, postId, title, description, postImageUri, updateDate, imageUri;
@@ -194,32 +194,29 @@ public class EditPostView extends AppCompatActivity {
                         }
                         Toast.makeText(activity, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
-                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        if (postImageUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(postImageUri);
 
-                            if (postImageUri != null) {
-                                String pattern = "images%2F(.*?)\\?";
-                                Pattern p = Pattern.compile(pattern);
-                                Matcher m = p.matcher(postImageUri);
+                            if (m.find()) {
+                                String oldUri = m.group(1);
 
-                                if (m.find()) {
-                                    String oldUri = m.group(1);
-                                    Log.i(TAG, "uploadPostImage - oldUri: " + oldUri);
-
-                                    // Create a reference to the old image and delete it
-                                    StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                    oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                        Log.i(TAG, "Old image deleted successfully");
-                                    }).addOnFailureListener(e -> {
-                                        Log.e(TAG, "Failed to delete old image: " + e.getMessage());
-                                    });
-                                }
+                                // Create a reference to the old image and delete it
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
                             }
+                        }
 
+                        storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                             postImageFilePath = uri;
                             imageUri = postImageFilePath.toString();
 
                             addDataToFirebase();
-                            Log.i(TAG, "uploadPostImage - postImageFilePath: " + postImageFilePath);
                         });
 
                     }).addOnFailureListener(e -> {
