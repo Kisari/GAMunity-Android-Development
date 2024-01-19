@@ -30,11 +30,11 @@ public class RemoveUser extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
-    private DocumentReference forumData, userData;
+    private DocumentReference forumData, chatData, userData;
     private ImageView returnBackButton;
-    private SearchView promoteSearchBar;
+    private SearchView removeSearchBar;
     private RecyclerView userListView;
-    private String forumId;
+    private String forumId, chatId;
     private ArrayList<String> memberIds, moderatorIds, userIds;
     private ArrayList<User> moderatorList, memberList, userList;
     private UserRecyclerViewAdapter adapter;
@@ -54,7 +54,7 @@ public class RemoveUser extends AppCompatActivity {
         }
 
         returnBackButton = findViewById(R.id.returnBack);
-        promoteSearchBar = findViewById(R.id.removeSearchBar);
+        removeSearchBar = findViewById(R.id.removeSearchBar);
         userListView = findViewById(R.id.removeMemberList);
 
         setPageData();
@@ -105,7 +105,6 @@ public class RemoveUser extends AppCompatActivity {
 
     private void displayList(ArrayList<String> userIds) {
         int listLength = userIds.size();
-        Log.i(TAG, "displayList - listLength: " + listLength);
         AtomicInteger counter = new AtomicInteger(0);
 
         ArrayList<User> userList = new ArrayList<>();
@@ -147,7 +146,7 @@ public class RemoveUser extends AppCompatActivity {
     }
 
     private void initSearch(ArrayList<User> userList) {
-        promoteSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        removeSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 return false;
@@ -157,14 +156,20 @@ public class RemoveUser extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 ArrayList<User> users = new ArrayList<>();
 
-                for (User user : userList) {
-                    if (user.getName().toLowerCase().contains(newText.toLowerCase())) {
-                        // Add the user if not already added
-                        if (!isUserAlreadyAdded(user.getUserId(), users)) {
-                            users.add(user);
+                if (newText.isEmpty()) {
+                    users.addAll(userList);
+                }
+                else {
+                    for (User user : userList) {
+                        if (user.getName().toLowerCase().contains(newText.toLowerCase())) {
+                            // Add the user if not already added
+                            if (!isUserAlreadyAdded(user.getUserId(), users)) {
+                                users.add(user);
+                            }
                         }
                     }
                 }
+
                 setupList(users, userListView);
                 return false;
             }

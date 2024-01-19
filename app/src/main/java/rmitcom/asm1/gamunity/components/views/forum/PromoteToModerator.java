@@ -144,14 +144,20 @@ public class PromoteToModerator extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 ArrayList<User> users = new ArrayList<>();
 
-                for (User user : userList) {
-                    if (user.getName().toLowerCase().contains(newText.toLowerCase())) {
-                        // Add the user if not already added
-                        if (!isUserAlreadyAdded(user.getUserId(), users)) {
-                            users.add(user);
+                if (newText.isEmpty()) {
+                    users.addAll(userList);
+                }
+                else {
+                    for (User user : userList) {
+                        if (user.getName().toLowerCase().contains(newText.toLowerCase())) {
+                            // Add the user if not already added
+                            if (!isUserAlreadyAdded(user.getUserId(), users)) {
+                                users.add(user);
+                            }
                         }
                     }
                 }
+
                 setupList(users, userListView);
                 return false;
             }
