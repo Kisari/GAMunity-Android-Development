@@ -357,47 +357,47 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
                 Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
                 if (isBackground) {
-                    if (forumBackgroundUri != null) {
-                        String pattern = "images%2F(.*?)\\?";
-                        Pattern p = Pattern.compile(pattern);
-                        Matcher m = p.matcher(forumBackgroundUri);
-
-                        if (m.find()) {
-                            String oldUri = m.group(1);
-
-                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                Log.i("Delete image", "Old image deleted successfully");
-                            }).addOnFailureListener(e -> {
-                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                            });
-                        }
-                    }
-
                     storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        if (forumBackgroundUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(forumBackgroundUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i(TAG, "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
                         backgroundFilePath = uri;
                         backgroundUri = backgroundFilePath.toString();
                     });
 
                 } else {
-                    if (forumIconUri != null) {
-                        String pattern = "images%2F(.*?)\\?";
-                        Pattern p = Pattern.compile(pattern);
-                        Matcher m = p.matcher(forumIconUri);
-
-                        if (m.find()) {
-                            String oldUri = m.group(1);
-
-                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                Log.i("Delete image", "Old image deleted successfully");
-                            }).addOnFailureListener(e -> {
-                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                            });
-                        }
-                    }
-
                     storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        if (forumIconUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(forumIconUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i(TAG, "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e(TAG, "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
                         iconFilePath = uri;
                         forumIconUri = iconFilePath.toString();
                     });

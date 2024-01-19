@@ -45,7 +45,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:20.3.0")
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
-    implementation ("com.firebaseui:firebase-ui-firestore:8.0.2")
     implementation("androidx.core:core:1.12.0")
     implementation ("androidx.core:core-ktx:1.12.0")
     implementation ("com.squareup.okhttp3:okhttp:3.10.0")

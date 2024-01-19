@@ -88,22 +88,14 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
-
-//                Forum deleteForum = (Forum) data.getSerializableExtra("forum");
-//                forumList.remove(deleteForum);
-
                 this.forumListAdapter.notifyDataSetChanged();
                 recreate(requireActivity());
             }
         }
 
-
         if (requestCode == constant.DELETE) {
             if (resultCode == constant.SUCCESS) {
                 this.forumListAdapter.notifyDataSetChanged();
-
-//                fetchData();
-
                 recreate(requireActivity());
 
             }

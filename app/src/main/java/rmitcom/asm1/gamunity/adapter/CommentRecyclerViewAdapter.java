@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -57,7 +56,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
-    private final FirebaseStorage storage = FirebaseStorage.getInstance();
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData, postData, commentData;
     private String postId, commentId, userIds, ownerId, chiefAdminId, forumId;
     private ArrayList<String> commentIds, memberIds, moderatorIds;
@@ -75,8 +74,8 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         public RecyclerView replyCommentListView;
         public ArrayList<Comment> commentList, replyCommentList;
         public RelativeLayout imageLayout;
-        public ProgressBar userProgressBar, commentProgressBar;
-        public ImageView commentImage, baseImage;
+        public ProgressBar userProgressBar, postProgressBar;
+        public ImageView postImage;
         public ShapeableImageView userImage;
 
         public CommentRecyclerViewHolder(@NonNull View itemView) {
@@ -99,11 +98,9 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
             imageLayout = itemView.findViewById(R.id.commentTabPicture);
             userProgressBar = itemView.findViewById(R.id.commentTabProgressBar1);
-            commentProgressBar = itemView.findViewById(R.id.commentTabProgressBar2);
-            commentImage =itemView.findViewById(R.id.commentTabImage);
+            postProgressBar = itemView.findViewById(R.id.commentTabProgressBar2);
+            postImage =itemView.findViewById(R.id.commentTabImage);
             userImage = itemView.findViewById(R.id.commentTabUserProfile);
-
-            baseImage = itemView.findViewById(R.id.baseImg);
 
         }
 
@@ -206,8 +203,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                 holder.like.setText(String.valueOf(currComment.getLikeIds().size()));
             }
 
-        }
-        else {
+        } else {
             holder.like.setVisibility(View.VISIBLE);
             holder.likeTrue.setVisibility(View.INVISIBLE);
             holder.like.setText("0");
@@ -224,8 +220,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                 holder.dislikeTrue.setVisibility(View.INVISIBLE);
                 holder.dislike.setText(String.valueOf(currComment.getDislikeIds().size()));
             }
-        }
-        else {
+        } else {
             holder.dislike.setVisibility(View.VISIBLE);
             holder.dislikeTrue.setVisibility(View.INVISIBLE);
             holder.dislike.setText("0");
@@ -233,8 +228,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
         if (currComment.getReplyCommentIds() != null) {
             holder.comment.setText(String.valueOf(currComment.getReplyCommentIds().size()));
-        }
-        else {
+        } else {
             holder.comment.setText("0");
         }
 
@@ -251,12 +245,12 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
         holder.timestamp.setText(timestampStr);
 
-        String commentImgUri = currComment.getImgUri();
-        Log.i("Post Tab", "getView - : " + commentImgUri);
-        if (commentImgUri != null) {
+        String postImgUri = currComment.getImgUri();
+        Log.i("Post Tab", "getView - : " + postImgUri);
+        if (postImgUri != null) {
             try {
                 holder.imageLayout.setVisibility(View.VISIBLE);
-                new AsyncImage(holder.commentImage, holder.commentProgressBar).loadImage(commentImgUri);
+                new AsyncImage(holder.postImage, holder.postProgressBar).loadImage(postImgUri);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -330,18 +324,10 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                         userImgUri = document.getString("image");
                         if (userImgUri != null) {
                             try {
-                                holder.baseImage.setVisibility(View.INVISIBLE);
-                                holder.userProgressBar.setVisibility(View.VISIBLE);
-                                holder.userImage.setVisibility(View.VISIBLE);
                                 new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                        }
-                        else {
-                            holder.baseImage.setVisibility(View.VISIBLE);
-                            holder.userProgressBar.setVisibility(View.INVISIBLE);
-                            holder.userImage.setVisibility(View.INVISIBLE);
                         }
                     }
                 }
@@ -350,15 +336,6 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
         setLikeComment(holder, currComment, position);
         setDislikeComment(holder, currComment, position);
-
-//        holder.userImage.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent accessIntent = new Intent(context, Profile.class);
-//                accessIntent.putExtra("userId", userId);
-//                context.startActivity(accessIntent);
-//            }
-//        });
     }
 
     private void toggleLikeDislike(int position, Comment currComment,
@@ -564,7 +541,8 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
             deleteButton.setOnClickListener(v -> {
-                deleteComment(currComment, position);
+                String commentId = currComment.getCommentId();
+                deleteComment(commentId, position);
                 dialog.dismiss();
 
 //                Intent intent = new Intent(context, PostView.class);
@@ -579,35 +557,16 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
 
     }
 
-    private void deleteComment(Comment currComment, int position) {
-
-        String commentId = currComment.getCommentId();
+    public void deleteComment(String commentId, int position) {
+        Log.i("Comment Tab", "deleteComment - commentId: " + commentId);
 
         DocumentReference ownerData = db.collection("users").document(ownerId);
         ownerData.update("commentIds", FieldValue.arrayRemove(commentId));
 
         postData.update("commentIds", FieldValue.arrayRemove(commentId));
 
-        String imgUri = currComment.getImgUri();
-        if (imgUri != null) {
-            String pattern = "images%2F(.*?)\\?";
-            Pattern p = Pattern.compile(pattern);
-            Matcher m = p.matcher(imgUri);
-
-            if (m.find()) {
-                String oldUri = m.group(1);
-
-                // Create a reference to the old image and delete it
-                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                    Log.i("Delete image", "Old image deleted successfully");
-                }).addOnFailureListener(e -> {
-                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                });
-            }
-        }
-
-        db.collection("COMMENTS").document(commentId).delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+        DocumentReference commentData = db.collection("COMMENTS").document(commentId);
+        commentData.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 if (context instanceof PostView) {
@@ -626,11 +585,10 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
-
+                        String ownerId = "", postId = "";
                         if (document.exists()) {
-                            String postId = document.getString("postId");
-                            String ownerId = document.getString("ownerId");
-                            String imgUri = document.getString("image");
+                            postId = document.getString("postId");
+                            ownerId = document.getString("ownerId");
 
                             if (ownerId != null) {
                                 DocumentReference ownerData = db.collection("users").document(ownerId);
@@ -639,24 +597,6 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                             if (postId != null) {
                                 DocumentReference postData = db.collection("POSTS").document(postId);
                                 postData.update("commentIds", FieldValue.arrayRemove(commentId));
-                            }
-
-                            if (imgUri != null) {
-                                String pattern = "images%2F(.*?)\\?";
-                                Pattern p = Pattern.compile(pattern);
-                                Matcher m = p.matcher(imgUri);
-
-                                if (m.find()) {
-                                    String oldUri = m.group(1);
-
-                                    // Create a reference to the old image and delete it
-                                    StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                    oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                        Log.i("Delete image", "Old image deleted successfully");
-                                    }).addOnFailureListener(e -> {
-                                        Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                    });
-                                }
                             }
                         }
 
