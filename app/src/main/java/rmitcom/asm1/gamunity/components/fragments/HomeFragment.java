@@ -5,7 +5,6 @@ import static android.content.ContentValues.TAG;
 
 import static androidx.core.app.ActivityCompat.recreate;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -76,7 +75,6 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
-        Log.d(TAG, "onActivityResult: " + "running");
         if(requestCode == constant.CREATE){
             if(resultCode == constant.SUCCESS){
                 Forum newAddedforum = (Forum) data.getSerializableExtra("newForum");
@@ -88,27 +86,11 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         if (requestCode == constant.DELETE) {
             if (resultCode == RESULT_OK) {
+//                Forum deleteForum = (Forum) data.getSerializableExtra("forum");
+//                forumList.remove(deleteForum);
 
                 this.forumListAdapter.notifyDataSetChanged();
-                recreate(requireActivity());
 //                fetchData();
-            }
-        }
-
-        if (requestCode == constant.DELETE) {
-            if (resultCode == constant.SUCCESS) {
-//                Intent backIntent = new Intent();
-//                String isJoinWithForumId = backIntent.getStringExtra("isJoinWithForumId");
-//                assert isJoinWithForumId != null;
-//                if(isJoinWithForumId.equals("")){
-//
-//                }
-//                else{
-//
-//                }
-                this.forumListAdapter.notifyDataSetChanged();
-                recreate(requireActivity());
-
             }
         }
     }
@@ -167,14 +149,6 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         //set adapter to forum view list
         forumListView.setAdapter(forumListAdapter);
-
-        forumListView.setOnItemClickListener((parent, view, position, id) -> {
-            Log.d(TAG, "initializeForumListView: " + "running");
-            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
-            toForumDetailView.putExtra("forumId", forumList.get(position).getForumRef());
-            //THIS NEED TO CHANGE IN FRIDAY BEFORE OPTIMIZATION
-            startActivityForResult(toForumDetailView, constant.DELETE);
-        });
     }
 
     private void initializeForumTagSelectionView(){

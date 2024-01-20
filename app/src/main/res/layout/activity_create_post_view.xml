@@ -99,7 +99,7 @@
             android:layout_height="wrap_content"
             android:padding="5dp"
             android:layout_centerHorizontal="true"
-            android:text="Add Image/Video"
+            android:text="Add Image"
             android:gravity="center"
             android:layout_below="@id/addPostContent"
             android:drawableStart="@drawable/camera_icon_foreground"/>
@@ -117,7 +117,7 @@
         <ImageView
             android:id="@+id/addPostPicture"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:layout_below="@id/addPostImage"
             android:visibility="gone"
             android:background="@drawable/rectangle_shadow"

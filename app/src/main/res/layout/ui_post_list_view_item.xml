@@ -17,13 +17,23 @@
             android:layout_height="81dp"
             android:layout_weight="0.2"
             android:layout_gravity="center|bottom">
+            <ImageView
+                android:id="@+id/baseImg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/account_base_img"
+                app:strokeWidth="3dp"
+                android:padding="5dp"
+                app:strokeColor="@android:color/darker_gray"
+                app:shapeAppearanceOverlay="@style/circleImageView"
+                tools:ignore="ImageContrastCheck"/>
             <ProgressBar
                 android:id="@+id/postTabProgressBar1"
                 android:indeterminateTint="#4900FF"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="10dp"
-                android:visibility="visible"/>
+                android:visibility="invisible"/>
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/postTabUserProfile"
@@ -33,6 +43,7 @@
                 app:strokeWidth="3dp"
                 app:strokeColor="@android:color/darker_gray"
                 app:shapeAppearanceOverlay="@style/circleImageView"
+                android:visibility="invisible"
                 tools:ignore="ImageContrastCheck"/>
 
         </RelativeLayout>
@@ -75,7 +86,7 @@
         <RelativeLayout
             android:id="@+id/postTabPicture"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:visibility="gone">
             <ProgressBar
                 android:id="@+id/postTabProgressBar2"

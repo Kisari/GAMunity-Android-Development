@@ -58,7 +58,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         public TextView title, username, timestamp, like, likeTrue, dislike, dislikeTrue, comment;
         public RelativeLayout imageLayout;
         public ProgressBar userProgressBar, postProgressBar;
-        public ImageView postImage;
+        public ImageView postImage, baseImage;
         public ShapeableImageView userImage;
 
         public PostRecyclerViewHolder(@NonNull View itemView) {
@@ -78,6 +78,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             postProgressBar = itemView.findViewById(R.id.postTabProgressBar2);
             postImage =itemView.findViewById(R.id.postTabImage);
             userImage = itemView.findViewById(R.id.postTabUserProfile);
+
+            baseImage = itemView.findViewById(R.id.baseImg);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -130,7 +132,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 holder.like.setText(String.valueOf(likeCount));
             }
 
-        } else {
+        }
+        else {
             likeCount = 0;
 
             holder.like.setVisibility(View.VISIBLE);
@@ -154,7 +157,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                 holder.dislike.setText(String.valueOf(dislikeCount));
             }
 
-        } else {
+        }
+        else {
             dislikeCount = 0;
 
             holder.dislike.setVisibility(View.VISIBLE);
@@ -165,7 +169,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
         if (commentIds != null) {
             commentCount = commentIds.size();
-        } else {
+        }
+        else {
             commentCount = 0;
         }
 
@@ -216,16 +221,33 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                             userImgUri = document.getString("image");
                             if (userImgUri != null) {
                                 try {
+                                    holder.baseImage.setVisibility(View.INVISIBLE);
+                                    holder.userProgressBar.setVisibility(View.VISIBLE);
+                                    holder.userImage.setVisibility(View.VISIBLE);
                                     new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
+                            }
+                            else {
+                                holder.baseImage.setVisibility(View.VISIBLE);
+                                holder.userProgressBar.setVisibility(View.INVISIBLE);
+                                holder.userImage.setVisibility(View.INVISIBLE);
                             }
                         }
                     }
                 }
             });
         }
+
+//        holder.userImage.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent accessIntent = new Intent(context, Profile.class);
+//                accessIntent.putExtra("userId", userId);
+//                context.startActivity(accessIntent);
+//            }
+//        });
     }
 
     @Override

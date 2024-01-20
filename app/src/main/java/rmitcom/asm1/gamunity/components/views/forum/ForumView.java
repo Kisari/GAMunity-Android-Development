@@ -35,17 +35,24 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
@@ -63,6 +70,7 @@ public class ForumView extends AppCompatActivity {
     private final String TAG = "Forum View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
     private String forumId , chiefAdminId, chatId,
@@ -77,7 +85,6 @@ public class ForumView extends AppCompatActivity {
     private ImageButton addPostButton;
     private Button joinButton, joinedButton, ownedButton;
     private PostRecyclerViewAdapter adapter;
-    private String isJoinWithForumId = "";
     private Forum currForum;
     private Constant constant = new Constant();
 
@@ -126,8 +133,6 @@ public class ForumView extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void setForumData() {
-        postList = new ArrayList<>();
-
         forumData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
@@ -139,25 +144,24 @@ public class ForumView extends AppCompatActivity {
                     memberIds = (ArrayList<String>) document.get("memberIds");
                     moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                    chatId = document.getString("chatId");
+                    chatId = (String) document.get("chatId");
 
                     if (Objects.equals(userId, chiefAdminId)) {
                         userRole.setText("Admin");
                     } else if (moderatorIds != null && moderatorIds.contains(userId)) {
-                        isJoinWithForumId = (String) document.get("forumId");
                         userRole.setText("Moderator");
                     } else if (memberIds != null && memberIds.contains(userId)) {
-                        isJoinWithForumId = (String) document.get("forumId");
                         userRole.setText("Member");
-                        isJoinWithForumId = forumId;
                     } else {
                         userRole.setText("Guest");
                     }
 
                     if (document.get("postIds") != null) {
                         postIds = (ArrayList<String>) document.get("postIds");
-                        Log.i(TAG, "setForumData - postId: " + postIds);
-                        displayList(postIds);
+
+                        if (postIds != null) {
+                            displayList(postIds);
+                        }
                     }
 
                     forumBackgroundUri = document.getString("forumBackground");
@@ -180,6 +184,9 @@ public class ForumView extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
+                    currForum = new Forum(document.getString("forumId"), document.getId(), chiefAdminId, forumTitleStr,
+                            (ArrayList<String>) document.get("category"), memberIds, forumBackgroundUri,forumIconUri);
+
                     setButton();
                     moreOption();
 
@@ -193,12 +200,10 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void displayList(ArrayList<String> postIds) {
+        postList = new ArrayList<>();
 
         final int[] listLength = {postIds.size()};
         AtomicInteger counter = new AtomicInteger(0);
-
-        final int[] noPostImg = {0};
-        final int[] listViewLen = {listLength[0] * 170};
 
         for (String postId : postIds) {
             Log.i(TAG, "displayList - postId: " + postId);
@@ -210,6 +215,7 @@ public class ForumView extends AppCompatActivity {
 
                         String postTitle, postDescription, postOwnerId, timestampStr, updateTimestampStr, imgUri;
                         Date timestamp = new Date(), updateTimestamp = new Date();
+
                         ArrayList<String> postLikeIds, postDislikeIds, postCommentIds;
 
                         if (document.exists()) {
@@ -245,15 +251,26 @@ public class ForumView extends AppCompatActivity {
 
                             if (document.getString("image") != null) {
                                 imgUri = document.getString("image");
-                                noPostImg[0]++;
-                                listViewLen[0] += 200;
                             } else {
                                 imgUri = null;
                             }
 
                             Log.i(TAG, "onComplete - postId: " + postId);
                             Post post = new Post(postId, postOwnerId, forumId, postTitle, postDescription, timestamp, updateTimestamp, imgUri, postCommentIds, postLikeIds, postDislikeIds);
-                            postList.add(post);
+
+                            Collections.sort(postList, (post1, post2)
+                                    -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                            int index = Collections.binarySearch(postList, post, (post1, post2)
+                                    -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                            int insertionPoint = (index < 0) ? -index : index;
+
+                            if (insertionPoint >= postList.size()) {
+                                postList.add(post);
+                            } else {
+                                postList.add(insertionPoint, post);
+                            }
 
                             if (counter.incrementAndGet() == listLength[0]) {
                                 setupList(postList);
@@ -308,7 +325,25 @@ public class ForumView extends AppCompatActivity {
                 ArrayList<String> postLikeIds = new ArrayList<>(), postDislikeIds = new ArrayList<>(), postCommentIds = new ArrayList<>();
 
                 Post post = new Post(postId, userId, forumId, postTitle, postDescription, timestamp, null, postImgUri, postLikeIds, postDislikeIds, postCommentIds);
-                postList.add(post);
+
+                if (postList == null) {
+                    postList = new ArrayList<>();
+                }
+
+                Collections.sort(postList, (post1, post2)
+                        -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                int index = Collections.binarySearch(postList, post, (post1, post2)
+                        -> post2.getTimestamp().compareTo(post1.getTimestamp()));
+
+                int insertionPoint = (index < 0) ? -index : index;
+
+                if (insertionPoint >= postList.size()) {
+                    postList.add(post);
+                } else {
+                    postList.add(insertionPoint, post);
+                }
+
             }
             setupList(postList);
             recreate();
@@ -316,7 +351,7 @@ public class ForumView extends AppCompatActivity {
 
         if (requestCode == constant.EDIT) {
             if (resultCode == RESULT_OK) {
-                setUI();
+                recreate();
             }
         }
 
@@ -324,10 +359,15 @@ public class ForumView extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 recreate();
             }
+
+            if (resultCode == 0) {
+                setUI();
+            }
         }
 
         if (requestCode == 107 || requestCode == 108 || requestCode == 109) {
             if (resultCode == RESULT_OK) {
+                setUI();
                 recreate();
             }
         }
@@ -343,11 +383,6 @@ public class ForumView extends AppCompatActivity {
         MenuItem addModerator = popupMenu.getMenu().findItem(R.id.forumAddModerator);
         MenuItem removeModerator = popupMenu.getMenu().findItem(R.id.forumRemoveModerator);
         MenuItem removeUser = popupMenu.getMenu().findItem(R.id.forumRemoveUser);
-
-        Log.i(TAG, "moreOption - chiefAdmin: " + chiefAdminId);
-        Log.i(TAG, "moreOption - userId: " + userId);
-        Log.i(TAG, "moreOption - memberIds: " + memberIds);
-        Log.i(TAG, "moreOption - moderatorIds: " + moderatorIds);
 
         if (Objects.equals(userId, chiefAdminId)) {
             moreInfo.setVisible(true);
@@ -493,16 +528,55 @@ public class ForumView extends AppCompatActivity {
                             if (postIds != null) {
                                 PostView postView = new PostView();
                                 for (String id: postIds) {
-                                    postView.deletePostFromForum(id, getBaseContext());
+                                    postView.deletePostFromForum(id);
                                 }
                             }
                         }
 
-                        String chatId = document.getString("chatId");
+                        String backgroundImgUri = document.getString("forumBackground");
+                        String iconImgUri = document.getString("forumIcon");
 
-                        if (chatId != null) {
-                            DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+                        if (backgroundImgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(backgroundImgUri);
 
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
+                        if (iconImgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(iconImgUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
+                        if (document.getString("chatId") != null) {
+                            chatId = document.getString("chatId");
+
+                            if (chatId != null) {
+                                DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+
+                            }
                         }
                     }
 
@@ -570,6 +644,7 @@ public class ForumView extends AppCompatActivity {
             public void onClick(View v) {
                 userData.update("joinedForumIds", FieldValue.arrayUnion(forumId));
                 forumData.update("memberIds", FieldValue.arrayUnion(userId));
+                forumData.update("noJoined", FieldValue.increment(1));
 
                 joinButton.setVisibility(View.GONE);
                 joinedButton.setVisibility(View.VISIBLE);
@@ -622,12 +697,13 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void unJoinFunction() {
-
     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
 
     forumData.update("memberIds", FieldValue.arrayRemove(userId));
     forumData.update("moderatorIds", FieldValue.arrayRemove(userId));
+
+    forumData.update("noJoined", FieldValue.increment(-1));
 
     }
 
@@ -650,11 +726,64 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void accessChatRoom() {
-        forumChat.setOnClickListener(v -> {
-            Intent chatIntent = new Intent(ForumView.this, ChatView.class);
-            chatIntent.putExtra("chatId", chatId);
-            chatIntent.putExtra("forumId", forumId);
-            startActivity(chatIntent);
+        forumChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (chatId == null) {
+                    Log.i(TAG, "chatView accessChatRoom: no chat id");
+                    Map<String, Object> newChatroom = new HashMap<>();
+
+                    db.collection("CHATROOMS")
+                            .add(newChatroom)
+                            .addOnCompleteListener(task -> {
+                                if(task.isSuccessful()) {
+                                    String newChatId = task.getResult().getId();
+
+                                    Map<String, String> chatroomId = new HashMap<>();
+                                    chatroomId.put("chatId", newChatId);
+
+                                    forumData.set(chatroomId, SetOptions.merge());
+                                    userData.update("chatGroupIds", FieldValue.arrayUnion(newChatId));
+
+                                    Intent chatIntent = new Intent(ForumView.this, ChatView.class);
+                                    chatIntent.putExtra("chatId", newChatId);
+                                    chatIntent.putExtra("isGroup", true);
+                                    chatIntent.putExtra("dataId", forumId);
+//                                        chatIntent.putExtra("dataName", forumTitleStr);
+//                                        chatIntent.putExtra("dataImg", forumIconUri);
+                                    startActivity(chatIntent);
+                                }
+                            });
+                }
+                else {
+                    Log.i(TAG, "chatView accessChatRoom: have chat id ");
+                    userData.update("chatGroupIds", FieldValue.arrayUnion(chatId));
+
+                    DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+
+//                    chatData.update("memberIds", FieldValue.arrayRemove(userId));
+//                    chatData.update("moderatorIds", FieldValue.arrayRemove(userId));
+//                    chatData.update("adminIds", FieldValue.arrayRemove(userId));
+
+                    if (memberIds.contains(userId)) {
+                        chatData.update("memberIds", FieldValue.arrayUnion(userId));
+                    }
+                    else if (moderatorIds.contains(userId)) {
+                        chatData.update("moderatorIds", FieldValue.arrayUnion(userId));
+                    }
+                    else if (Objects.equals(userId, chiefAdminId)) {
+                        chatData.update("adminIds", FieldValue.arrayUnion(userId));
+                    }
+
+                    Intent chatIntent = new Intent(ForumView.this, ChatView.class);
+                    chatIntent.putExtra("chatId", chatId);
+                    chatIntent.putExtra("isGroup", true);
+                    chatIntent.putExtra("dataId", forumId);
+//                    chatIntent.putExtra("dataName", forumTitleStr);
+//                    chatIntent.putExtra("dataImg", forumIconUri);
+                    startActivity(chatIntent);
+                }
+            }
         });
     }
 
@@ -667,13 +796,6 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void returnToPreviousPage() {
-        returnBackButton.setOnClickListener(v -> {
-            Intent backIntent = new Intent();
-            backIntent.putExtra("isJoinWithForumId", isJoinWithForumId);
-            if(!isJoinWithForumId.equals("")){
-                setResult(constant.SUCCESS, backIntent);
-            }
-            finish();
-        });
+        returnBackButton.setOnClickListener(v -> finish());
     }
 }

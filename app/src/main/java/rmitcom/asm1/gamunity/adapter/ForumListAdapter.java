@@ -90,11 +90,12 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         Forum forumItem = (Forum) getItem(position);
 
-//        viewForumList.setOnClickListener(v -> {
-//            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
-//            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-//            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
-//        });
+        viewForumList.setOnClickListener(v -> {
+            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
+            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
+//            v.getContext().startActivity(toForumDetailView);
+            ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
+        });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);
