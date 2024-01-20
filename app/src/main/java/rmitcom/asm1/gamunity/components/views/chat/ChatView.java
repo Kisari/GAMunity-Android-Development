@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 //import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -588,7 +589,7 @@ public class ChatView extends AppCompatActivity {
             groupChat = new GroupChat(chatId, chatTitleStr, chatIconUri, false, null, null);
         }
 
-        if ((chatAdminIds != null && chatAdminIds.contains(userId)) || (chatModeratorIds != null && chatModeratorIds.contains(userId))) {
+        if ((chatAdminIds != null && chatAdminIds.contains(userId))) {
             moreOptionBtn.setVisibility(View.VISIBLE);
             moreInfoBtn.setVisibility(View.GONE);
 
@@ -607,18 +608,26 @@ public class ChatView extends AppCompatActivity {
 
         if (chatAdminIds != null && chatAdminIds.contains(userId)) {
             moreInfo.setVisible(true);
-            editChat.setVisible(!isGroup);
+            if (isGroup) {
+                editChat.setVisible(forumId == null);
+            }
             deleteChat.setVisible(true);
-            addMember.setVisible(!isGroup);
+            if (isGroup) {
+                addMember.setVisible(forumId == null);
+            }
 
         }
-        else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
-            moreInfo.setVisible(true);
-            editChat.setVisible(!isGroup);
-            deleteChat.setVisible(false);
-            addMember.setVisible(!isGroup);
-
-        }
+//        else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
+//            moreInfo.setVisible(true);
+//            if (isGroup) {
+//                editChat.setVisible(forumId == null);
+//            }
+//            deleteChat.setVisible(false);
+//            if (isGroup) {
+//                addMember.setVisible(forumId == null);
+//            }
+//
+//        }
 //        else {
 //            moreOptionBtn.setVisibility(View.GONE);
 //            moreInfoBtn.setVisibility(View.VISIBLE);
@@ -819,6 +828,7 @@ public class ChatView extends AppCompatActivity {
 
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         messageId = document.getId();
+                        Log.i(TAG, "chatView - messageId: " + messageId);
                         boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
 
                         if (isImage) {
@@ -838,9 +848,10 @@ public class ChatView extends AppCompatActivity {
                                 });
                             }
                         }
-                        chatRef.document(messageId).delete();
+                        chatRef.document(messageId).delete()
+                                .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
+                                .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
                     }
-
                 }
             }
         });
@@ -901,6 +912,7 @@ public class ChatView extends AppCompatActivity {
 
                                     for (QueryDocumentSnapshot document : task.getResult()) {
                                         messageId = document.getId();
+                                        Log.i(TAG, "chatView - messageId: " + messageId);
                                         boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
 
                                         if (isImage) {
@@ -920,13 +932,13 @@ public class ChatView extends AppCompatActivity {
                                                 });
                                             }
                                         }
-                                        chatRef.document(messageId).delete();
+                                        chatRef.document(messageId).delete()
+                                                .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
+                                                .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
                                     }
-
                                 }
                             }
                         });
-
                     }
 
                     chatData.delete();
