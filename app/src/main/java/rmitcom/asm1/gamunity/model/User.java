@@ -20,8 +20,15 @@ public class User implements Serializable {
     private ArrayList<String> followingIds;
     private ArrayList<String> friendIds;
     private ArrayList<String> chatGroupIds;
+    private String backgroundImgUri;
+    private String dob;
 
-    public User() {
+
+    public User(String profileImgUri, String backgroundImgUri, String name, String dob){
+        this.profileImgUri = profileImgUri;
+        this.backgroundImgUri = backgroundImgUri;
+        this.name = name;
+        this.dob = dob;
     }
 
     public User(String userId, Boolean isAdmin, String name, String phone, String email) {
@@ -67,6 +74,22 @@ public class User implements Serializable {
         this.followersIds = followersIds;
         this.followingIds = followingIds;
         this.friendIds = friendIds;
+    }
+
+    public String getBackgroundImgUri() {
+        return backgroundImgUri;
+    }
+
+    public void setBackgroundImgUri(String backgroundImgUri) {
+        this.backgroundImgUri = backgroundImgUri;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
     }
 
     public String getUserId() {

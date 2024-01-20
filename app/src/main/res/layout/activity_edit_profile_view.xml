@@ -72,176 +72,173 @@
         </LinearLayout>
 
         <FrameLayout
-            android:id="@+id/profileInfo"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:layout_marginBottom="10dp">
+            android:layout_height="220dp">
 
-            <ProgressBar
-                android:id="@+id/progress_bar_1"
-                android:indeterminateTint="#4900FF"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="-30dp"
-                android:visibility="visible"/>
-
-            <ImageView
-                android:id="@+id/profileEditBackground"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:importantForAccessibility="no"
-                android:scaleType="fitXY"
-                tools:ignore="ImageContrastCheck" />
+                android:layout_height="200dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center">
+
+                    <ProgressBar
+                        android:id="@+id/progress1"
+                        android:indeterminateTint="#4900FF"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:visibility="visible" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/userBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitXY"
+                    tools:ignore="ImageContrastCheck" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginStart="32dp"
+                android:layout_gravity="bottom|start">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center">
+
+                    <ProgressBar
+                        android:id="@+id/progress2"
+                        android:indeterminateTint="#4900FF"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:visibility="visible" />
+
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/userIconBtn"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/rounded_pill_white_stroke"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/camera_icon_foreground"
+                    tools:ignore="ImageContrastCheck" />
+
+            </RelativeLayout>
 
             <ImageView
-                android:id="@+id/editProfileBackgroundButton"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:id="@+id/userBackgroundBtn"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
                 android:layout_gravity="end"
                 android:importantForAccessibility="no"
                 android:src="@drawable/camera_icon_foreground"
                 tools:ignore="ImageContrastCheck" />
 
-            <ImageButton
-                android:id="@+id/editProfileIconButton"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:layout_gravity="center|bottom"
-                android:background="@drawable/rounded_pill_white_stroke"
-                android:importantForAccessibility="no"
-                android:src="@drawable/camera_icon_foreground"
-                tools:ignore="ImageContrastCheck" />
-
-            <ProgressBar
-                android:id="@+id/progress_bar_2"
-                android:indeterminateTint="#4900FF"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center|bottom"
-                android:layout_marginBottom="15dp"
-                android:visibility="visible"/>
-
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/editProfileIcon"
-                android:layout_width="75dp"
-                android:layout_height="75dp"
-                android:layout_gravity="center|bottom"
-                android:padding="2dp"
-                app:strokeWidth="3dp"
-                app:strokeColor="@android:color/darker_gray"
-                app:shapeAppearanceOverlay="@style/circleImageView"
-                tools:ignore="ImageContrastCheck"/>
-
         </FrameLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/userFirstNameLayout"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="12dp"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                >
+
+                <EditText
+                    android:id="@+id/userFirstName"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:background="@drawable/rounded_pill_purple_stroke"
+                    android:ems="10"
+                    android:hint="@string/first_name"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    tools:ignore="VisualLintTextFieldSize">
+                </EditText>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/userLastNameLayout"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="12dp"
+                android:layout_marginStart="4dp"
+                app:boxBackgroundColor="@android:color/transparent"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                >
+
+                <EditText
+                    android:id="@+id/userLastName"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:background="@drawable/rounded_pill_purple_stroke"
+                    android:ems="10"
+                    android:hint="@string/last_name"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    tools:ignore="VisualLintTextFieldSize">
+                </EditText>
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/profileNameLayout"
+            android:id="@+id/userBirthLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginVertical="12dp"
-            app:boxBackgroundColor="@android:color/transparent" >
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/editProfileFName"
-                    android:layout_width="175dp"
-                    android:layout_height="55dp"
-                    android:layout_marginHorizontal="20dp"
-                    android:background="@drawable/fill_box"
-                    android:ems="10"
-                    android:hint="First name"
-                    android:importantForAutofill="no"
-                    android:inputType="text"
-                    tools:ignore="VisualLintTextFieldSize">
-                </EditText>
-
-                <EditText
-                    android:id="@+id/editProfileLName"
-                    android:layout_width="175dp"
-                    android:layout_height="55dp"
-                    android:layout_marginHorizontal="0dp"
-                    android:background="@drawable/fill_box"
-                    android:ems="10"
-                    android:hint="Last name"
-                    android:importantForAutofill="no"
-                    android:inputType="text"
-                    tools:ignore="VisualLintTextFieldSize">
-                </EditText>
-
-            </LinearLayout>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/profileDOBLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="3dp"
-            app:boxBackgroundColor="@android:color/transparent" >
+            app:boxBackgroundColor="@android:color/transparent"
+            app:boxStrokeWidth="0dp"
+            app:boxStrokeWidthFocused="0dp"
+            >
 
             <EditText
-                android:id="@+id/editProfileDOB"
+                android:id="@+id/userBirth"
                 android:layout_width="match_parent"
-                android:layout_height="55dp"
+                android:layout_height="58dp"
                 android:layout_marginHorizontal="20dp"
-                android:background="@drawable/fill_box"
+                android:background="@drawable/rounded_pill_purple_stroke"
                 android:ems="10"
-                android:hint="Date of birth"
+                android:hint="@string/date_of_birth"
                 android:importantForAutofill="no"
                 android:inputType="text"
                 tools:ignore="VisualLintTextFieldSize">
             </EditText>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/profileEmailLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            app:boxBackgroundColor="@android:color/transparent" >
-
-            <EditText
-                android:id="@+id/editProfileEmail"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginHorizontal="20dp"
-                android:background="@drawable/fill_box"
-                android:ems="10"
-                android:hint="Email"
-                android:importantForAutofill="no"
-                android:inputType="textEmailAddress"
-                tools:ignore="VisualLintTextFieldSize">
-            </EditText>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <CheckBox
-            android:id="@+id/location_checkbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="10dp"
-            android:button="@drawable/checkbox_selector"
-            android:text="  Allow location access"
-            android:textSize="16sp"
-            android:textColor="@color/gray_01"
-            android:checked="true"
-            android:visibility="invisible"/>
 
         <Button
             android:id="@+id/delete_button"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="80dp"
             android:layout_marginHorizontal="20dp"
-            android:text="Delete account"
+            android:textStyle="bold"
+            android:text="@string/delete_account"
             android:textSize="16sp"
             android:layout_marginTop="90dp"
             android:backgroundTint="@color/red"
-            app:cornerRadius="12dp"/>
+            app:cornerRadius="16dp"/>
 
     </LinearLayout>
 

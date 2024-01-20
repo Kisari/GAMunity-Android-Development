@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.views.LoginView;
+import rmitcom.asm1.gamunity.components.views.profile.EditProfileView;
 import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
 
 public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
@@ -36,6 +37,9 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
         currentView = view;
 
+        Intent testIntent = new Intent(view.getContext(), EditProfileView.class);
+        startActivity(testIntent);
+
         setUI();
         // Inflate the layout for this fragment
         return view;
@@ -48,15 +52,15 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
 
     @Override
     public void setUI() {
-        TextView tempText = currentView.findViewById(R.id.tempTextLogout);
-        final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-        tempText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                userAuth.signOut();
-                Intent newIntent = new Intent(getContext(), LoginView.class);
-                startActivity(newIntent);
-            }
-        });
+//        TextView tempText = currentView.findViewById(R.id.tempTextLogout);
+//        final FirebaseAuth userAuth = FirebaseAuth.getInstance();
+//        tempText.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                userAuth.signOut();
+//                Intent newIntent = new Intent(getContext(), LoginView.class);
+//                startActivity(newIntent);
+//            }
+//        });
     }
 }
