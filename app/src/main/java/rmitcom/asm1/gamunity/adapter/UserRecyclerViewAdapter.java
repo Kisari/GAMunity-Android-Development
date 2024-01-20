@@ -472,6 +472,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             }
             else {
                 accessIntent = new Intent(context, ChatView.class);
+                accessIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
+
                 String otherId = currUser.getUserId();
                 String chatId = "";
 
@@ -512,6 +514,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 
             }
             context.startActivity(accessIntent);
+            ((Activity) context).finish();
         }
     }
 }

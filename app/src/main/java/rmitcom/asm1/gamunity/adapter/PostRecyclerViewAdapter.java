@@ -38,7 +38,6 @@ import rmitcom.asm1.gamunity.model.Post;
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostRecyclerViewHolder> {
     private final Context context;
     private ArrayList<Post> postContent;
-
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
@@ -218,7 +217,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                         if (document != null) {
                             holder.username.setText((String) document.get("name"));
 
-                            userImgUri = document.getString("image");
+                            userImgUri = document.getString("profileImgUri");
                             if (userImgUri != null) {
                                 try {
                                     holder.baseImage.setVisibility(View.INVISIBLE);

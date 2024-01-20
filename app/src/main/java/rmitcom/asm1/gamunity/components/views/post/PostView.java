@@ -241,7 +241,7 @@ public class PostView extends AppCompatActivity {
 
                                     if (userDocument.exists()) {
                                         postUsernameStr = (String) userDocument.get("name");
-                                        postUserImageUri = userDocument.getString("image");
+                                        postUserImageUri = userDocument.getString("profileImgUri");
 
                                         if (postUsernameStr != null) {
                                             postUsername.setText(postUsernameStr);

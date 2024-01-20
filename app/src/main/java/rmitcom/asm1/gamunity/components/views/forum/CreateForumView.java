@@ -334,6 +334,22 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
 
     private void uploadBackgroundImage(Uri submitFilePath) {
 
+        String forumNameContent = forumName.getText().toString();
+        String forumDescriptionContent = forumDescription.getText().toString();
+        String forumTagListContent = forumCategories.getText().toString();
+        if(forumNameContent.trim().isEmpty()){
+            forumName.setError("Forum Name can not be empty");
+            return;
+        }
+        if(forumDescriptionContent.trim().isEmpty()){
+            forumDescription.setError("Forum Description can not be empty");
+            return;
+        }
+        if(forumTagListContent.trim().isEmpty()){
+            forumCategories.setError("Forum Categories must contain at least one");
+            return;
+        }
+
         if(submitFilePath != null)
         {
             final ProgressDialog progressDialog = new ProgressDialog(this);

@@ -22,6 +22,11 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SearchView;
 
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
@@ -191,7 +196,7 @@ public class ChatFragment extends Fragment {
             public void onClick(View v) {
                 //working in progress
                 Intent searchIntent = new Intent(getContext(), ChatSearchUser.class);
-                startActivity(searchIntent);
+                startActivityForResult(searchIntent, constant.CHAT_REQUEST);
             }
         });
     }
