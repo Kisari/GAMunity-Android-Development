@@ -533,15 +533,6 @@ public class ForumView extends AppCompatActivity {
                             }
                         }
 
-                        if (document.getString("chatId") != null) {
-                            String chatId = document.getString("chatId");
-
-                            if (chatId != null) {
-                                ChatView chatView = new ChatView();
-                                chatView.deleteChatRoomFromForum(chatId);
-                            }
-                        }
-
                         String backgroundImgUri = document.getString("forumBackground");
                         String iconImgUri = document.getString("forumIcon");
 
