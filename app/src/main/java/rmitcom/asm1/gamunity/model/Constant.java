@@ -26,6 +26,7 @@ public class Constant {
     public final int PICK_IMAGE_ICON_REQUEST = 102;
     public final int PICK_POST_IMAGE_REQUEST = 103;
     public final int PICK_COMMENT_IMAGE_REQUEST = 104;
+    public final int PICK_CHAT_IMAGE_REQUEST = 105;
 
     public Constant() {
     }

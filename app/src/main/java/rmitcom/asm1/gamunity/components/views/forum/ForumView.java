@@ -533,6 +533,15 @@ public class ForumView extends AppCompatActivity {
                             }
                         }
 
+                        if (document.getString("chatId") != null) {
+                            String chatId = document.getString("chatId");
+
+                            if (chatId != null) {
+                                ChatView chatView = new ChatView();
+                                chatView.deleteChatRoomFromForum(chatId);
+                            }
+                        }
+
                         String backgroundImgUri = document.getString("forumBackground");
                         String iconImgUri = document.getString("forumIcon");
 
@@ -574,8 +583,8 @@ public class ForumView extends AppCompatActivity {
                             chatId = document.getString("chatId");
 
                             if (chatId != null) {
-                                DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
-
+                                ChatView chatView = new ChatView();
+                                chatView.deleteChatRoomFromForum(chatId);
                             }
                         }
                     }
@@ -704,7 +713,6 @@ public class ForumView extends AppCompatActivity {
     forumData.update("moderatorIds", FieldValue.arrayRemove(userId));
 
     forumData.update("noJoined", FieldValue.increment(-1));
-
     }
 
     private void promoteToModerator() {

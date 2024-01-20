@@ -93,13 +93,15 @@
                 android:indeterminateTint="#4900FF"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:maxHeight="10000dp"
                 android:layout_gravity="center"
                 android:padding="30dp"
                 android:visibility="visible"/>
             <ImageView
                 android:id="@+id/postTabImage"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:maxHeight="10000dp"
                 android:importantForAccessibility="no"
                 android:scaleType="fitXY"/>
         </RelativeLayout>
