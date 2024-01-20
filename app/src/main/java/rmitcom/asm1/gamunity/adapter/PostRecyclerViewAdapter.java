@@ -218,7 +218,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
                         if (document != null) {
                             holder.username.setText((String) document.get("name"));
 
-                            userImgUri = document.getString("image");
+                            userImgUri = document.getString("profileImgUri");
                             if (userImgUri != null) {
                                 try {
                                     holder.baseImage.setVisibility(View.INVISIBLE);
