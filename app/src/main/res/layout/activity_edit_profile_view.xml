@@ -229,7 +229,8 @@
             android:text="  Allow location access"
             android:textSize="16sp"
             android:textColor="@color/gray_01"
-            android:checked="true" />
+            android:checked="true"
+            android:visibility="invisible"/>
 
         <Button
             android:id="@+id/delete_button"
