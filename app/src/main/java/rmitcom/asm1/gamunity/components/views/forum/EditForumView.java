@@ -41,13 +41,13 @@ import com.google.firebase.storage.StorageReference;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,7 +68,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
     private final Constant constant = new Constant();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
-    private String forumId, title, description, forumIconUri, forumBackgroundUri, backgroundUri, iconUri, forumNumberId;
+    private String forumId, title, description, forumIconUri, forumBackgroundUri, backgroundUri = "", iconUri = "", forumNumberId;
     private ArrayList<String> forumMemberIds, forumTagList;
     private ForumTagListAdapter tagListAdapter;
     private EditText forumTitle, forumDescription, forumCategory;
@@ -77,6 +77,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
     private ShapeableImageView forumIcon;
     private ProgressBar forumIconProgressBar, forumBackgroundProgressBar;
     private Uri backgroundFilePath, iconFilePath;
+    private boolean isUpdateImage, isUpdateIcon, isUpdateBackground;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -276,9 +277,18 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
             }
 
             if (isValid) {
-                uploadImage(backgroundFilePath, true);
-                uploadImage(iconFilePath, false);
-                addDataToFirebase();
+                if (isUpdateImage) {
+                    if (isUpdateIcon) {
+                        uploadIconImage(iconFilePath);
+                    }
+                    else {
+                        uploadBackgroundImage(backgroundFilePath);
+                    }
+                }
+                else {
+                    addDataToFirebase();
+
+                }
             }
         });
     }
@@ -292,10 +302,13 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
+        isUpdateImage = true;
         if(isBackground){
+            isUpdateBackground = true;
             startActivityForResult(Intent.createChooser(intent, "Select Picture"), constant.PICK_IMAGE_BACKGROUND_REQUEST);
         }
         else {
+            isUpdateIcon = true;
             startActivityForResult(Intent.createChooser(intent, "Select Picture"), constant.PICK_IMAGE_ICON_REQUEST);
         }
     }
@@ -333,16 +346,12 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
         }
     }
 
-    private void uploadImage(Uri submitFilePath, Boolean isBackground) {
+    private void uploadIconImage(Uri submitFilePath) {
         if(submitFilePath != null) {
             activityReference = new WeakReference<>(this);
             final ProgressDialog progressDialog = new ProgressDialog(this);
 
-            if (isBackground) {
-                progressDialog.setTitle("Uploading new background image...");
-            } else {
-                progressDialog.setTitle("Uploading new icon image...");
-            }
+            progressDialog.setTitle("Uploading new icon image...");
 
             progressDialog.show();
 
@@ -357,54 +366,91 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
                 Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
 
-                if (isBackground) {
-                    if (forumBackgroundUri != null) {
-                        String pattern = "images%2F(.*?)\\?";
-                        Pattern p = Pattern.compile(pattern);
-                        Matcher m = p.matcher(forumBackgroundUri);
+                if (forumIconUri != null) {
+                    String pattern = "images%2F(.*?)\\?";
+                    Pattern p = Pattern.compile(pattern);
+                    Matcher m = p.matcher(forumIconUri);
 
-                        if (m.find()) {
-                            String oldUri = m.group(1);
+                    if (m.find()) {
+                        String oldUri = m.group(1);
 
-                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                Log.i("Delete image", "Old image deleted successfully");
-                            }).addOnFailureListener(e -> {
-                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                            });
-                        }
+                        StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                        oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                            Log.i("Delete image", "Old image deleted successfully");
+                        }).addOnFailureListener(e -> {
+                            Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                        });
                     }
-
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        backgroundFilePath = uri;
-                        backgroundUri = backgroundFilePath.toString();
-                    });
-
-                } else {
-                    if (forumIconUri != null) {
-                        String pattern = "images%2F(.*?)\\?";
-                        Pattern p = Pattern.compile(pattern);
-                        Matcher m = p.matcher(forumIconUri);
-
-                        if (m.find()) {
-                            String oldUri = m.group(1);
-
-                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                Log.i("Delete image", "Old image deleted successfully");
-                            }).addOnFailureListener(e -> {
-                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                            });
-                        }
-                    }
-
-                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        iconFilePath = uri;
-                        forumIconUri = iconFilePath.toString();
-                    });
                 }
 
-//                addDataToFirebase();
+                storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    iconFilePath = uri;
+                    iconUri = iconFilePath.toString();
+                    Log.i(TAG, "edit forum - backgroundUri: " + backgroundUri);
+                    if (isUpdateBackground) {
+                        uploadBackgroundImage(backgroundFilePath);
+                    }
+                    else {
+                        addDataToFirebase();
+                    }
+                });
+
+            }).addOnFailureListener(e -> {
+                progressDialog.dismiss();
+                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
+
+            }).addOnProgressListener(taskSnapshot -> {
+                double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
+                        .getTotalByteCount());
+                progressDialog.setMessage("Uploaded "+(int)progress+"%");
+
+            });
+        }
+    }
+
+    private void uploadBackgroundImage(Uri submitFilePath) {
+        if(submitFilePath != null) {
+            activityReference = new WeakReference<>(this);
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+
+            progressDialog.setTitle("Uploading new background image...");
+
+            progressDialog.show();
+
+            StorageReference storageRef = storage.getReference().child("images/"+ UUID.randomUUID().toString());
+
+            storageRef.putFile(submitFilePath).addOnSuccessListener(taskSnapshot -> {
+                Activity activity = activityReference.get();
+
+                if (activity != null && !activity.isFinishing() && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+
+                Toast.makeText(this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+
+                if (forumBackgroundUri != null) {
+                    String pattern = "images%2F(.*?)\\?";
+                    Pattern p = Pattern.compile(pattern);
+                    Matcher m = p.matcher(forumBackgroundUri);
+
+                    if (m.find()) {
+                        String oldUri = m.group(1);
+
+                        StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                        oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                            Log.i("Delete image", "Old image deleted successfully");
+                        }).addOnFailureListener(e -> {
+                            Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                        });
+                    }
+                }
+
+                storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    backgroundFilePath = uri;
+                    backgroundUri = backgroundFilePath.toString();
+                    Log.i(TAG, "edit forum - backgroundUri: " + backgroundUri);
+                    addDataToFirebase();
+                });
 
             }).addOnFailureListener(e -> {
                 progressDialog.dismiss();
@@ -428,11 +474,11 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
             data.put("category", forumTagList);
         }
         if (backgroundFilePath != null) {
-            data.put("forumBackground", backgroundFilePath.toString());
+            data.put("forumBackground", backgroundUri);
         }
 
         if (iconFilePath != null) {
-            data.put("forumIcon", iconFilePath.toString());
+            data.put("forumIcon", iconUri);
         }
 
         forumData.set(data, SetOptions.merge()).addOnCompleteListener(task -> {
