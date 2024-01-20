@@ -4,7 +4,6 @@ import com.google.firebase.Timestamp;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 
 @SuppressWarnings("unused")
 public class GroupChat implements Serializable {
