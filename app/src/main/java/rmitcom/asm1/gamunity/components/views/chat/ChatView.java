@@ -1,5 +1,6 @@
 package rmitcom.asm1.gamunity.components.views.chat;
 
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -12,10 +13,8 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -32,7 +31,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-//import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -53,7 +58,6 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,7 +80,7 @@ public class ChatView extends AppCompatActivity {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FirebaseStorage storage = FirebaseStorage.getInstance();
     private final String TAG = "Chat view";
     private WeakReference<Activity> activityReference;
     private DocumentReference chatData, forumData, currUserData, otherUserData;
@@ -94,6 +98,7 @@ public class ChatView extends AppCompatActivity {
     private GroupChat groupChat;
     private Uri chatImageFilePath, chatIconFilePath;
     private boolean isGroup, isNew, isIconSelected, isImageUpdate = false;
+    private int lastActionCode;
     private ChatMessageRecyclerViewAdapter adapter;
     private final Constant constant = new Constant();
 
@@ -218,6 +223,8 @@ public class ChatView extends AppCompatActivity {
                         Log.i(TAG, "chatView getOrCreateChatRoom: empty doc");
                         isNew = true;
 
+                        lastActionCode = constant.CREATE;
+
                         Map<String, Object> newChatroom = new HashMap<>();
 
                         chatMemberIds = new ArrayList<>();
@@ -254,6 +261,8 @@ public class ChatView extends AppCompatActivity {
                                                     chatModeratorIds.add(userId);
                                                 }
                                             }
+
+                                            chatTitleStr = forumName + "'s Group Chat";
 
                                             newChatroom.put("chatTitle", forumName + "'s Group Chat");
                                             chatTitle.setText(forumName + "'s Group Chat");
@@ -322,6 +331,7 @@ public class ChatView extends AppCompatActivity {
                                                     String name = dataName + "'s Chat";
                                                     Log.i(TAG, "chatName: " + name);
 
+                                                    chatTitleStr = name;
                                                     newChatroom.put("chatTitle", name);
                                                     chatTitle.setText(name);
 
@@ -576,6 +586,13 @@ public class ChatView extends AppCompatActivity {
         Log.i(TAG, "setMoreInfo - chatModeratorIds: " + chatModeratorIds);
         Log.i(TAG, "setMoreInfo - chatMemberIds: " + chatMemberIds);
 
+        if (isGroup) {
+            groupChat = new GroupChat(chatId, chatTitleStr, chatImgUri, true, forumId, null);
+        }
+        else {
+            groupChat = new GroupChat(chatId, chatTitleStr, chatImgUri, false, null, null);
+        }
+
         if ((chatAdminIds != null && chatAdminIds.contains(userId)) || (chatModeratorIds != null && chatModeratorIds.contains(userId))) {
             moreOptionBtn.setVisibility(View.VISIBLE);
             moreInfoBtn.setVisibility(View.GONE);
@@ -745,9 +762,10 @@ public class ChatView extends AppCompatActivity {
 
             deleteButton.setOnClickListener(v -> {
                 deleteChatRoom();
+                lastActionCode = constant.DELETE;
                 dialog.dismiss();
 
-                Intent deleteIntent = new Intent();
+                Intent deleteIntent;
                if (isGroup) {
                    if (forumId != null) {
                        deleteIntent = new Intent(ChatView.this, ForumView.class);
@@ -761,7 +779,7 @@ public class ChatView extends AppCompatActivity {
                else {
                    deleteIntent = new Intent(ChatView.this, ChatFragment.class);
                }
-                setResult(RESULT_OK, deleteIntent);
+                setResult(lastActionCode, deleteIntent);
                 finish();
             });
 
@@ -855,6 +873,9 @@ public class ChatView extends AppCompatActivity {
             public void onClick(View v) {
 //                Intent newIntent = new Intent(ChatView.this, ChatFragment.class);
 //                startActivity(newIntent);
+                Intent backIntent = new Intent();
+                backIntent.putExtra("newGroupChat", groupChat);
+                setResult(lastActionCode, backIntent);
                 finish();
 //                FragmentManager fragmentManager = getSupportFragmentManager();
 //                fragmentManager.popBackStack();

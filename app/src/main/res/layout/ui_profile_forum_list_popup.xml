@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".components.fragments.ProfileFragment">
+    android:layout_height="match_parent" >
 
     <RelativeLayout
         android:id="@+id/profileTop"
@@ -20,7 +19,7 @@
             android:layout_marginBottom="8dp"
             android:layout_marginTop="10dp"
             android:importantForAccessibility="no" />
-
+        
     </RelativeLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -37,7 +36,7 @@
                 android:id="@+id/profileInfo"
                 android:layout_width="match_parent"
                 android:layout_height="240dp">
-
+                
                 <Button
                     android:id="@+id/profileActionJoinedButton"
                     style="@style/TextAppearance.AppCompat.Subhead"
@@ -65,13 +64,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|end">
-
+                    
                     <TextView
                         android:id="@+id/profileMoreOption"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:drawableEndCompat="@drawable/more_option_icon" />
-
+                    
                 </RelativeLayout>
 
                 <ProgressBar
@@ -203,4 +202,4 @@
 
     </androidx.core.widget.NestedScrollView>
 
-</FrameLayout>
+</RelativeLayout>

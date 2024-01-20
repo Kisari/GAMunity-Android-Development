@@ -38,6 +38,7 @@ import rmitcom.asm1.gamunity.model.Notification;
 public class NotificationFragment extends Fragment implements FirebaseFetchAndSetUI {
     private NotificationListAdapter adapter;
     private ArrayList<Notification> notificationArrayList = new ArrayList<>();
+    private SwipeRefreshLayout swipeRefreshLayout;
     private final FireBaseManager db = new FireBaseManager();
     private final Constant constant = new Constant();
     View currentView;
@@ -100,6 +101,12 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
     }
 
     private void initializeNotification(){
+        swipeRefreshLayout = currentView.findViewById(R.id.refreshLayout);
+
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            recreate(requireActivity());
+        });
+
         db.getMsgProvider().getToken()
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -157,7 +164,6 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
 
         notificationListView.setOnItemClickListener((parent, view, position, id) ->
         {
-            Log.d(TAG, "Navigate to notification: " + id);
             updateTheReadNotification(position);
         });
     }

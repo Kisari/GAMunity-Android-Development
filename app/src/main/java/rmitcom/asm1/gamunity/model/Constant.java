@@ -8,6 +8,7 @@ public class Constant {
     public final int CREATE = 201;
     public final int EDIT = 203;
     public final int DELETE = 204;
+    public final int CHAT_REQUEST = 400;
     public final String forums = "FORUMS";
     public final String users = "USERS";
     public final String JOIN_FORUM = "JOIN_FORUM";

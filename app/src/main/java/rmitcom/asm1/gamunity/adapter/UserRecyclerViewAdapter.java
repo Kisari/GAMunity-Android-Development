@@ -131,19 +131,15 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                 }
             });
 
-            holder.userButton.setOnClickListener(new View.OnClickListener() {
-                @SuppressLint("NotifyDataSetChanged")
-                @Override
-                public void onClick(View v) {
-                    confirmChangeRole(currUser);
+            holder.userButton.setOnClickListener(v -> {
+                confirmChangeRole(currUser);
 //                    notifyDataSetChanged();
 
-                    Intent returnIntent = new Intent(context, ForumView.class);
-                    returnIntent.putExtra("forumId", forumId);
+                Intent returnIntent = new Intent(context, ForumView.class);
+                returnIntent.putExtra("forumId", forumId);
 
-                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
-                    ((Activity) context).finish();
-                }
+                ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                ((Activity) context).finish();
             });
         }
     }
@@ -472,6 +468,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             }
             else {
                 accessIntent = new Intent(context, ChatView.class);
+                accessIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
                 String otherId = currUser.getUserId();
                 String chatId = "";
 
@@ -512,6 +509,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 
             }
             context.startActivity(accessIntent);
+            ((Activity) context).finish();
         }
     }
 }
