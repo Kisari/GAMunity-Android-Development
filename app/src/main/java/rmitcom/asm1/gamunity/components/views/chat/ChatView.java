@@ -258,6 +258,7 @@ public class ChatView extends AppCompatActivity {
                                                 }
                                             }
 
+                                            chatTitleStr = forumName + "'s Group Chat";
                                             newChatroom.put("chatTitle", forumName + "'s Group Chat");
                                             chatTitle.setText(forumName + "'s Group Chat");
 
@@ -323,6 +324,7 @@ public class ChatView extends AppCompatActivity {
                                                     Log.i(TAG, "chatName: " + dataName);
 
                                                     String name = dataName + "'s Chat";
+                                                    chatTitleStr = name;
                                                     Log.i(TAG, "chatName: " + name);
 
                                                     newChatroom.put("chatTitle", name);
