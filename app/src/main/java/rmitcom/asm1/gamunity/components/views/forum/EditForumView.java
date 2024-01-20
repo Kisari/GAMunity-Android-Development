@@ -20,11 +20,14 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -245,7 +248,6 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
     private void convertData() {
         title = forumTitle.getText().toString();
         description = forumDescription.getText().toString();
-
     }
 
     private void updatePost() {
@@ -283,7 +285,6 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
     private void addImage() {
         forumIconButton.setOnClickListener(v -> chooseImageFromFile(false));
-
         forumBackgroundButton.setOnClickListener(v -> chooseImageFromFile(true));
     }
 
@@ -434,7 +435,6 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
             data.put("forumIcon", iconFilePath.toString());
         }
 
-
         forumData.set(data, SetOptions.merge()).addOnCompleteListener(task -> {
             if(task.isSuccessful()){
                 dbManager.getDb().collection("users")
@@ -457,12 +457,36 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
                                         dbManager.sendNotificationToDevice(newNotification, userName, constant.EDIT_FORUM);
                                     }
                                     Toast.makeText(EditForumView.this, "Sent notification to members",Toast.LENGTH_SHORT).show();
-                                    Intent returnIntent = new Intent(EditForumView.this, ForumView.class);
-                                    setResult(RESULT_OK, returnIntent);
-                                    finish();
                                 }
                             }
                         });
+            }
+        });
+
+        forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+
+                    if (document.exists()) {
+                        String chatId = document.getString("chatId");
+                        String iconImg = document.getString("forumIcon");
+                        Log.i(TAG, "edit forum - chatId: " + chatId);
+                        Log.i(TAG, "edit forum - title: " + title);
+                        Log.i(TAG, "edit forum - forumIcon: " + iconImg);
+
+                        if (chatId != null) {
+                            DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+                            chatData.update("chatTitle", title + "'s Group Chat");
+                            chatData.update("chatImg", iconImg);
+
+                            Intent returnIntent = new Intent(EditForumView.this, ForumView.class);
+                            setResult(RESULT_OK, returnIntent);
+                            finish();
+                        }
+                    }
+                }
             }
         });
     }

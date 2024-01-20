@@ -194,36 +194,36 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
         newMemberIdsList[forum.getMemberIds().size()] = db.getCurrentUser().getUid();
         CollectionReference ref = db.getDb().collection(constant.forums);
         ref.whereEqualTo("forumId", forum.getForumId())
-            .get()
-            .addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    for (QueryDocumentSnapshot returnDocument : task.getResult()) {
-                        Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
-                        newMemberIds.put("noJoined", newMemberIdsList.length);
-                        ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
-                            if(joinTask.isSuccessful()){
-                                updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
-                                String avatarUrl = "https://firebasestorage.googleapis.com/v0/b/gamunity-1c175.appspot.com/o/forumIcon1.png?alt=media&token=1ebe3d13-3264-4646-9d63-ecbef8f5c8e4";
-                                db.getDb().collection("users")
-                                    .whereEqualTo("userId", db.getCurrentUser().getUid())
-                                    .get()
-                                    .addOnCompleteListener(checkingUser -> {
-                                        if(checkingUser.isSuccessful()){
-                                            for (QueryDocumentSnapshot document: checkingUser.getResult()){
-                                                String userName = document.getString("name");
-                                                String notificationBody = userName + " become a new member of " + forum.getTitle();
-                                                Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString(), forum.getForumId());
-                                                db.sendNotificationToDevice(newNotification, userName, constant.JOIN_FORUM);
-                                                Toast.makeText(currentView.getContext(), "You join " + forum.getTitle(),Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                    });
-                            }
-                        });
+                .get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        for (QueryDocumentSnapshot returnDocument : task.getResult()) {
+                            Map<String, Object> newMemberIds = new HashMap<>();
+                            newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
+                            newMemberIds.put("noJoined", newMemberIdsList.length);
+                            ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
+                                if(joinTask.isSuccessful()){
+                                    updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
+                                    String avatarUrl = "https://firebasestorage.googleapis.com/v0/b/gamunity-1c175.appspot.com/o/forumIcon1.png?alt=media&token=1ebe3d13-3264-4646-9d63-ecbef8f5c8e4";
+                                    db.getDb().collection("users")
+                                            .whereEqualTo("userId", db.getCurrentUser().getUid())
+                                            .get()
+                                            .addOnCompleteListener(checkingUser -> {
+                                                if(checkingUser.isSuccessful()){
+                                                    for (QueryDocumentSnapshot document: checkingUser.getResult()){
+                                                        String userName = document.getString("name");
+                                                        String notificationBody = userName + " become a new member of " + forum.getTitle();
+                                                        Notification newNotification = new Notification("Join the forum", avatarUrl, notificationBody, db.getCurrentUser().getUid(), forum.getChiefAdmin(), false, Calendar.getInstance().getTime().toString(), forum.getForumId());
+                                                        db.sendNotificationToDevice(newNotification, userName, constant.JOIN_FORUM);
+                                                        Toast.makeText(currentView.getContext(), "You join " + forum.getTitle(),Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
+                                }
+                            });
+                        }
                     }
-                }
-            });
+                });
     }
 
     public void unJoinForum(Forum forum, AlertDialog dialog){
@@ -231,23 +231,23 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
 
         CollectionReference ref = db.getDb().collection(constant.forums);
         ref.whereEqualTo("forumId", forum.getForumId())
-            .get()
-            .addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    for (QueryDocumentSnapshot returnDocument : task.getResult()) {
-                        Map<String, Object> newMemberIds = new HashMap<>();
-                        newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
-                        newMemberIds.put("noJoined", newMemberIdsList.length);
-                        ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
-                            if(joinTask.isSuccessful()){
-                                updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
-                                dialog.dismiss();
-                                Toast.makeText(currentView.getContext(), "You leave " + forum.getTitle(),Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                .get()
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        for (QueryDocumentSnapshot returnDocument : task.getResult()) {
+                            Map<String, Object> newMemberIds = new HashMap<>();
+                            newMemberIds.put("memberIds", Arrays.asList(newMemberIdsList));
+                            newMemberIds.put("noJoined", newMemberIdsList.length);
+                            ref.document(returnDocument.getId()).set(newMemberIds, SetOptions.merge()).addOnCompleteListener(joinTask -> {
+                                if(joinTask.isSuccessful()){
+                                    updateTheForumMemberList(forum.getForumId(), newMemberIdsList);
+                                    dialog.dismiss();
+                                    Toast.makeText(currentView.getContext(), "You leave " + forum.getTitle(),Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                     }
-                }
-            });
+                });
     }
 
     public static String[] removeItemFromArray(String[] input, String item) {

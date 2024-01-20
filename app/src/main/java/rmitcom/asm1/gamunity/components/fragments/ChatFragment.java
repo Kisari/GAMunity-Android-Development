@@ -7,22 +7,29 @@ import static androidx.core.app.ActivityCompat.recreate;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.SearchView;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.SearchView;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
@@ -30,16 +37,16 @@ import java.util.Collections;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.ChatRoomRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.views.chat.ChatSearchUser;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.GroupChat;
+import rmitcom.asm1.gamunity.model.Post;
+import rmitcom.asm1.gamunity.model.User;
 
 public class ChatFragment extends Fragment {
-//    private final FireBaseManager dbManager = new FireBaseManager();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-//    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-//    private final String userId = userAuth.getUid();
     private final FireBaseManager manager = new FireBaseManager();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData, chatRoomData;
@@ -49,9 +56,8 @@ public class ChatFragment extends Fragment {
     private ArrayList<String> chatGroupIds;
     private  ArrayList<GroupChat> chatGroupList = new ArrayList<>();
     private ChatRoomRecyclerViewAdapter adapter;
-    private final Constant constant = new Constant();
-
     private SwipeRefreshLayout swipeRefreshLayout;
+    private final Constant constant = new Constant();
     View currentView;
     public ChatFragment() {
         // Required empty public constructor
@@ -82,7 +88,6 @@ public class ChatFragment extends Fragment {
 
         String userId = manager.getCurrentUser().getUid();
 
-
         userData = db.collection("users").document(userId);
 
         setData(userData);
@@ -100,26 +105,27 @@ public class ChatFragment extends Fragment {
     }
 
     private void setData(DocumentReference userData) {
-        userData.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
+        userData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
 
-                chatGroupIds = new ArrayList<>();
+                    chatGroupIds = new ArrayList<>();
 
-                if (document.exists()) {
-                    if (document.get("chatGroupIds") != null) {
-                        chatGroupIds = (ArrayList<String>) document.get("chatGroupIds");
+                    if (document.exists()) {
+                        if (document.get("chatGroupIds") != null) {
+                            chatGroupIds = (ArrayList<String>) document.get("chatGroupIds");
 
-                        Log.d(TAG, "setData: " + chatGroupIds);
+                            if (chatGroupIds != null) {
+                                chatGroupList = new ArrayList<>();
 
-                        if (chatGroupIds != null) {
-                            chatGroupList = new ArrayList<>();
+                                for (String chatId: chatGroupIds) {
+                                    getChatRoomData(chatId);
+                                }
 
-                            for (String chatId: chatGroupIds) {
-                                getChatRoomData(chatId);
+                                initChatSearch(chatGroupList);
                             }
-
-                            initChatSearch(chatGroupList);
                         }
                     }
                 }
@@ -129,51 +135,51 @@ public class ChatFragment extends Fragment {
 
     private void getChatRoomData(String chatId) {
         if (chatId != null) {
-            db.collection("CHATROOMS").document(chatId).get().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+            db.collection("CHATROOMS").document(chatId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
 
-//                        String chatTitle = "", chatImage = "", forumId = "";
+                        if (document.exists()) {
+                            String chatTitle = document.getString("chatTitle");
+                            String chatImage = document.getString("chatImg");
+                            Timestamp chatTimestamp = (Timestamp) document.get("lastTimestamp");
+                            boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
 
-                    if (document.exists()) {
-                        String chatTitle = document.getString("chatTitle");
-                        String chatImage = document.getString("chatImg");
-                        Timestamp chatTimestamp = (Timestamp) document.get("lastTimestamp");
-                        boolean isGroup = Boolean.TRUE.equals(document.getBoolean("isGroup"));
+                            Log.i("Chat", "chatName - exist: " + chatTitle);
+                            String forumId;
 
-                        Log.i("Chat", "chatName - exist: " + chatTitle);
-                        String forumId;
+                            GroupChat groupChat;
+                            if (isGroup) {
+                                forumId = document.getString("dataId");
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, true, forumId, chatTimestamp);
+                            }
+                            else {
+                                groupChat = new GroupChat(chatId, chatTitle, chatImage, false, null, chatTimestamp);
+                            }
 
-                        GroupChat groupChat;
-                        if (isGroup) {
-                            forumId = document.getString("dataId");
-                            groupChat = new GroupChat(chatId, chatTitle, chatImage, true, forumId, chatTimestamp);
+                            Collections.sort(chatGroupList, (groupChat1, groupChat2)
+                                    -> groupChat2.compareTo(groupChat1));
+
+                            int index = Collections.binarySearch(chatGroupList, groupChat, (groupChat1, groupChat2)
+                                    -> groupChat2.compareTo(groupChat1));
+
+                            int insertionPoint = (index < 0) ? -index : index;
+
+                            if (insertionPoint >= chatGroupList.size()) {
+                                chatGroupList.add(groupChat);
+                            } else {
+                                chatGroupList.add(insertionPoint, groupChat);
+                            }
+
                         }
-                        else {
-                            groupChat = new GroupChat(chatId, chatTitle, chatImage, false, null, chatTimestamp);
+
+                        if (chatGroupList.size() == chatGroupIds.size()) {
+                            setupList(chatGroupList);
                         }
 
-                        Collections.sort(chatGroupList, (groupChat1, groupChat2)
-                                -> groupChat2.compareTo(groupChat1));
-
-                        int index = Collections.binarySearch(chatGroupList, groupChat, (groupChat1, groupChat2)
-                                -> groupChat2.compareTo(groupChat1));
-
-                        int insertionPoint = (index < 0) ? -index : index;
-
-                        if (insertionPoint >= chatGroupList.size()) {
-                            chatGroupList.add(groupChat);
-                        } else {
-                            chatGroupList.add(insertionPoint, groupChat);
-                        }
-
-//                            chatGroupList.add(groupChat);
                     }
-
-                    if (chatGroupList.size() == chatGroupIds.size()) {
-                        setupList(chatGroupList);
-                    }
-
                 }
             });
         }
@@ -185,7 +191,7 @@ public class ChatFragment extends Fragment {
             public void onClick(View v) {
                 //working in progress
                 Intent searchIntent = new Intent(getContext(), ChatSearchUser.class);
-                startActivityForResult(searchIntent, constant.CHAT_REQUEST);
+                startActivity(searchIntent);
             }
         });
     }

@@ -9,7 +9,8 @@
     <LinearLayout
         android:id="@+id/otherLayout"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="50dp">
         <RelativeLayout
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -47,7 +48,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginEnd="50dp"
             android:orientation="vertical">
             <TextView
                 android:id="@+id/otherUserName"
@@ -57,11 +57,13 @@
                 android:text="Username"
                 android:textSize="15sp"/>
             <LinearLayout
+                android:id="@+id/otherTextLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/rounded_pill_white_stroke"
                 android:paddingHorizontal="10dp"
-                android:paddingVertical="5dp">
+                android:paddingVertical="5dp"
+                android:visibility="gone">
                 <TextView
                     android:id="@+id/otherChat"
                     android:layout_width="wrap_content"
@@ -69,27 +71,30 @@
                     android:textSize="20sp"
                     android:textColor="@color/black"
                     android:padding="5dp"/>
-                <RelativeLayout
-                    android:id="@+id/otherPictureLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone">
-                    <ProgressBar
-                        android:id="@+id/otherPictureProgressBar"
-                        android:indeterminateTint="#4900FF"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:padding="30dp"
-                        android:visibility="visible"/>
-                    <ImageView
-                        android:id="@+id/otherPicture"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:importantForAccessibility="no"
-                        android:scaleType="fitXY"/>
-                </RelativeLayout>
             </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/otherPictureLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+                <ProgressBar
+                    android:id="@+id/otherPictureProgressBar"
+                    android:indeterminateTint="#4900FF"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:maxHeight="1000dp"
+                    android:layout_gravity="center"
+                    android:padding="30dp"
+                    android:visibility="visible"/>
+                <ImageView
+                    android:id="@+id/otherPicture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxHeight="1000dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerInside"
+                    android:adjustViewBounds="true"/>
+            </RelativeLayout>
         </LinearLayout>
     </LinearLayout>
     
@@ -99,12 +104,14 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true">
         <LinearLayout
+            android:id="@+id/userTextLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/rounded_pill_gradient_background"
             android:paddingHorizontal="10dp"
             android:paddingVertical="5dp"
-            android:layout_marginStart="50dp">
+            android:layout_marginStart="50dp"
+            android:visibility="gone">
             <TextView
                 android:id="@+id/userChat"
                 android:layout_width="wrap_content"
@@ -112,27 +119,31 @@
                 android:textSize="20sp"
                 android:textColor="@color/white"
                 android:padding="5dp"/>
-            <RelativeLayout
-                android:id="@+id/userPictureLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone">
-                <ProgressBar
-                    android:id="@+id/userPictureProgressBar"
-                    android:indeterminateTint="#4900FF"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:padding="30dp"
-                    android:visibility="visible"/>
-                <ImageView
-                    android:id="@+id/userPicture"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:importantForAccessibility="no"
-                    android:scaleType="fitXY"/>
-            </RelativeLayout>
         </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/userPictureLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginStart="50dp">
+            <ProgressBar
+                android:id="@+id/userPictureProgressBar"
+                android:indeterminateTint="#4900FF"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:maxHeight="1000dp"
+                android:layout_gravity="center"
+                android:padding="30dp"
+                android:visibility="visible"/>
+            <ImageView
+                android:id="@+id/userPicture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxHeight="1000dp"
+                android:importantForAccessibility="no"
+                android:scaleType="centerInside"
+                android:adjustViewBounds="true"/>
+        </RelativeLayout>
     </LinearLayout>
 
 </RelativeLayout>

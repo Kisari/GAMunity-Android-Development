@@ -55,21 +55,24 @@ public class ChatSearchUser extends AppCompatActivity {
     }
 
     private void setPageData() {
-        db.collection("users").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                userList = new ArrayList<>();
+        db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    userList = new ArrayList<>();
 
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    String userId = document.getId();
-                    if (!userId.equals(currUserId)) {
-                        String userName = document.getString("name");
-                        String userImg = document.getString("profileImgUri");
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        String userId = document.getId();
+                        if (!userId.equals(currUserId)) {
+                            String userName = document.getString("name");
+                            String userImg = document.getString("profileImgUri");
 
-                        User user = new User(userId, userName, userImg);
-                        userList.add(user);
+                            User user = new User(userId, userName, userImg);
+                            userList.add(user);
+                        }
                     }
+                    setupList(userList, userListView);
                 }
-                setupList(userList, userListView);
             }
         });
     }

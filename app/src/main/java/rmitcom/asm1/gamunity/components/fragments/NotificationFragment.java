@@ -2,8 +2,6 @@ package rmitcom.asm1.gamunity.components.fragments;
 
 import static android.content.ContentValues.TAG;
 
-import static androidx.core.app.ActivityCompat.recreate;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
@@ -20,7 +18,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -41,8 +38,6 @@ import rmitcom.asm1.gamunity.model.Notification;
 public class NotificationFragment extends Fragment implements FirebaseFetchAndSetUI {
     private NotificationListAdapter adapter;
     private ArrayList<Notification> notificationArrayList = new ArrayList<>();
-
-    private SwipeRefreshLayout swipeRefreshLayout;
     private final FireBaseManager db = new FireBaseManager();
     private final Constant constant = new Constant();
     View currentView;
@@ -105,13 +100,6 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
     }
 
     private void initializeNotification(){
-
-        swipeRefreshLayout = currentView.findViewById(R.id.refreshLayout);
-
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            recreate(requireActivity());
-        });
-
         db.getMsgProvider().getToken()
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -169,10 +157,9 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
 
         notificationListView.setOnItemClickListener((parent, view, position, id) ->
         {
+            Log.d(TAG, "Navigate to notification: " + id);
             updateTheReadNotification(position);
         });
-
-        swipeRefreshLayout.setRefreshing(false);
     }
 
 

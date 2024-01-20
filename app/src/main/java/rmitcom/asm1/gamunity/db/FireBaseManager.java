@@ -144,25 +144,20 @@ public class FireBaseManager extends FirebaseMessagingService {
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Log.d(TAG, "Notification Message Title: " + Objects.requireNonNull(remoteMessage.getNotification()).getTitle());
         Log.d(TAG, "Notification Message Body: " + remoteMessage.getNotification().getBody());
-        String default_id = "DEFAULT_ID";
-
-        NotificationManager notificationManager = (NotificationManager) getBaseContext().getSystemService(NOTIFICATION_SERVICE);
-
-        NotificationChannel mChannel = new NotificationChannel(default_id, "GAMunity", NotificationManager.IMPORTANCE_HIGH);
-        mChannel.enableLights(true);
-        mChannel.setLightColor(Color.RED);
-        mChannel.enableVibration(true);
-        mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-        mChannel.setShowBadge(false);
-
-        notificationManager.createNotificationChannel(mChannel);
-
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getBaseContext())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(remoteMessage.getNotification().getTitle())
-                .setContentText(remoteMessage.getNotification().getBody())
-                .setChannelId(default_id);
-
+                .setContentText(remoteMessage.getNotification().getBody());
+        NotificationManager notificationManager = (NotificationManager) getBaseContext().getSystemService(NOTIFICATION_SERVICE);
+        if(Build.VERSION.SDK_INT >= 26) {
+            NotificationChannel mChannel = new NotificationChannel("DEFAULT_ID", "GAMunity", NotificationManager.IMPORTANCE_HIGH);
+            mChannel.enableLights(true);
+            mChannel.setLightColor(Color.RED);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            mChannel.setShowBadge(false);
+            notificationManager.createNotificationChannel(mChannel);
+        }
         notificationManager.notify(0, builder.build());
     }
 

@@ -35,76 +35,6 @@ import com.google.firebase.storage.FirebaseStorage;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
-//public class ChatMessageRecyclerViewAdapter extends FirestoreRecyclerAdapter<Message, ChatMessageRecyclerViewAdapter.ChatMessageRecyclerViewHolder> {
-//    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-//    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-//    private final String userId = userAuth.getUid();
-//    private FirebaseStorage storage = FirebaseStorage.getInstance();
-//    private final Context context;
-//
-//    public ChatMessageRecyclerViewAdapter(@NonNull FirestoreRecyclerOptions<Message> options, Context context) {
-//        super(options);
-//        this.context = context;
-//    }
-//
-//    @NonNull
-//    @Override
-//    public ChatMessageRecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-//        View view = LayoutInflater.from(context).inflate(R.layout.ui_chat_message_row,parent,false);
-//        return new ChatMessageRecyclerViewHolder(view);
-//    }
-//
-//    @Override
-//    protected void onBindViewHolder(@NonNull ChatMessageRecyclerViewHolder holder, int position, @NonNull Message model) {
-//        if (model.getMessageOwnerId().equals(userId)) {
-//            Log.i("Message body", "isCurrUser: " + userId);
-//            holder.userLayout.setVisibility(View.VISIBLE);
-//            holder.otherLayout.setVisibility(View.GONE);
-//
-//            holder.userChat.setText(model.getMessageContent());
-//        }
-//        else {
-//            Log.i("Message body", "isOtherUser: " + model.getMessageOwnerId());
-//            holder.userLayout.setVisibility(View.GONE);
-//            holder.otherLayout.setVisibility(View.VISIBLE);
-//
-//            holder.otherChat.setText(model.getMessageContent());
-//        }
-//    }
-//
-//    @Override
-//    public int getItemCount() {
-//        return 0;
-//    }
-//
-//    public class ChatMessageRecyclerViewHolder extends RecyclerView.ViewHolder {
-//        LinearLayout userLayout, otherLayout;
-//        ImageView userBaseImg, otherBaseImg;
-//        ProgressBar userProgressBar, otherProgressBar;
-//        ShapeableImageView userImage, otherImage;
-//        TextView userChat, otherChat;
-//        public ChatMessageRecyclerViewHolder(@NonNull View itemView) {
-//            super(itemView);
-//
-//            userLayout = itemView.findViewById(R.id.userLayout);
-//            otherLayout = itemView.findViewById(R.id.otherLayout);
-//
-//            userBaseImg = itemView.findViewById(R.id.userBaseImg);
-//            otherBaseImg = itemView.findViewById(R.id.otherBaseImg);
-//
-//            userProgressBar = itemView.findViewById(R.id.userProgressBar);
-//            otherProgressBar = itemView.findViewById(R.id.otherProgressBar);
-//            userImage = itemView.findViewById(R.id.userImage);
-//            otherImage = itemView.findViewById(R.id.otherImage);
-//
-//            userChat = itemView.findViewById(R.id.userChat);
-//            otherChat = itemView.findViewById(R.id.otherChat);
-//
-//        }
-//    }
-//}
-
 public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMessageRecyclerViewAdapter.ChatMessageRecyclerViewHolder> {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
@@ -142,6 +72,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
 
                 if (isImage) {
                     try {
+                        holder.userTextLayout.setVisibility(View.GONE);
                         holder.userChat.setVisibility(View.GONE);
                         holder.userPictureLayout.setVisibility(View.VISIBLE);
                         new AsyncImage(holder.userPicture, holder.userPictureProgressBar).loadImage(messContent);
@@ -153,6 +84,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
                 }
                 else {
                     holder.userPictureLayout.setVisibility(View.GONE);
+                    holder.userTextLayout.setVisibility(View.VISIBLE);
                     holder.userChat.setVisibility(View.VISIBLE);
                     holder.userChat.setText(messContent);
                 }
@@ -164,6 +96,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
 
                 if (isImage) {
                     try {
+                        holder.otherTextLayout.setVisibility(View.GONE);
                         holder.otherChat.setVisibility(View.GONE);
                         holder.otherPictureLayout.setVisibility(View.VISIBLE);
                         new AsyncImage(holder.otherPicture, holder.otherPictureProgressBar).loadImage(messContent);
@@ -174,6 +107,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
                     }
                 }
                 else {
+                    holder.otherTextLayout.setVisibility(View.VISIBLE);
                     holder.otherPictureLayout.setVisibility(View.GONE);
                     holder.otherChat.setVisibility(View.VISIBLE);
                     holder.otherChat.setText(messContent);
@@ -184,9 +118,19 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
                     public void onSuccess(DocumentSnapshot document) {
                         if (document.exists()) {
                             String otherName = document.getString("name");
+                            String otherImg = document.getString("profileImgUri");
 
                             if (otherName != null) {
                                 holder.otherName.setText(otherName);
+                            }
+
+                            if (otherImg != null) {
+                                try {
+                                    new AsyncImage(holder.otherImage, holder.otherProgressBar).loadImage(otherImg);
+                                }
+                                catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
                     }
@@ -202,7 +146,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
     }
 
     public class ChatMessageRecyclerViewHolder extends RecyclerView.ViewHolder {
-        LinearLayout userLayout, otherLayout;
+        LinearLayout userLayout, otherLayout, userTextLayout, otherTextLayout;
         RelativeLayout userPictureLayout, otherPictureLayout;
         ProgressBar userPictureProgressBar, otherPictureProgressBar;
         ImageView otherBaseImg, userPicture, otherPicture;
@@ -217,6 +161,9 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
             otherLayout = itemView.findViewById(R.id.otherLayout);
 
             otherBaseImg = itemView.findViewById(R.id.otherBaseImg);
+
+            userTextLayout = itemView.findViewById(R.id.userTextLayout);
+            otherTextLayout = itemView.findViewById(R.id.otherTextLayout);
 
             otherProgressBar = itemView.findViewById(R.id.otherProgressBar);
             otherImage = itemView.findViewById(R.id.otherImage);
