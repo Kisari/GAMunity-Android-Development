@@ -26,12 +26,6 @@
             android:name=".components.views.chat.ChatSearchUser"
             android:exported="false" />
         <activity
-            android:name=".components.views.chat.EditChat"
-            android:exported="false" />
-        <activity
-            android:name=".components.views.chat.ChatSearchUser"
-            android:exported="false" />
-        <activity
             android:name=".components.views.forum.RemoveUser"
             android:exported="false" />
         <activity

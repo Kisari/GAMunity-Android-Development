@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="10dp"
+    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -16,23 +15,13 @@
             android:layout_width="0dp"
             android:layout_height="81dp"
             android:layout_weight="0.2">
-            <ImageView
-                android:id="@+id/baseImg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/account_base_img"
-                app:strokeWidth="3dp"
-                android:padding="5dp"
-                app:strokeColor="@android:color/darker_gray"
-                app:shapeAppearanceOverlay="@style/circleImageView"
-                tools:ignore="ImageContrastCheck"/>
             <ProgressBar
                 android:id="@+id/commentTabProgressBar1"
                 android:indeterminateTint="#4900FF"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="10dp"
-                android:visibility="invisible"/>
+                android:visibility="visible"/>
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/commentTabUserProfile"
                 android:layout_width="match_parent"
@@ -41,7 +30,6 @@
                 android:padding="5dp"
                 app:strokeColor="@android:color/darker_gray"
                 app:shapeAppearanceOverlay="@style/circleImageView"
-                android:visibility="invisible"
                 tools:ignore="ImageContrastCheck"/>
         </RelativeLayout>
 
@@ -68,16 +56,9 @@
                 android:id="@+id/commentTabDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20sp"
+                android:textSize="15dp"
                 android:padding="5dp"
                 android:hint="User comment"/>
-            <TextView
-                android:id="@+id/commentTabReply"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:text="Reply"
-                android:visibility="gone"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -90,7 +71,7 @@
         <RelativeLayout
             android:id="@+id/commentTabPicture"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="200dp"
             android:visibility="gone">
             <ProgressBar
                 android:id="@+id/commentTabProgressBar2"
@@ -143,7 +124,6 @@
                     android:gravity="center"
                     android:paddingHorizontal="5dp"
                     android:paddingVertical="2dp"
-                    android:visibility="invisible"
                     android:drawableStart="@drawable/chat_icon"/>
             </LinearLayout>
             <LinearLayout
@@ -171,39 +151,8 @@
                     android:visibility="invisible"
                     android:drawableStart="@drawable/dislike_fill_icon"/>
             </LinearLayout>
-            <TextView
-                android:id="@+id/commentTabShowMore"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:padding="5dp"
-                android:layout_marginEnd="5dp"
-                android:text="Show More"
-                android:visibility="gone"/>
-
         </RelativeLayout>
     </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/commentTabList"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/commentTabImgAndStat"
-        android:layout_marginStart="50dp"
-        android:padding="5dp"
-        android:nestedScrollingEnabled="false"
-        android:visibility="gone"/>
-    <TextView
-        android:id="@+id/commentTabShowLess"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/commentTabList"
-        android:layout_marginStart="50dp"
-        android:padding="5dp"
-        android:text="Show Less"
-        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/commentTabMoreOption"
@@ -213,6 +162,5 @@
         android:visibility="visible"
         android:padding="5dp"
         android:drawableStart="@drawable/more_option_icon"/>
-
 
 </RelativeLayout>
