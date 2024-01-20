@@ -443,9 +443,6 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                             }
                                         });
 
-//                                        chatData.update("memberIds", FieldValue.arrayRemove(currUserId));
-//                                        chatData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
-
                                     }
 
                                 }

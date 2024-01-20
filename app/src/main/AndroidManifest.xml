@@ -17,6 +17,9 @@
         android:theme="@style/Theme.GAMunity"
         tools:targetApi="31">
         <activity
+            android:name=".components.views.chat.AddMemberToGroupChat"
+            android:exported="false" />
+        <activity
             android:name=".components.views.chat.ChatMoreInfo"
             android:exported="false" />
         <activity
