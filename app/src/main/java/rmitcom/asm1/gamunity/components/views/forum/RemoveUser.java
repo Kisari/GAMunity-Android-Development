@@ -26,7 +26,7 @@ import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.model.User;
 
 public class RemoveUser extends AppCompatActivity {
-    private final String TAG = "Promote View";
+    private final String TAG = "Remove View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
