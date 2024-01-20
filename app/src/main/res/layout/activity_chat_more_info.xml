@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".components.views.forum.ForumMoreInfoView">
+    tools:context=".components.views.chat.ChatMoreInfo">
 
     <LinearLayout
         android:id="@+id/moreInfoTop"
@@ -13,7 +13,7 @@
         android:orientation="vertical"
         android:layout_alignParentTop="true">
         <ImageView
-            android:id="@+id/forumAppIcon"
+            android:id="@+id/chatAppIcon"
             android:layout_gravity="center"
             android:layout_width="292dp"
             android:layout_height="54dp"
@@ -30,10 +30,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/moreInfoTop">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <RelativeLayout
                 android:id="@+id/moreInfoForumTop"
                 android:layout_width="100dp"
@@ -69,56 +71,6 @@
                 android:paddingHorizontal="10dp"/>
 
             <LinearLayout
-                android:id="@+id/description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="10dp"
-                android:paddingBottom="5dp"
-                android:background="#c5c5c5"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:text="@string/description"
-                    android:textSize="20sp"
-                    android:background="@color/white"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/moreInfoDescription"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:background="@color/white"
-                    android:text="description of the forum"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/category"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:background="#c5c5c5"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:text="@string/category"
-                    android:background="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold"/>
-                <EditText
-                    android:id="@+id/moreInfoCategory"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/white"
-                    android:padding="5dp"
-                    android:text="categories of forum"/>
-            </LinearLayout>
-
-            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
@@ -140,7 +92,7 @@
                         android:background="@color/white"
                         android:textStyle="bold"/>
                     <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/moreInfoAdmin"
+                        android:id="@+id/moreInfoAdminList"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@color/white"
@@ -197,6 +149,7 @@
                         android:nestedScrollingEnabled="false"/>
                 </LinearLayout>
             </LinearLayout>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

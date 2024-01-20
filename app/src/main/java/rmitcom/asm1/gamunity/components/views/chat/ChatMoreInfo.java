@@ -1,4 +1,4 @@
-package rmitcom.asm1.gamunity.components.views.forum;
+package rmitcom.asm1.gamunity.components.views.chat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,61 +22,57 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import org.checkerframework.checker.units.qual.A;
-
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
-import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.model.Constant;
-import rmitcom.asm1.gamunity.model.Forum;
 import rmitcom.asm1.gamunity.model.User;
 
-public class ForumMoreInfoView extends AppCompatActivity {
-    private final String TAG = "Forum More Info View";
+public class ChatMoreInfo extends AppCompatActivity {
+    private final String TAG = "Chat More Info View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
-    private DocumentReference forumData;
-    private String forumId;
+    private DocumentReference chatData, userData;
+    private String chatId;
     private UserRecyclerViewAdapter adapter;
-    private String title, description, chiefAdminId, forumIconUri;
-    private ArrayList<String> adminId, memberIds, moderatorIds, category;
+    private String title, chatIconUri;
+    private ArrayList<String> adminIds, memberIds, moderatorIds;
     private ArrayList<User> adminList, moderatorList, memberList;
-    private TextView moreInfoTitle, moreInfoDescription, returnBackButton, moreInfoCategory, adminText, moderatorText, memberText;
-    private ShapeableImageView forumIcon;
-    private ProgressBar forumIconProgressBar;
-    private RecyclerView moreInfoModerators, moreInfoMembers, moreInfoAdmin;
+    private TextView moreInfoTitle, returnBackButton, adminText, moderatorText, memberText;
+    private ShapeableImageView chatIcon;
+    private ProgressBar chatIconProgressBar;
+    private RecyclerView moreInfoModerators, moreInfoMembers, moreInfoAdmins;
     private LinearLayout admin, moderator, member;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_forum_more_info_view);
+        setContentView(R.layout.activity_chat_more_info);
 
         Intent getIntent = getIntent();
         if (getIntent != null) {
-            forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
-            forumData = db.collection("FORUMS").document(forumId);
+            chatId = (String) Objects.requireNonNull(getIntent.getExtras()).get("chatId");
+            chatData = db.collection("CHATROOMS").document(chatId);
+            Log.i(TAG, "chatMoreInfo - chatId: " + chatId);
         }
 
         setUI();
+
     }
 
     private void setUI() {
         moreInfoTitle = findViewById(R.id.moreInfoTitle);
-        moreInfoDescription = findViewById(R.id.moreInfoDescription);
-        moreInfoCategory = findViewById(R.id.moreInfoCategory);
-        moreInfoAdmin = findViewById(R.id.moreInfoAdmin);
+        chatIcon = findViewById(R.id.moreInfoIconImage);
+        chatIconProgressBar = findViewById(R.id.moreInfoProgressBar1);
+
+        moreInfoAdmins = findViewById(R.id.moreInfoAdminList);
         moreInfoModerators = findViewById(R.id.moreInfoModeratorList);
         moreInfoMembers = findViewById(R.id.moreInfoMemberList);
         returnBackButton = findViewById(R.id.returnBack);
-
-        forumIcon = findViewById(R.id.moreInfoIconImage);
-        forumIconProgressBar = findViewById(R.id.moreInfoProgressBar1);
 
         admin = findViewById(R.id.admin);
         moderator = findViewById(R.id.moderator);
@@ -92,38 +88,18 @@ public class ForumMoreInfoView extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void setForumData() {
-        forumData.get().addOnCompleteListener(task -> {
+        chatData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
                 if (document.exists()) {
-                    title = (String) document.get("title");
-                    description = (String) document.get("description");
-
-                    forumIconUri = document.getString("forumIcon");
+                    title = (String) document.get("chatTitle");
+                    chatIconUri = document.getString("chatImg");
 
                     if (title != null) {
                         moreInfoTitle.setText(title);
                     }
 
-                    if (description != null) {
-                        moreInfoDescription.setText(description);
-                    }
-
-                    if (document.get("category") != null) {
-                        category = (ArrayList<String>) document.get("category");
-
-                        if (category != null) {
-                            StringBuilder categoryStr = new StringBuilder();
-                            if (category != null) {
-                                for (String cate: category) {
-                                    categoryStr.append("#").append(cate).append(" ");
-                                }
-                                moreInfoCategory.setText(categoryStr);
-                            }
-                        }
-                    }
-
-                    adminId = new ArrayList<>();
+                    adminIds = new ArrayList<>();
                     moderatorIds = new ArrayList<>();
                     memberIds = new ArrayList<>();
 
@@ -131,17 +107,33 @@ public class ForumMoreInfoView extends AppCompatActivity {
                     moderatorList = new ArrayList<>();
                     memberList = new ArrayList<>();
 
-                    if (document.getString("chiefAdmin") != null) {
-                        chiefAdminId = document.getString("chiefAdmin");
-                        adminId.add(chiefAdminId);
-                        adminText.setText("Admin - " + adminId.size());
-                        displayList(adminId, adminList, moreInfoAdmin);
+                    if (document.get("adminIds") != null) {
+                        adminIds = (ArrayList<String>) document.get("adminIds");
+                        Log.i(TAG, "chatMoreInfo - adminIds: " + adminIds);
+                        if (adminIds != null) {
+                            if (!adminIds.isEmpty()) {
+                                admin.setVisibility(View.VISIBLE);
+                                adminText.setText("Admin - " + adminIds.size());
+                                displayList(adminIds, adminList, moreInfoAdmins);
+                            }
+                            else {
+                                admin.setVisibility(View.GONE);
+                            }
+                        }
+                        else {
+                            admin.setVisibility(View.GONE);
+                        }
+                    }
+                    else {
+                        admin.setVisibility(View.GONE);
                     }
 
                     if (document.get("moderatorIds") != null) {
                         moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                        Log.i(TAG, "chatMoreInfo - moderatorIds: " + moderatorIds);
                         if (moderatorIds != null) {
                             if (!moderatorIds.isEmpty()) {
+                                moderator.setVisibility(View.VISIBLE);
                                 moderatorText.setText("Moderator - " + moderatorIds.size());
                                 displayList(moderatorIds, moderatorList, moreInfoModerators);
                             }
@@ -159,6 +151,7 @@ public class ForumMoreInfoView extends AppCompatActivity {
 
                     if (document.get("memberIds") != null) {
                         memberIds = (ArrayList<String>) document.get("memberIds");
+                        Log.i(TAG, "chatMoreInfo - memberIds: " + memberIds);
                         if (memberIds != null) {
                             if (!memberIds.isEmpty()) {
                                 member.setVisibility(View.VISIBLE);
@@ -178,7 +171,7 @@ public class ForumMoreInfoView extends AppCompatActivity {
                     }
 
                     try {
-                        new AsyncImage(forumIcon, forumIconProgressBar).loadImage(forumIconUri);
+                        new AsyncImage(chatIcon, chatIconProgressBar).loadImage(chatIconUri);
                     } catch (Exception e){
                         Log.e(TAG, "getView: ", e);
                         e.printStackTrace();
@@ -227,7 +220,7 @@ public class ForumMoreInfoView extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, false, false, forumId);
+        adapter = new UserRecyclerViewAdapter(this, userList, false, false, chatId);
         userListView.setAdapter(adapter);
     }
 

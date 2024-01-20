@@ -633,18 +633,20 @@ public class ChatView extends AppCompatActivity {
 //            moreInfoBtn.setVisibility(View.VISIBLE);
 //        }
 
+        moreInfoBtn.setOnClickListener(v -> accessChatMoreInfo());
+
         moreOptionBtn.setOnClickListener(v -> {
             popupMenu.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
 
                 if (itemId == R.id.chatMoreInfo) {
-
+                    accessChatMoreInfo();
                 } else if (itemId == R.id.chatUpdate) {
                     updateChatRoomPopup();
                 } else if (itemId == R.id.chatDelete) {
                     deleteChatAlert();
                 } else if (itemId == R.id.chatAddUser) {
-
+                    addMember();
                 }
 
                 return false;
@@ -652,6 +654,12 @@ public class ChatView extends AppCompatActivity {
 
             popupMenu.show();
         });
+    }
+
+    private void accessChatMoreInfo() {
+        Intent moreInfoIntent = new Intent(ChatView.this, ChatMoreInfo.class);
+        moreInfoIntent.putExtra("chatId", chatId);
+        startActivity(moreInfoIntent);
     }
 
     @SuppressLint("InflateParams")
@@ -945,6 +953,10 @@ public class ChatView extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void addMember() {
+
     }
 
     private void returnToPreviousPage() {

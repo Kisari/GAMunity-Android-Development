@@ -47,16 +47,16 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
     private final String userId = userAuth.getUid();
     private FirebaseStorage storage = FirebaseStorage.getInstance();
     private DocumentReference userData;
-    private String usernameStr, userProfileImgUri, forumId, otherUserId;
+    private String usernameStr, userProfileImgUri, dataId, otherUserId;
     private ArrayList<String> userIds;
     private boolean toAdmin, isChangeRole;
 
-    public UserRecyclerViewAdapter(Context context, ArrayList<User> userContent, boolean isChangeRole, boolean toAdmin, String forumId) {
+    public UserRecyclerViewAdapter(Context context, ArrayList<User> userContent, boolean isChangeRole, boolean toAdmin, String dataId) {
         this.context = context;
         this.userContent = userContent;
         this.isChangeRole = isChangeRole;
         this.toAdmin = toAdmin;
-        this.forumId = forumId;
+        this.dataId = dataId;
     }
 
     @NonNull
@@ -139,7 +139,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 //                    notifyDataSetChanged();
 
                     Intent returnIntent = new Intent(context, ForumView.class);
-                    returnIntent.putExtra("forumId", forumId);
+                    returnIntent.putExtra("forumId", dataId);
 
                     ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
                     ((Activity) context).finish();
@@ -157,11 +157,11 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 
         if (isChangeRole) {
             if (toAdmin) { //Change user from member to moderator
-                joinedIds.remove(forumId);
-                adminIds.add(forumId);
+                joinedIds.remove(dataId);
+                adminIds.add(dataId);
 
-                if (forumId != null) {
-                    DocumentReference forumData = db.collection("FORUMS").document(forumId);
+                if (dataId != null) {
+                    DocumentReference forumData = db.collection("FORUMS").document(dataId);
                     forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -248,18 +248,18 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                     });
 
                     DocumentReference userData = db.collection("users").document(currUserId);
-                    userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
-                    userData.update("adminForumIds", FieldValue.arrayUnion(forumId));
+                    userData.update("joinedForumIds", FieldValue.arrayRemove(dataId));
+                    userData.update("adminForumIds", FieldValue.arrayUnion(dataId));
                 }
 
                 notifyDataSetChanged();
             }
             else { //Change user from moderator to member
-                joinedIds.add(forumId);
-                adminIds.remove(forumId);
+                joinedIds.add(dataId);
+                adminIds.remove(dataId);
 
-                if (forumId != null) {
-                    DocumentReference forumData = db.collection("FORUMS").document(forumId);
+                if (dataId != null) {
+                    DocumentReference forumData = db.collection("FORUMS").document(dataId);
                     forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -346,8 +346,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                     });
 
                     DocumentReference userData = db.collection("users").document(currUserId);
-                    userData.update("joinedForumIds", FieldValue.arrayUnion(forumId));
-                    userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
+                    userData.update("joinedForumIds", FieldValue.arrayUnion(dataId));
+                    userData.update("adminForumIds", FieldValue.arrayRemove(dataId));
                 }
 
                 notifyDataSetChanged();
@@ -355,11 +355,11 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         }
         else {
             if (toAdmin) { //For remove user from forum
-                joinedIds.remove(forumId);
-                adminIds.remove(forumId);
+                joinedIds.remove(dataId);
+                adminIds.remove(dataId);
 
-                if (forumId != null) {
-                    DocumentReference forumData = db.collection("FORUMS").document(forumId);
+                if (dataId != null) {
+                    DocumentReference forumData = db.collection("FORUMS").document(dataId);
                     forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -396,8 +396,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 //                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
 
                                     DocumentReference userData = db.collection("users").document(currUserId);
-                                    userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
-                                    userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
+                                    userData.update("joinedForumIds", FieldValue.arrayRemove(dataId));
+                                    userData.update("adminForumIds", FieldValue.arrayRemove(dataId));
 
                                     String chatId = document.getString("chatId");
                                     Log.i("confirmChangeRole", "chatId: " + chatId);
@@ -467,7 +467,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
     private void accessInfoPage(User currUser) {
         if (!isChangeRole && !toAdmin) {
             Intent accessIntent;
-            if (forumId != null) {
+            if (dataId != null) {
                 accessIntent = new Intent(context, HomeFragment.class);
             }
             else {
