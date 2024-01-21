@@ -199,10 +199,10 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
 
         try{
             if(currentUser.getBackgroundImgUri() != null){
-                new AsyncImage(userIconBtn, iconProgress).loadImage(currentUser.getBackgroundImgUri());
+                new AsyncImage(userIconBtn, iconProgress).loadImage(currentUser.getProfileImgUri());
             }
             if(currentUser.getProfileImgUri() != null){
-                new AsyncImage(userBackground, backgroundProgress).loadImage(currentUser.getProfileImgUri());
+                new AsyncImage(userBackground, backgroundProgress).loadImage(currentUser.getBackgroundImgUri());
             }
         }
         catch (Exception e){
@@ -297,6 +297,8 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                     if(task.isSuccessful()){
                         Toast.makeText(EditProfileView.this, "Update your information", Toast.LENGTH_SHORT).show();
                         Intent backIntent = new Intent();
+                        User returnDataUser = new User(iconFilePath.toString(), backgroundFilePath.toString(), userFirstName.getText().toString() + userLastName.getText().toString(), userBirth.getText().toString());
+                        backIntent.putExtra("updatedInfo", returnDataUser);
                         setResult(constant.EDIT, backIntent);
                         finish();
                     }

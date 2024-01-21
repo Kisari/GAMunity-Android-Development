@@ -95,14 +95,10 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == constant.PROFILE_REQUEST) {
             if (resultCode == constant.EDIT) {
-                Intent resultIntent = new Intent();
-                User newUserData = (User) resultIntent.getSerializableExtra("updatedInfo");
+                User newUserData = (User) data.getSerializableExtra("updatedInfo");
 
-                assert newUserData != null;
                 profileName.setText(newUserData.getName());
                 profileDob.setText(newUserData.getDob());
                 new AsyncImage(profilePicture, iconProgressBar).loadImage(newUserData.getProfileImgUri());
