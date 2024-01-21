@@ -3,8 +3,6 @@ Truong Bach Minh - s3891909
 <br />
 <br />
 ## Functionalities
-<br />
-<br />
 **Home View**<br />
 -Forum Search: The users are able to search for the specific forum by its name. <br />
 -Forum Filter: The users are able to filter the specific tags that belong to Forum. <br />
