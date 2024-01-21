@@ -469,11 +469,20 @@ public class ChatView extends AppCompatActivity {
             }
         }
 
-        if (requestCode == 117 || requestCode == 118) {
-            if (resultCode == RESULT_OK) {
-                setUI();
-                recreate();
-            }
+        if (requestCode == 117 && resultCode == RESULT_OK) {
+            String newChatId = data.getStringExtra("chatId");
+
+            Intent chatIntent = new Intent(ChatView.this, ChatView.class);
+            chatIntent.putExtra("chatId", newChatId);
+            chatIntent.putExtra("isGroup", true);
+            chatIntent.putExtra("dataId", "");
+            startActivity(chatIntent);
+            finish();
+        }
+
+        if (requestCode == 118 && resultCode == RESULT_OK) {
+            setUI();
+            recreate();
         }
     }
 

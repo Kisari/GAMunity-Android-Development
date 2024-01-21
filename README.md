@@ -1,6 +1,8 @@
-GAMunity project
+# GAMunity project
+Truong Bach Minh - s3891909
 <br />
 <br />
+## Functionalities
 **Home View**<br />
 -Create a new forum: The user can create a new forum. The ceator will be set as chief admin of that forum.
 -Forum Search: The users are able to search for the specific forum by its name. <br />
@@ -8,11 +10,9 @@ GAMunity project
 -Join/UnJoin: The users can join or unjoin a forum directly in this page. <br />
 -Forum Detail: The users can click to the forum and navigate to the specific forum with details. <br />
 <br />
-<br />
 **Notification View**<br />
 -Notification click: The users can click to the notification to view the forum info.<br />
 -Push up notification: The users receive the nofication when the owner update forum info or someone join their own forum. <br />
-<br />
 <br />
 **Profile View**<br />
 -View other profile: The users can click the post owner in **Post View** to view their info.<br /> 
@@ -20,6 +20,7 @@ GAMunity project
 -View own forum: The users can click on the option menu to view their joined and owned forums.<br />
 -Update information: The users can update their own inforamtion.<br />
 -Delete acccount: The users can delete their account which can not be reverted.<br />
+<<<<<<< HEAD
 <br />
 **Forum View**<br />
 -Edit forum info: chief admin and moderators can edit some of the forum info (title, description, caterory, forum icon and forum background).<br />
@@ -43,3 +44,8 @@ GAMunity project
 **Chat View**
 -Display chats: A list of all the group chat (both individual or group) user be a part of.<br />
 -Search chats: 
+=======
+
+## Technologies
+**Glide**: Fast and efficient library support to load the image from the url with == HttpUrlConnection == and store in the memory for reusing in the near future
+>>>>>>> 8b2a1888017ccc2e8eca32bfbdeb9560ee192874
