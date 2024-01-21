@@ -19,3 +19,6 @@ Truong Bach Minh - s3891909
 -View own forum: The users can click on the option menu to view their joined and owned forums.<br />
 -Update information: The users can update their own inforamtion.<br />
 -Delete acccount: The users can delete their account which can not be reverted.<br />
+
+## Technologies
+**Glide**: Fast and efficient library support to load the image from the url with == HttpUrlConnection == and store in the memory for reusing in the near future
