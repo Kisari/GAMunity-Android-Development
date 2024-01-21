@@ -271,7 +271,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                             chatIntent.putExtra("dataId", "");
                                             ((Activity) context).startActivity(chatIntent);
 //                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
-                                            ((Activity) context).finish();
+//                                            ((Activity) context).finish();
                                         }
                                     }
                                 }
@@ -387,6 +387,58 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             else {
                 //Remove user from chat group
                 if (isChat) {
+                    DocumentReference chatData = db.collection("CHATROOMS").document(dataId);
+
+                    chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                ArrayList<String> memberIds, moderatorIds;
+
+                                if (document.exists()) {
+                                    memberIds = new ArrayList<>();
+                                    moderatorIds = new ArrayList<>();
+
+                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+
+                                    if (document.get("memberIds") != null) {
+                                        memberIds = (ArrayList<String>) document.get("memberIds");
+
+                                        if (memberIds != null) {
+                                            memberIds.remove(currUserId);
+                                            memberList.put("memberIds", memberIds);
+                                            chatData.set(memberList, SetOptions.merge());
+                                        }
+                                    }
+
+                                    if (document.get("moderatorIds") != null) {
+                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                                        if (moderatorIds != null) {
+                                            moderatorIds.remove(currUserId);
+                                            moderatorList.put("moderatorIds", moderatorIds);
+                                            chatData.set(moderatorList, SetOptions.merge());
+                                        }
+                                    }
+
+                                    DocumentReference userData = db.collection("users").document(currUserId);
+                                    userData.update("chatGroupIds", FieldValue.arrayRemove(dataId));
+                                }
+
+                                Log.i("TAG", "chatAddView call Intent: called");
+                                Intent chatIntent = new Intent(context, ChatView.class);
+                                chatIntent.putExtra("chatId", dataId);
+                                Log.i("TAG", "chatRemoveView - chatId: " + dataId);
+                                chatIntent.putExtra("isGroup", true);
+                                chatIntent.putExtra("dataId", "");
+                                ((Activity) context).startActivity(chatIntent);
+//                                ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
+//                                ((Activity) context).finish();
+                            }
+                        }
+                    });
 
                 }
                 //Demote user in forum
