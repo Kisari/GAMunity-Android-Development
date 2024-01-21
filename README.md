@@ -1,10 +1,10 @@
 GAMunity project
 
 **Home View**
--Forum Search: The users are able to search for the specific forum by its name
--Forum Filter: The users are able to filter the specific tags that belong to Forum 
--Join/UnJoin: The users can join or unjoin a forum directly in this page
--Forum Detail: The users can click to the forum and navigate to the specific forum with details
+-Forum Search: The users are able to search for the specific forum by its name.
+-Forum Filter: The users are able to filter the specific tags that belong to Forum.
+-Join/UnJoin: The users can join or unjoin a forum directly in this page.
+-Forum Detail: The users can click to the forum and navigate to the specific forum with details.
 
 **Notification View**
 -Notification click: The users can click to the notification to view the forum info
