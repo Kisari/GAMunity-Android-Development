@@ -35,4 +35,7 @@
     <string name="first_name">First Name</string>
     <string name="date_of_birth">Date of birth</string>
     <string name="delete_account">Delete account</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="forum_list">Forum List</string>
 </resources>

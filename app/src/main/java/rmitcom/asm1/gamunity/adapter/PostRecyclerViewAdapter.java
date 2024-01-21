@@ -32,6 +32,7 @@ import java.util.Locale;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
+import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Post;
 
@@ -239,14 +240,14 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             });
         }
 
-//        holder.userImage.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent accessIntent = new Intent(context, Profile.class);
-//                accessIntent.putExtra("userId", userId);
-//                context.startActivity(accessIntent);
-//            }
-//        });
+        holder.userImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent accessIntent = new Intent(context, ProfileView.class);
+                accessIntent.putExtra("userId", userId);
+                context.startActivity(accessIntent);
+            }
+        });
     }
 
     @Override

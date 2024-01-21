@@ -78,7 +78,7 @@ public class ProfileView extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_profile);
+        setContentView(R.layout.activity_profile_view);
 
         targetUserId = getIntent().getStringExtra("userId");
         setUI(targetUserId);
@@ -362,124 +362,6 @@ public class ProfileView extends AppCompatActivity {
             popupMenu.show();
         });
     }
-
-    // Check for error
-//    private void displayForumList(ArrayList<String> postIds) {
-//        forumList = new ArrayList<>();
-//
-//        final int[] listLength = {forumIds.size()};
-//        AtomicInteger counter = new AtomicInteger(0);
-//
-//        for (String forumId : forumIds) {
-//            Log.i(TAG, "displayList - forumId: " + forumId);
-//
-//            db.collection("FORUMS").document(forumId).get().addOnCompleteListener(task -> {
-//                if (task.isSuccessful()) {
-//                    DocumentSnapshot document = task.getResult();
-//
-//
-//                    String forumRef,
-//
-//                    private String forumId;
-//                    private String forumRef;
-//                    private String chiefAdmin;
-//                    private String title;
-//                    private ArrayList<String> category;
-//                    private String description;
-//                    private ArrayList<String> moderatorIds;
-//                    private ArrayList<String> memberIds;
-//                    private long noJoined = 0;
-//                    private ArrayList<String> postIds;
-//                    private String forumBackground;
-//                    private String forumIcon;
-//                    private String chatId;
-//
-//                    if (document.exists()) {
-//
-//
-//
-//                        postTitle = (String) document.get("title");
-//                        postOwnerId = (String) document.get("ownerId");
-//                        postForumId = (String) document.get("forumId");
-//
-//                        postDescription = (String) document.get("description");
-//
-//                        postLikeIds = (ArrayList<String>) document.get("likeIds");
-//                        postDislikeIds = (ArrayList<String>) document.get("dislikeIds");
-//                        postCommentIds = (ArrayList<String>) document.get("commentIds");
-//
-//                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-//
-//                        timestampStr = (String) document.get("date");
-//                        if (timestampStr != null) {
-//                            try {
-//                                timestamp = sdf.parse(timestampStr);
-//                            } catch (ParseException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//
-//                        updateTimestampStr = (String) document.get("updateDate");
-//                        if (updateTimestampStr != null) {
-//                            try {
-//                                updateTimestamp = sdf.parse(updateTimestampStr);
-//                            } catch (ParseException e) {
-//                                e.printStackTrace();
-//                            }
-//                        } else {
-//                            updateTimestamp = null;
-//                        }
-//
-//                        if (document.getString("image") != null) {
-//                            imgUri = document.getString("image");
-//                        } else {
-//                            imgUri = null;
-//                        }
-//
-//                        Log.i(TAG, "onComplete - postId: " + postId);
-//
-//                        Post post = new Post(postId, postOwnerId, postForumId, postTitle, postDescription, timestamp, updateTimestamp, imgUri, postCommentIds, postLikeIds, postDislikeIds);
-//
-//                        Collections.sort(postList, (post1, post2)
-//                                -> post2.getTimestamp().compareTo(post1.getTimestamp()));
-//
-//                        int index = Collections.binarySearch(postList, post, (post1, post2)
-//                                -> post2.getTimestamp().compareTo(post1.getTimestamp()));
-//
-//                        int insertionPoint = (index < 0) ? -index : index;
-//
-//                        if (insertionPoint >= postList.size()) {
-//                            postList.add(post);
-//                        } else {
-//                            postList.add(insertionPoint, post);
-//                        }
-//
-//                        if (counter.incrementAndGet() == listLength[0]) {
-//                            setUpForumList(forumList);
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//    }
-//
-//    private void setUpForumList(ArrayList<Post> postList) {
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-//        forumListView.setLayoutManager(layoutManager);
-//
-//        postAdapter = new PostRecyclerViewAdapter(this, postList);
-//        forumListView.setAdapter(postAdapter);
-//    }
-//
-//    private void viewForumList() {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(ProfileView.this);
-//        View dialogView = getLayoutInflater().inflate(R.layout.ui_profile_forum_list_popup, null);
-//
-//        forumListView = findViewById(R.id.profileForumList);
-//
-//        builder.setView(dialogView);
-//
-//    }
 
     private void followUser() { // Check for error
         userData.get().addOnCompleteListener(task -> {

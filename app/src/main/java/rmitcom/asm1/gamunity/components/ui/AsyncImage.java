@@ -17,7 +17,10 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+
+import rmitcom.asm1.gamunity.R;
 
 public class AsyncImage {
     @SuppressLint("StaticFieldLeak")
@@ -32,7 +35,11 @@ public class AsyncImage {
     public void loadImage(String urls) {
         try {
             Context context = bmImage.getContext();
-            Glide.with(context).load(urls)
+            Glide.with(context)
+                    .applyDefaultRequestOptions(new RequestOptions()
+                            .placeholder(R.mipmap.not_found_foreground)
+                            .error(R.mipmap.not_found_foreground))
+                    .load(urls)
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, @Nullable Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
@@ -54,16 +61,5 @@ public class AsyncImage {
             e.printStackTrace();
         }
     }
-
-//    protected boolean hasImage(@NonNull ImageView view) {
-//        Drawable drawable = view.getDrawable();
-//        boolean hasImage = (drawable != null);
-//
-//        if (hasImage && (drawable instanceof BitmapDrawable)) {
-//            hasImage = ((BitmapDrawable)drawable).getBitmap() != null;
-//        }
-//
-//        return hasImage;
-//    }
 
 }

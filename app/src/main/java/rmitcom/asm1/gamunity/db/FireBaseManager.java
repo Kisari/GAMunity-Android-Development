@@ -50,14 +50,20 @@ public class FireBaseManager extends FirebaseMessagingService {
     private final StorageReference storageRef;
     private final FirebaseUser currentUser;
     private final FirebaseMessaging msgProvider;
+    private final FirebaseAuth authProvider;
     private final Constant constant = new Constant();
 
     public FireBaseManager() {
         this.db = FirebaseFirestore.getInstance();
+        this.authProvider = FirebaseAuth.getInstance();
         this.storageRef = FirebaseStorage.getInstance().getReference();
         this.currentUser = FirebaseAuth.getInstance().getCurrentUser();
         this.msgProvider = FirebaseMessaging.getInstance();
         msgProvider.setAutoInitEnabled(true);
+    }
+
+    public FirebaseAuth getAuthProvider() {
+        return authProvider;
     }
 
     public FirebaseFirestore getDb() {

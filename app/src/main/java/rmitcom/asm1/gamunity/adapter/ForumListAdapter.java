@@ -93,7 +93,6 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
         viewForumList.setOnClickListener(v -> {
             Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
             toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-//            v.getContext().startActivity(toForumDetailView);
             ((Activity) v.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
         });
 

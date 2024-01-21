@@ -88,6 +88,8 @@ public class ForumView extends AppCompatActivity {
     private Forum currForum;
     private Constant constant = new Constant();
 
+    private String mode = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +102,7 @@ public class ForumView extends AppCompatActivity {
         Intent getIntent = getIntent();
         if (getIntent != null) {
             forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
+            mode = getIntent.getStringExtra("mode");
             forumData = db.collection("FORUMS").document(forumId);
             userData = db.collection("users").document(userId);
 

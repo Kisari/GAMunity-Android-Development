@@ -76,6 +76,18 @@ public class Forum implements Serializable {
         this.chatId = chatId;
     }
 
+    public Forum(String forumId, String forumRef, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, ArrayList<String> moderatorIds, String forumBackground, String forumIcon) {
+        this.forumId = forumId;
+        this.forumRef = forumRef;
+        this.chiefAdmin = chiefAdmin;
+        this.title = title;
+        this.category = category;
+        this.memberIds = memberIds;
+        this.moderatorIds = moderatorIds;
+        this.forumBackground = forumBackground;
+        this.forumIcon = forumIcon;
+    }
+
     public Forum(String forumId, String forumRef, String chiefAdmin,String title, ArrayList<String> category, ArrayList<String> memberIds, String forumBackground, String forumIcon) {
         this.forumId = forumId;
         this.forumRef = forumRef;
