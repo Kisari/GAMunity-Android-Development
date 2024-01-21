@@ -5,8 +5,11 @@ Nguyen Thi Nha Uyen - s3819293
 <br />
 <br />
 ## Functionalities
+**Login/Signup**<br />
+-Login: The users can login with existed accounts or google gmail
+-Signup: The users can signup for a new account 
 **Home View**<br />
--Create a new forum: The user can create a new forum. The ceator will be set as chief admin of that forum.
+-Create forum: The user can create a new forum. The ceator will be set as chief admin of that forum.
 -Forum Search: The users are able to search for the specific forum by its name. <br />
 -Forum Filter: The users are able to filter the specific tags that belong to Forum. <br />
 -Join/UnJoin: The users can join or unjoin a forum directly in this page. <br />
