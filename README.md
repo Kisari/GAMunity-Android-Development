@@ -1,9 +1,8 @@
-========================================================================================================
 GAMunity project
 Truong Bach Minh - s3891909
-========================================================================================================
-<span style="background-color:#c70e0e">Functionalities</span>
 <br />
+<br />
+<span style="background-color:#c70e0e">Functionalities</span>
 <br />
 **Home View**<br />
 -Forum Search: The users are able to search for the specific forum by its name. <br />
