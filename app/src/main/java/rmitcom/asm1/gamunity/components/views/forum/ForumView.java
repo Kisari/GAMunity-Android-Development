@@ -294,61 +294,6 @@ public class ForumView extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        String postId, postTitle, postDescription, postTimestamp, postImgUri;
-        if (requestCode == constant.CREATE && resultCode == RESULT_OK) {
-            if (data != null) {
-
-                postId = (String) data.getExtras().get("postId");
-                postTitle = (String) data.getExtras().get("title");
-                postDescription = (String) data.getExtras().get("description");
-                postTimestamp = (String) data.getExtras().get("date");
-
-                Date timestamp = new Date();
-                Log.i(TAG, "timestamp: " + timestamp);
-
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-
-                if (postTimestamp != null) {
-                    try {
-                        timestamp = sdf.parse(postTimestamp);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (data.getExtras().get("image") != null) {
-                    postImgUri = (String) data.getExtras().get("image");
-                } else {
-                    postImgUri = null;
-                }
-
-                ArrayList<String> postLikeIds = new ArrayList<>(), postDislikeIds = new ArrayList<>(), postCommentIds = new ArrayList<>();
-
-                Post post = new Post(postId, userId, forumId, postTitle, postDescription, timestamp, null, postImgUri, postLikeIds, postDislikeIds, postCommentIds);
-
-                if (postList == null) {
-                    postList = new ArrayList<>();
-                }
-
-                Collections.sort(postList, (post1, post2)
-                        -> post2.getTimestamp().compareTo(post1.getTimestamp()));
-
-                int index = Collections.binarySearch(postList, post, (post1, post2)
-                        -> post2.getTimestamp().compareTo(post1.getTimestamp()));
-
-                int insertionPoint = (index < 0) ? -index : index;
-
-                if (insertionPoint >= postList.size()) {
-                    postList.add(post);
-                } else {
-                    postList.add(insertionPoint, post);
-                }
-
-            }
-            setupList(postList);
-            recreate();
-        }
-
         if (requestCode == constant.EDIT) {
             if (resultCode == RESULT_OK) {
                 recreate();

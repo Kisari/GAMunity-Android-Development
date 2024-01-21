@@ -8,7 +8,7 @@ public class User implements Serializable {
     private String userId;
     private Boolean isAdmin = false;
     private String name;
-    private String phone;
+    private String dob;
     private String email;
     private String profileImgUri;
     private ArrayList<String> ownedForumIds;
@@ -18,10 +18,8 @@ public class User implements Serializable {
     private ArrayList<String> commentIds;
     private ArrayList<String> followersIds;
     private ArrayList<String> followingIds;
-    private ArrayList<String> friendIds;
     private ArrayList<String> chatGroupIds;
     private String backgroundImgUri;
-    private String dob;
 
 
     public User(String profileImgUri, String backgroundImgUri, String name, String dob){
@@ -31,11 +29,11 @@ public class User implements Serializable {
         this.dob = dob;
     }
 
-    public User(String userId, Boolean isAdmin, String name, String phone, String email) {
+    public User(String userId, Boolean isAdmin, String name, String dob, String email) {
         this.userId = userId;
         this.isAdmin = isAdmin;
         this.name = name;
-        this.phone = phone;
+        this.dob = dob;
         this.email = email;
     }
 
@@ -60,11 +58,11 @@ public class User implements Serializable {
         this.joinedForumIds = joinedForumIds;
     }
 
-    public User(String userId, Boolean isAdmin, String name, String phone, String email, ArrayList<String> ownedForumIds, ArrayList<String> adminForumIds, ArrayList<String> joinedForumIds, ArrayList<String> postIds, ArrayList<String> commentIds, ArrayList<String> followersIds, ArrayList<String> followingIds, ArrayList<String> friendIds) {
+    public User(String userId, Boolean isAdmin, String name, String dob, String email, ArrayList<String> ownedForumIds, ArrayList<String> adminForumIds, ArrayList<String> joinedForumIds, ArrayList<String> postIds, ArrayList<String> commentIds, ArrayList<String> followersIds, ArrayList<String> followingIds) {
         this.userId = userId;
         this.isAdmin = isAdmin;
         this.name = name;
-        this.phone = phone;
+        this.dob = dob;
         this.email = email;
         this.ownedForumIds = ownedForumIds;
         this.adminForumIds = adminForumIds;
@@ -73,7 +71,6 @@ public class User implements Serializable {
         this.commentIds = commentIds;
         this.followersIds = followersIds;
         this.followingIds = followingIds;
-        this.friendIds = friendIds;
     }
 
     public String getBackgroundImgUri() {
@@ -114,14 +111,6 @@ public class User implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
     public String getEmail() {
@@ -194,14 +183,6 @@ public class User implements Serializable {
 
     public void setFollowingIds(ArrayList<String> followingIds) {
         this.followingIds = followingIds;
-    }
-
-    public ArrayList<String> getFriendIds() {
-        return friendIds;
-    }
-
-    public void setFriendIds(ArrayList<String> friendIds) {
-        this.friendIds = friendIds;
     }
 
     public ArrayList<String> getChatGroupIds() {
