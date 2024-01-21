@@ -16,4 +16,8 @@
         android:id="@+id/chatAddUser"
         android:title="Add User"
         android:visible="true"/>
+    <item
+        android:id="@+id/chatRemoveUser"
+        android:title="Remove User"
+        android:visible="true"/>
 </menu>

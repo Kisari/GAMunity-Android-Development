@@ -33,10 +33,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -61,6 +63,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -294,6 +297,8 @@ public class ChatView extends AppCompatActivity {
                                                     chatImage.setVisibility(View.INVISIBLE);
                                                     chatProgressBar.setVisibility(View.INVISIBLE);
                                                 }
+
+                                                db.collection("users").document(chiefAdminId).update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
                                                 setMoreInfo();
 
@@ -614,16 +619,16 @@ public class ChatView extends AppCompatActivity {
         MenuItem editChat = popupMenu.getMenu().findItem(R.id.chatUpdate);
         MenuItem deleteChat = popupMenu.getMenu().findItem(R.id.chatDelete);
         MenuItem addMember = popupMenu.getMenu().findItem(R.id.chatAddUser);
+        MenuItem removeMember = popupMenu.getMenu().findItem(R.id.chatRemoveUser);
 
         if (chatAdminIds != null && chatAdminIds.contains(userId)) {
             moreInfo.setVisible(true);
-            if (isGroup) {
-                editChat.setVisible(forumId == null);
-            }
             deleteChat.setVisible(true);
             if (isGroup) {
+                editChat.setVisible(forumId == null);
                 addMember.setVisible(forumId == null);
             }
+            removeMember.setVisible(isGroup);
 
         }
 //        else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
@@ -656,6 +661,8 @@ public class ChatView extends AppCompatActivity {
                     deleteChatAlert();
                 } else if (itemId == R.id.chatAddUser) {
                     addMember();
+                } else if (itemId == R.id.chatRemoveUser) {
+                    removeMember();
                 }
 
                 return false;
@@ -782,26 +789,7 @@ public class ChatView extends AppCompatActivity {
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
             deleteButton.setOnClickListener(v -> {
-                deleteChatRoom();
-                lastActionCode = constant.DELETE;
-                dialog.dismiss();
-
-                Intent deleteIntent;
-               if (isGroup) {
-                   if (forumId != null) {
-                       deleteIntent = new Intent(ChatView.this, ForumView.class);
-                       deleteIntent.putExtra("forumId", forumId);
-                       deleteIntent.putExtra("chatId", chatId);
-                   }
-                   else {
-                       deleteIntent = new Intent(ChatView.this, ChatFragment.class);
-                   }
-               }
-               else {
-                   deleteIntent = new Intent(ChatView.this, ChatFragment.class);
-               }
-                setResult(lastActionCode, deleteIntent);
-                finish();
+                deleteChatRoom(dialog);
             });
 
         } catch (Exception e) {
@@ -811,70 +799,113 @@ public class ChatView extends AppCompatActivity {
 
     }
 
-    private void deleteChatRoom() {
-        if (chatAdminIds != null && chatAdminIds.contains(userId)) {
-            for (String id: chatAdminIds) {
-                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-            }
+    private void deleteChatRoom(AlertDialog dialog) {
+        ArrayList<Task<Void>> userTasks = new ArrayList<>();
 
-        }
-        else if (chatModeratorIds != null && chatModeratorIds.contains(userId)) {
-            for (String id: chatModeratorIds) {
-                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-            }
-
-        } else if (chatMemberIds != null && chatMemberIds.contains(userId)) {
-            for (String id: chatMemberIds) {
-                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+        if (chatAdminIds != null) {
+            for (String id : chatAdminIds) {
+                Log.i(TAG, "setMoreInfo - userId: " + id);
+                Task<Void> task = db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                userTasks.add(task);
             }
 
         }
 
-        if (isGroup) {
-            if (forumId != null) {
-                db.collection("FORUMS").document(forumId).update("chatId", null);
+        if (chatModeratorIds != null) {
+            for (String id : chatModeratorIds) {
+                Log.i(TAG, "setMoreInfo - userId: " + id);
+                Task<Void> task = db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                userTasks.add(task);
+            }
+
+        }
+
+        if (chatMemberIds != null) {
+            for (String id : chatMemberIds) {
+                Log.i(TAG, "setMoreInfo - userId: " + id);
+                Task<Void> task = db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                userTasks.add(task);
             }
         }
 
-        chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    ArrayList<Message> messageList = new ArrayList<>();
-                    String messageId;
+        Tasks.whenAllSuccess(userTasks).addOnCompleteListener(userTask -> {
+            if (userTask.isSuccessful()) {
+                ArrayList<Task<Void>> forumTasks = new ArrayList<>();
 
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        messageId = document.getId();
-                        Log.i(TAG, "chatView - messageId: " + messageId);
-                        boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
-
-                        if (isImage) {
-                            String imageUri = document.getString("messageContent");
-                            String pattern = "images%2F(.*?)\\?";
-                            Pattern p = Pattern.compile(pattern);
-                            Matcher m = p.matcher(imageUri);
-
-                            if (m.find()) {
-                                String oldUri = m.group(1);
-
-                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i("Delete image", "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                });
-                            }
-                        }
-                        chatRef.document(messageId).delete()
-                                .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
-                                .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
-                    }
+                if (isGroup && forumId != null) {
+                    Task<Void> task = db.collection("FORUMS").document(forumId).update("chatId", null);
+                    forumTasks.add(task);
                 }
+
+                Tasks.whenAllSuccess(forumTasks).addOnCompleteListener(forumTask -> {
+                    if (forumTask.isSuccessful()) {
+                        // Handle success
+                        ArrayList<Task<Void>> messageTasks = new ArrayList<>();
+
+                        chatRef.get().continueWithTask(task -> {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String messageId = document.getId();
+
+                                boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
+
+                                if (isImage) {
+                                    String imageUri = document.getString("messageContent");
+                                    String pattern = "images%2F(.*?)\\?";
+                                    Pattern p = Pattern.compile(pattern);
+                                    Matcher m = p.matcher(imageUri);
+
+                                    if (m.find()) {
+                                        String oldUri = m.group(1);
+
+                                        StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                        oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                            Log.i("Delete image", "Old image deleted successfully");
+                                        }).addOnFailureListener(e -> {
+                                            Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                        });
+                                    }
+                                }
+
+                                Task<Void> deleteTask = chatRef.document(messageId).delete();
+                                messageTasks.add(deleteTask);
+                            }
+
+                            return Tasks.whenAllSuccess(messageTasks);
+                        }).addOnCompleteListener(messageTask -> {
+                            if (messageTask.isSuccessful()) {
+                                chatData.delete();
+
+                                lastActionCode = constant.DELETE;
+                                dialog.dismiss();
+
+                                Intent deleteIntent;
+                                if (isGroup) {
+                                    if (forumId != null) {
+                                        deleteIntent = new Intent(ChatView.this, ForumView.class);
+                                        deleteIntent.putExtra("forumId", forumId);
+                                        deleteIntent.putExtra("chatId", chatId);
+                                    } else {
+                                        deleteIntent = new Intent(ChatView.this, ChatFragment.class);
+                                    }
+                                } else {
+                                    deleteIntent = new Intent(ChatView.this, ChatFragment.class);
+                                }
+
+                                setResult(lastActionCode, deleteIntent);
+                                finish();
+
+                            } else {
+                                Log.e(TAG, "Failed to delete chat messages: " + messageTask.getException().getMessage());
+                            }
+                        });
+                    } else {
+                        Log.e(TAG, "Failed to update forum: " + forumTask.getException().getMessage());
+                    }
+                });
+            } else {
+                Log.e(TAG, "Failed to update users: " + userTask.getException().getMessage());
             }
         });
-
-        chatData.delete();
-
     }
 
     public void deleteChatRoomFromForum(String chatId) {
@@ -966,6 +997,12 @@ public class ChatView extends AppCompatActivity {
 
     public void addMember() {
         Intent moreInfoIntent = new Intent(ChatView.this, AddMemberToGroupChat.class);
+        moreInfoIntent.putExtra("chatId", chatId);
+        startActivity(moreInfoIntent);
+    }
+
+    public void removeMember() {
+        Intent moreInfoIntent = new Intent(ChatView.this, RemoveMemberFromGroupChat.class);
         moreInfoIntent.putExtra("chatId", chatId);
         startActivity(moreInfoIntent);
     }

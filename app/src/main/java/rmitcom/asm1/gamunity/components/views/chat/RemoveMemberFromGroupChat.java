@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
 
@@ -28,15 +27,16 @@ import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.model.User;
 
-public class AddMemberToGroupChat extends AppCompatActivity {
-    private final String TAG = "Add user View";
+public class RemoveMemberFromGroupChat extends AppCompatActivity {
+
+    private final String TAG = "Remove user View";
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
     private final String userId = userAuth.getUid();
     private DocumentReference forumData, chatData, userData;
     private TextView returnBackButton;
-    private SearchView addUserSearchBar;
-    private RecyclerView addUserListView;
+    private SearchView removeUserSearchBar;
+    private RecyclerView removeUserListView;
     private String chatId;
     private ArrayList<String> memberIds, moderatorIds, adminIds, userIds;
     private ArrayList<User> adminList, moderatorList, memberList, userList;
@@ -45,7 +45,7 @@ public class AddMemberToGroupChat extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_member_to_group_chat);
+        setContentView(R.layout.activity_remove_member_from_group_chat);
 
         setUI();
     }
@@ -58,8 +58,8 @@ public class AddMemberToGroupChat extends AppCompatActivity {
         }
 
         returnBackButton = findViewById(R.id.returnBack);
-        addUserSearchBar = findViewById(R.id.addUserSearchBar);
-        addUserListView = findViewById(R.id.addUserSearchList);
+        removeUserSearchBar = findViewById(R.id.removeUserSearchBar);
+        removeUserListView = findViewById(R.id.removeUserSearchList);
 
         setupAddPage();
 
@@ -103,11 +103,11 @@ public class AddMemberToGroupChat extends AppCompatActivity {
                                     for (QueryDocumentSnapshot document : task.getResult()) {
                                         String currUserId = document.getId();
 
-                                        Log.i(TAG, "addChatUser - adminIds: " + adminIds);
-                                        Log.i(TAG, "addChatUser - moderatorIds: " + moderatorIds);
-                                        Log.i(TAG, "addChatUser - memberIds: " + memberIds);
+                                        Log.i(TAG, "removeChatUser - adminIds: " + adminIds);
+                                        Log.i(TAG, "removeChatUser - moderatorIds: " + moderatorIds);
+                                        Log.i(TAG, "removeChatUser - memberIds: " + memberIds);
 
-                                        if (!adminIds.contains(currUserId) && !moderatorIds.contains(currUserId) && !memberIds.contains(currUserId)) {
+                                        if (!adminIds.contains(currUserId) && (moderatorIds.contains(currUserId) || memberIds.contains(currUserId))) {
                                             userIds.add(currUserId);
 
                                             String userName = document.getString("name");
@@ -118,7 +118,7 @@ public class AddMemberToGroupChat extends AppCompatActivity {
                                         }
                                     }
 
-                                    setupList(userList, addUserListView);
+                                    setupList(userList, removeUserListView);
                                 }
                             }
                         });
@@ -130,7 +130,7 @@ public class AddMemberToGroupChat extends AppCompatActivity {
     }
 
     private void initSearch() {
-        addUserSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        removeUserSearchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 return false;
@@ -154,7 +154,7 @@ public class AddMemberToGroupChat extends AppCompatActivity {
                     }
                 }
 
-                setupList(users, addUserListView);
+                setupList(users, removeUserListView);
                 return false;
             }
         });
@@ -173,7 +173,7 @@ public class AddMemberToGroupChat extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, true, true, true, chatId);
+        adapter = new UserRecyclerViewAdapter(this, userList, true, false, true, chatId);
         userListView.setAdapter(adapter);
     }
 
