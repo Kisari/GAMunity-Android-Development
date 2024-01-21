@@ -39,6 +39,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+                <ImageView
+                    android:id="@+id/profileBackgroundImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="175dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitXY"
+                    tools:ignore="ImageContrastCheck" />
+
                 <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -61,14 +69,6 @@
                     android:layout_height="80dp"
                     android:layout_gravity="center"
                     android:visibility="visible"/>
-
-                <ImageView
-                    android:id="@+id/profileBackgroundImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="175dp"
-                    android:importantForAccessibility="no"
-                    android:scaleType="fitXY"
-                    tools:ignore="ImageContrastCheck" />
 
                 <FrameLayout
                     android:layout_width="match_parent"
