@@ -20,7 +20,6 @@ Truong Bach Minh - s3891909
 -View own forum: The users can click on the option menu to view their joined and owned forums.<br />
 -Update information: The users can update their own inforamtion.<br />
 -Delete acccount: The users can delete their account which can not be reverted.<br />
-<<<<<<< HEAD
 <br />
 **Forum View**<br />
 -Edit forum info: chief admin and moderators can edit some of the forum info (title, description, caterory, forum icon and forum background).<br />
@@ -41,11 +40,16 @@ Truong Bach Minh - s3891909
 -Delete comment: Chief admin, moderators, and owner of the comment can delete the comment. It will popup an alert for comfirmation. If process then the comment info will be delete and related databse be updated accordingly.<br />
 -Like/Dislike comment: Any user can like or dislike a comment.<br />
 <br />
-**Chat View**
--Display chats: A list of all the group chat (both individual or group) user be a part of.<br />
--Search chats: 
-=======
-
+**Chat Room View**
+-Display chat: It will display the lastest 50 chat make in the chat room.<br />
+-Send text message: Chat room users will be able to send text message into the chat room.<br />
+-Send image message: Chat room users will be able to send image message into the chat room.<br />
+-Edit chat room: Admin and moderator (for normal group chat room or individual chat room only) can edit the chat room data. For forum group chat, data will be edit through the forum (title and icon will be set as forum title and icon).<br />
+-Delete chat room: Only chief admin of the chat can delete the chat room (applied for all chat room type).<br />
+-Access more info: Users of chat room can see more details of the chat (name, icon, number of people join and their role).<br />
+-Add new member: Admin of the chatroom (for individual chat room and normal chat room only) can add another user to the group. If added from individual chat room, it will create a new group chat and set the user that create the group chat room be admin. If add from a group chat room, then choosen user will be added to the current group chat room.<br />
+-Remove a member: Admin of the chat room can remove any user of a group chat room (will not appear for individual chat room).<br />
+<br />
 ## Technologies
 **Glide**: Fast and efficient library support to load the image from the url with == HttpUrlConnection == and store in the memory for reusing in the near future
->>>>>>> 8b2a1888017ccc2e8eca32bfbdeb9560ee192874
+
