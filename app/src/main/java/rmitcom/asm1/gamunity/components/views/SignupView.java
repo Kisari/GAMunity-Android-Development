@@ -69,7 +69,7 @@ public class SignupView extends AppCompatActivity {
                         User newUser = new User(userId, false, name, dob, email);
 
                         // Add the user to Firestore
-                        db.collection("users").document(userId)
+                        db.collection("USERS").document(userId)
                                 .set(newUser)
                                 .addOnSuccessListener(documentReference -> {
                                     // DocumentSnapshot added successfully

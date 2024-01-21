@@ -18,15 +18,15 @@ public class Post implements Serializable, Comparable<Post>   {
     private String imgUri;
     private ArrayList<String> commentIds, likeIds, dislikeIds;
 
-//    //Create Post constructor
-//    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp) {
-//        this.postId = postId;
-//        this.ownerId = ownerId;
-//        this.forumId = forumId;
-//        this.title = title;
-//        this.description = description;
-//        this.timestamp = timestamp;
-//    }
+    //Create Post constructor
+    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp) {
+        this.postId = postId;
+        this.ownerId = ownerId;
+        this.forumId = forumId;
+        this.title = title;
+        this.description = description;
+        this.timestamp = timestamp;
+    }
 //
 //    //Update Post constructor
 //    public Post(String postId, String ownerId, String forumId, String title, String description, Date timestamp, Date updateTimestamp) {
