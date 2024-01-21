@@ -92,4 +92,8 @@ public class HomeView extends AppCompatActivity {
         toForumDetailView.putExtra("forumId", forumRef);
         startActivity(toForumDetailView);
     }
+
+    public int getCurrentItemPosition(){
+        return viewPager.getCurrentItem();
+    }
 }

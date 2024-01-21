@@ -8,7 +8,8 @@ public class Constant {
     public final int CREATE = 201;
     public final int EDIT = 203;
     public final int DELETE = 204;
-    public final int CHAT_REQUEST = 400;
+    public final int CHAT_REQUEST = 600;
+    public final int PROFILE_REQUEST = 700;
 
     public final String forums = "FORUMS";
 

@@ -1,18 +1,16 @@
-package rmitcom.asm1.gamunity;
+package rmitcom.asm1.gamunity.components.views.profile;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,10 +30,10 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.LoginView;
-import rmitcom.asm1.gamunity.components.views.profile.EditProfileView;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
 import rmitcom.asm1.gamunity.model.Post;
@@ -128,11 +126,23 @@ public class ProfileView extends AppCompatActivity {
                         profileDob.setText(dobStr);
                     }
 
-                    noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size()); // Check for error
-                    profileFollow.setText(noFollowStr);
+                    if(document.get("followersIds") != null){
+                        noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size());
+                        profileFollow.setText(noFollowStr);
+                    }
+                    else{
+                        noFollowStr = "0";
+                        profileFollow.setText(noFollowStr);
+                    }
 
-                    noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size()); // Check for error
-                    profileFollowing.setText(noFollowingStr);
+                    if(document.get("followingIds") != null){
+                        noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size());
+                        profileFollowing.setText(noFollowingStr);
+                    }
+                    else{
+                        noFollowingStr = "0";
+                        profileFollowing.setText(noFollowingStr);
+                    }
 
                     profileImageUri = (String) document.get("profileImage");
                     profileBackgroundUri = (String) document.get("profileBackground");
@@ -295,6 +305,7 @@ public class ProfileView extends AppCompatActivity {
     // Display profile's more option menu
     private void moreOption() {
         PopupMenu popupMenu = new PopupMenu(ProfileView.this, moreOptionButton);
+        popupMenu.getMenuInflater().inflate(R.menu.profile_more_option, popupMenu.getMenu());
 
         MenuItem viewForumList = popupMenu.getMenu().findItem(R.id.forumListView);
         MenuItem profileUpdate = popupMenu.getMenu().findItem(R.id.profileUpdate);

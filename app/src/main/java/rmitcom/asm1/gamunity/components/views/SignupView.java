@@ -74,21 +74,25 @@ public class SignupView extends AppCompatActivity {
                                 .addOnSuccessListener(documentReference -> {
                                     // DocumentSnapshot added successfully
                                     Toast.makeText(SignupView.this, "SignUp Successful", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(SignupView.this, MainActivity.class));
+                                    startActivity(new Intent(SignupView.this, LoginView.class));
+                                    finish();
                                 })
                                 .addOnFailureListener(e -> {
                                     // Handle errors in adding the user to Firestore
                                     Toast.makeText(SignupView.this, "Firestore Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
 
-                        Toast.makeText(SignupView.this, "SignUp Successful", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(SignupView.this, LoginView.class));
+//                        Toast.makeText(SignupView.this, "SignUp Successful", Toast.LENGTH_SHORT).show();
+//                        startActivity(new Intent(SignupView.this, LoginView.class));
                     } else {
                         Toast.makeText(SignupView.this, "SignUp Failed" + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
-        loginRedirectText.setOnClickListener(view -> startActivity(new Intent(SignupView.this, LoginView.class)));
+        loginRedirectText.setOnClickListener(view -> {
+            startActivity(new Intent(SignupView.this, LoginView.class));
+            finish();
+        });
     }
 }
