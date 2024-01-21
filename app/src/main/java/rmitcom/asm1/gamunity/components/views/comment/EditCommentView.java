@@ -295,7 +295,7 @@ public class EditCommentView extends AppCompatActivity {
         data.put("updateDate", updateDate);
 
         if (commentImageFilePath != null) {
-            data.put("commentImage", commentImageFilePath.toString());
+            data.put("image", commentImageFilePath.toString());
         }
 
         commentData.set(data, SetOptions.merge()).addOnCompleteListener(task -> {
