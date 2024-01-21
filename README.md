@@ -1,7 +1,7 @@
 GAMunity project
 <br />
 <br />
-**Home View**
+**Home View**<br />
 -Forum Search: The users are able to search for the specific forum by its name. <br />
 -Forum Filter: The users are able to filter the specific tags that belong to Forum. <br />
 -Join/UnJoin: The users can join or unjoin a forum directly in this page. <br />
@@ -13,7 +13,7 @@ GAMunity project
 -Push up notification: The users receive the nofication when the owner update forum info or someone join their own forum. <br />
 <br />
 <br />
-**Profile View**
+**Profile View**<br />
 -View other profile: The users can click the post owner in **Post View** to view their info.<br /> 
 -Follow/UnFollow: The users can follow or unfollow the specific user when visits their profile.<br />
 -View own forum: The users can click on the option menu to view their joined and owned forums.<br />
