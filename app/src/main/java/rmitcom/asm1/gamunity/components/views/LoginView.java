@@ -73,7 +73,7 @@ public class LoginView extends AppCompatActivity {
                             .addOnSuccessListener(authResult -> {
                                 Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
                                 db.changeUserIdWithDeviceToken(auth.getCurrentUser().getUid(), LoginView.this);
-                                startActivity(new Intent(LoginView.this, MainActivity.class));
+                                startActivity(new Intent(LoginView.this, HomeView.class));
                                 finish();
                             }).addOnFailureListener(e -> Toast.makeText(LoginView.this, "Login Failed", Toast.LENGTH_SHORT).show());
                 } else {
@@ -144,7 +144,7 @@ public class LoginView extends AppCompatActivity {
                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                         try {
                             task.getResult(ApiException.class);
-                            Intent intent = new Intent(LoginView.this, MainActivity.class);
+                            Intent intent = new Intent(LoginView.this, HomeView.class);
                             startActivity(intent);
                             finish();
                         } catch (ApiException e){

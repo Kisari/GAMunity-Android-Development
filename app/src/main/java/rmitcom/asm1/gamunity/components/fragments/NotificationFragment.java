@@ -71,6 +71,8 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
         View view = inflater.inflate(R.layout.fragment_notification, container, false);
         currentView = view;
 
+        Log.d(TAG, "onCreateView: " + "this is notification fragment");
+
         //ask to receive notification
         askNotificationPermission();
 
