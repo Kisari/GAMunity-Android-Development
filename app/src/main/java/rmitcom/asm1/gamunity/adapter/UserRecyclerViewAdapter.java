@@ -15,6 +15,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -40,6 +46,8 @@ import rmitcom.asm1.gamunity.components.fragments.HomeFragment;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.chat.ChatView;
 import rmitcom.asm1.gamunity.components.views.forum.ForumView;
+import rmitcom.asm1.gamunity.components.views.post.PostView;
+import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
 import rmitcom.asm1.gamunity.model.User;
 
 public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerViewAdapter.UserRecyclerViewHolder>{
@@ -700,9 +708,8 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
 
     private void accessInfoPage(User currUser) {
         String currId = currUser.getUserId();
-        Intent accessIntent = new Intent(context, HomeFragment.class);
-        accessIntent.putExtra("currUserId", currId);
-        context.startActivity(accessIntent);
-        ((Activity) context).finish();
+        Intent accessIntent = new Intent(context, ProfileView.class);
+        accessIntent.putExtra("userId", currId);
+        ((Activity)context).startActivity(accessIntent);
     }
 }
