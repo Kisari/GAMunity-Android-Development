@@ -77,7 +77,9 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
         userBackgroundBtn.setOnClickListener(v -> chooseImageFromFile(true));
         userIconBtn.setOnClickListener(v -> chooseImageFromFile(false));
 
-        editProfileSubmitButton.setOnClickListener( v -> uploadBackgroundImage(backgroundFilePath));
+        editProfileSubmitButton.setOnClickListener( v -> {
+            uploadBackgroundImage(backgroundFilePath);
+        });
 
         returnBack.setOnClickListener(v -> {
             finish();
@@ -251,6 +253,9 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                         progressDialog.setMessage("Uploaded "+(int)progress+"%");
                     });
         }
+        else{
+            uploadIconImage(iconFilePath);
+        }
     }
 
     private void uploadIconImage(Uri submitFilePath) {
@@ -280,15 +285,25 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                         progressDialog.setMessage("Uploaded "+(int)progress+"%");
                     });
         }
+        else{
+            updateUserInfo();
+        }
     }
 
     private void updateUserInfo(){
 
         Map<String, Object> newUserInfo = new HashMap<>();
-        newUserInfo.put("profileImgUri", iconFilePath.toString());
-        newUserInfo.put("backgroundImgUri", backgroundFilePath.toString());
+        if(iconFilePath != null){
+            newUserInfo.put("profileImgUri", iconFilePath.toString());
+        }
+
+        if(backgroundFilePath != null){
+            newUserInfo.put("backgroundImgUri", backgroundFilePath.toString());
+        }
         newUserInfo.put("name", userFirstName.getText().toString() + userLastName.getText().toString());
-        newUserInfo.put("dob", userBirth.getText().toString());
+        if(!userBirth.getText().toString().isEmpty()){
+            newUserInfo.put("dob", userBirth.getText().toString());
+        }
 
         db.getDb().collection("users")
                 .document(userDocumentRef)
@@ -297,7 +312,28 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                     if(task.isSuccessful()){
                         Toast.makeText(EditProfileView.this, "Update your information", Toast.LENGTH_SHORT).show();
                         Intent backIntent = new Intent();
-                        User returnDataUser = new User(iconFilePath.toString(), backgroundFilePath.toString(), userFirstName.getText().toString() + userLastName.getText().toString(), userBirth.getText().toString());
+                        String iconUrl;
+                        String backgroundUrl;
+                        String dob = userBirth.getText().toString();
+                        if(iconFilePath == null){
+                            iconUrl = currentUser.getProfileImgUri();
+                        }else{
+                            iconUrl = iconFilePath.toString();
+                        }
+                        if(backgroundFilePath == null){
+                            backgroundUrl = currentUser.getBackgroundImgUri();
+                        }
+                        else{
+                            backgroundUrl = backgroundFilePath.toString();
+                        }
+                        if(userBirth.getText().toString().isEmpty()){
+                            dob = currentUser.getDob();
+                        }
+                        else{
+                            dob = userBirth.getText().toString();
+                        }
+
+                        User returnDataUser = new User(iconUrl, backgroundUrl, userFirstName.getText().toString() + userLastName.getText().toString(), dob);
                         backIntent.putExtra("updatedInfo", returnDataUser);
                         setResult(constant.EDIT, backIntent);
                         finish();
