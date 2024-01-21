@@ -75,7 +75,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         public TextView description, username, timestamp, like, dislike, likeTrue, dislikeTrue, comment, commentReply, moreOptionButton;
         public RecyclerView replyCommentListView;
         public ArrayList<Comment> commentList, replyCommentList;
-        public RelativeLayout imageLayout;
+        public RelativeLayout imageLayout, commentTabProfile;
         public ProgressBar userProgressBar, commentProgressBar;
         public ImageView commentImage, baseImage;
         public ShapeableImageView userImage;
@@ -105,6 +105,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
             userImage = itemView.findViewById(R.id.commentTabUserProfile);
 
             baseImage = itemView.findViewById(R.id.baseImg);
+            commentTabProfile = itemView.findViewById(R.id.commentTabProfile);
 
         }
 
@@ -352,11 +353,11 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         setLikeComment(holder, currComment, position);
         setDislikeComment(holder, currComment, position);
 
-        holder.userImage.setOnClickListener(new View.OnClickListener() {
+        holder.commentTabProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent accessIntent = new Intent(context, ProfileView.class);
-                accessIntent.putExtra("userId", userId);
+                accessIntent.putExtra("userId", currComment.getOwnerId());
                 context.startActivity(accessIntent);
             }
         });
