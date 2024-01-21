@@ -112,7 +112,7 @@ public class CreateCommentForm extends AppCompatActivity {
             @Override
             public void onSuccess(DocumentSnapshot userDocument) {
                 if (userDocument.exists()) {
-                    String profileImg = userDocument.getString("image");
+                    String profileImg = userDocument.getString("profileImgUri");
 
                     if (profileImg != null) {
                         try {
