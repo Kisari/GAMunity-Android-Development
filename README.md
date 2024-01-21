@@ -6,7 +6,7 @@ GAMunity project
 -Forum Filter: The users are able to filter the specific tags that belong to Forum. <br />
 -Join/UnJoin: The users can join or unjoin a forum directly in this page. <br />
 -Forum Detail: The users can click to the forum and navigate to the specific forum with details. <br />
-<img src="https://github.com/Kisari/GAMunity-Android-Development/blob/master/home_view.gif" width="48">
+<img src="https://github.com/Kisari/GAMunity-Android-Development/blob/master/home_view.gif" width="120">
 <br />
 <br />
 **Notification View**<br />
