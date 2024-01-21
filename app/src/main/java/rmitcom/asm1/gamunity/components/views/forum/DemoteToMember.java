@@ -180,7 +180,7 @@ public class DemoteToMember extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, true, false, forumId);
+        adapter = new UserRecyclerViewAdapter(this, userList, true, false, false, forumId);
         userListView.setAdapter(adapter);
     }
 

@@ -189,7 +189,7 @@ public class RemoveUser extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, false, true, forumId);
+        adapter = new UserRecyclerViewAdapter(this, userList, false, true, false, forumId);
         userListView.setAdapter(adapter);
     }
 

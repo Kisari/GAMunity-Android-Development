@@ -219,11 +219,12 @@ public class ChatFragment extends Fragment {
 
             if(resultCode == constant.DELETE){
                 GroupChat removeGroupChat = (GroupChat) data.getSerializableExtra("removeGroupChat");
+                Log.i(TAG, "removeGroupChat: " + removeGroupChat);
 
                 this.chatGroupList.remove(removeGroupChat);
 
-                Log.d(TAG, "onActivityResult: chat" + removeGroupChat.getChatTitle());
-                Log.d(TAG, "onActivityResult: delete chat" + chatGroupList.size());
+//                Log.d(TAG, "onActivityResult: chat" + removeGroupChat.getChatTitle());
+//                Log.d(TAG, "onActivityResult: delete chat" + chatGroupList.size());
 
                 this.adapter.notifyDataSetChanged();
             }

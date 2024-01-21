@@ -177,7 +177,7 @@ public class PromoteToModerator extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, true, true, forumId);
+        adapter = new UserRecyclerViewAdapter(this, userList, true, true, false, forumId);
         userListView.setAdapter(adapter);
     }
 

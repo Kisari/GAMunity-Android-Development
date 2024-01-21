@@ -134,12 +134,14 @@ public class ChatView extends AppCompatActivity {
 
             dataId = getIntent.getExtras().getString("dataId");
 
-            if (dataId != null) {
-                if (isGroup) {
+            if (isGroup) {
+                if (dataId != null && !dataId.isEmpty()) {
                     forumId = dataId;
                     forumData = db.collection("FORUMS").document(dataId);
                 }
-                else {
+            }
+            else {
+                if (dataId != null && !dataId.isEmpty()) {
                     otherUserData = db.collection("users").document(dataId);
                 }
             }
@@ -231,73 +233,75 @@ public class ChatView extends AppCompatActivity {
                         newChatroom.put("isGroup", isGroup);
 
                         if (isGroup) {
-                            forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        DocumentSnapshot document = task.getResult();
+                            if (forumId != null) {
+                                forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            DocumentSnapshot document = task.getResult();
 
-                                        if (document.exists()) {
-                                            String forumName = document.getString("title");
-                                            String forumIcon = document.getString("forumIcon");
+                                            if (document.exists()) {
+                                                String forumName = document.getString("title");
+                                                String forumIcon = document.getString("forumIcon");
 
-                                            String chiefAdminId = document.getString("chiefAdmin");
-                                            chatAdminIds.add(chiefAdminId);
+                                                String chiefAdminId = document.getString("chiefAdmin");
+                                                chatAdminIds.add(chiefAdminId);
 
-                                            ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
-                                            ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                                                ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
+                                                ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                                            if (memberIds != null) {
-                                                if (memberIds.contains(userId)) {
-                                                    chatMemberIds.add(userId);
+                                                if (memberIds != null) {
+                                                    if (memberIds.contains(userId)) {
+                                                        chatMemberIds.add(userId);
+                                                    }
                                                 }
-                                            }
 
-                                            if (moderatorIds != null) {
-                                                if (moderatorIds.contains(userId)) {
-                                                    chatModeratorIds.add(userId);
+                                                if (moderatorIds != null) {
+                                                    if (moderatorIds.contains(userId)) {
+                                                        chatModeratorIds.add(userId);
+                                                    }
                                                 }
-                                            }
 
-                                            chatTitleStr = forumName + "'s Group Chat";
-                                            newChatroom.put("chatTitle", forumName + "'s Group Chat");
-                                            chatTitle.setText(forumName + "'s Group Chat");
+                                                chatTitleStr = forumName + "'s Group Chat";
+                                                newChatroom.put("chatTitle", forumName + "'s Group Chat");
+                                                chatTitle.setText(forumName + "'s Group Chat");
 
-                                            newChatroom.put("memberIds", chatMemberIds);
-                                            newChatroom.put("moderatorIds", chatModeratorIds);
-                                            newChatroom.put("adminIds", chatAdminIds);
+                                                newChatroom.put("memberIds", chatMemberIds);
+                                                newChatroom.put("moderatorIds", chatModeratorIds);
+                                                newChatroom.put("adminIds", chatAdminIds);
 
-                                            newChatroom.put("lastTimestamp", Timestamp.now());
-                                            newChatroom.put("lastMessageSenderId", "");
-                                            newChatroom.put("chatImg", forumIcon);
-                                            newChatroom.put("dataId", dataId);
+                                                newChatroom.put("lastTimestamp", Timestamp.now());
+                                                newChatroom.put("lastMessageSenderId", "");
+                                                newChatroom.put("chatImg", forumIcon);
+                                                newChatroom.put("dataId", dataId);
 
-                                            chatData.set(newChatroom, SetOptions.merge());
+                                                chatData.set(newChatroom, SetOptions.merge());
 
-                                            if (forumIcon != null) {
-                                                try {
-                                                    baseImage.setVisibility(View.INVISIBLE);
-                                                    chatImage.setVisibility(View.VISIBLE);
-                                                    chatProgressBar.setVisibility(View.VISIBLE);
+                                                if (forumIcon != null) {
+                                                    try {
+                                                        baseImage.setVisibility(View.INVISIBLE);
+                                                        chatImage.setVisibility(View.VISIBLE);
+                                                        chatProgressBar.setVisibility(View.VISIBLE);
 
-                                                    new AsyncImage(chatImage, chatProgressBar).loadImage(forumIcon);
+                                                        new AsyncImage(chatImage, chatProgressBar).loadImage(forumIcon);
+                                                    }
+                                                    catch (Exception e) {
+                                                        e.printStackTrace();
+                                                    }
                                                 }
-                                                catch (Exception e) {
-                                                    e.printStackTrace();
+                                                else {
+                                                    baseImage.setVisibility(View.VISIBLE);
+                                                    chatImage.setVisibility(View.INVISIBLE);
+                                                    chatProgressBar.setVisibility(View.INVISIBLE);
                                                 }
-                                            }
-                                            else {
-                                                baseImage.setVisibility(View.VISIBLE);
-                                                chatImage.setVisibility(View.INVISIBLE);
-                                                chatProgressBar.setVisibility(View.INVISIBLE);
-                                            }
 
-                                            setMoreInfo();
+                                                setMoreInfo();
 
+                                            }
                                         }
                                     }
-                                }
-                            });
+                                });
+                            }
 
                         }
                         else {
@@ -583,7 +587,12 @@ public class ChatView extends AppCompatActivity {
         Log.i(TAG, "setMoreInfo - chatMemberIds: " + chatMemberIds);
 
         if (isGroup) {
-            groupChat = new GroupChat(chatId, chatTitleStr, chatIconUri, true, forumId, null);
+            if (forumId != null) {
+                groupChat = new GroupChat(chatId, chatTitleStr, chatIconUri, true, forumId, null);
+            }
+            else {
+                groupChat = new GroupChat(chatId, chatTitleStr, chatIconUri, true, null, null);
+            }
         }
         else {
             groupChat = new GroupChat(chatId, chatTitleStr, chatIconUri, false, null, null);
@@ -956,7 +965,9 @@ public class ChatView extends AppCompatActivity {
     }
 
     public void addMember() {
-
+        Intent moreInfoIntent = new Intent(ChatView.this, AddMemberToGroupChat.class);
+        moreInfoIntent.putExtra("chatId", chatId);
+        startActivity(moreInfoIntent);
     }
 
     private void returnToPreviousPage() {

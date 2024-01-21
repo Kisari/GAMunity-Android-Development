@@ -121,7 +121,7 @@ public class ChatSearchUser extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, false, false, null);
+        adapter = new UserRecyclerViewAdapter(this, userList, false, true, true, null);
         userListView.setAdapter(adapter);
     }
 
