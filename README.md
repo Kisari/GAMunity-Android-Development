@@ -1,8 +1,8 @@
-#GAMunity project
+# GAMunity project
 Truong Bach Minh - s3891909
 <br />
 <br />
-##Functionalities
+## Functionalities
 <br />
 <br />
 **Home View**<br />
