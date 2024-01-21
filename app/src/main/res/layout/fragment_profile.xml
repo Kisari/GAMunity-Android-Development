@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".components.fragments.ProfileFragment">
+    tools:context=".components.views.profile.ProfileView">
 
     <RelativeLayout
         android:id="@+id/profileTop"
@@ -165,6 +165,7 @@
                     </LinearLayout>
 
                 </FrameLayout>
+
             </FrameLayout>
 
             <androidx.recyclerview.widget.RecyclerView

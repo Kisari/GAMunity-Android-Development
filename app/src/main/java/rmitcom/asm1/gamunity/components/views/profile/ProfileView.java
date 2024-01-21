@@ -1,18 +1,18 @@
-package rmitcom.asm1.gamunity;
+package rmitcom.asm1.gamunity.components.views.profile;
+
+import static android.content.ContentValues.TAG;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.text.ParseException;
@@ -32,10 +33,11 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.LoginView;
-import rmitcom.asm1.gamunity.components.views.profile.EditProfileView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
 import rmitcom.asm1.gamunity.model.Post;
@@ -111,6 +113,7 @@ public class ProfileView extends AppCompatActivity {
         setProfileData();
     }
 
+
     @SuppressLint("SetTextI18n")
     private void setProfileData() {
         userData.get().addOnCompleteListener(task -> {
@@ -128,10 +131,10 @@ public class ProfileView extends AppCompatActivity {
                         profileDob.setText(dobStr);
                     }
 
-                    noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size()); // Check for error
+                    noFollowStr = String.valueOf(((ArrayList<String>) Objects.requireNonNull(document.get("followersIds"))).size()); // Check for error
                     profileFollow.setText(noFollowStr);
 
-                    noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size()); // Check for error
+                    noFollowingStr = String.valueOf(((ArrayList<String>) Objects.requireNonNull(document.get("followingIds"))).size()); // Check for error
                     profileFollowing.setText(noFollowingStr);
 
                     profileImageUri = (String) document.get("profileImage");
@@ -232,7 +235,7 @@ public class ProfileView extends AppCompatActivity {
 
                         Post post = new Post(postId, postOwnerId, postForumId, postTitle, postDescription, timestamp, updateTimestamp, imgUri, postCommentIds, postLikeIds, postDislikeIds);
 
-                        Collections.sort(postList, (post1, post2)
+                        postList.sort((post1, post2)
                                 -> post2.getTimestamp().compareTo(post1.getTimestamp()));
 
                         int index = Collections.binarySearch(postList, post, (post1, post2)
@@ -256,12 +259,15 @@ public class ProfileView extends AppCompatActivity {
     }
 
     private void setUpPostList(ArrayList<Post> postList) {
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        postListView.setLayoutManager(layoutManager);
+        if (!postList.isEmpty()) {
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+            postListView.setLayoutManager(layoutManager);
 
-        postAdapter = new PostRecyclerViewAdapter(this, postList);
-        postListView.setAdapter(postAdapter);
+            postAdapter = new PostRecyclerViewAdapter(this, postList);
+            postListView.setAdapter(postAdapter);
+        }
     }
+
 
     // Refresh UI after editing or deleting a post
     @Override
@@ -301,7 +307,6 @@ public class ProfileView extends AppCompatActivity {
         MenuItem profileLogout = popupMenu.getMenu().findItem(R.id.profileLogout);
         MenuItem profileFollow = popupMenu.getMenu().findItem(R.id.profileFollow);
         MenuItem profileUnfollow = popupMenu.getMenu().findItem(R.id.profileUnfollow);
-
 
         if (Objects.equals(userId, targetUserId)) {
             viewForumList.setVisible(true);
