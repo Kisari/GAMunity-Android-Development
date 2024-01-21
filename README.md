@@ -1,5 +1,6 @@
 # GAMunity project
 Truong Bach Minh - s3891909
+<br />
 Nguyen Thi Nha Uyen - s3819293
 <br />
 <br />
