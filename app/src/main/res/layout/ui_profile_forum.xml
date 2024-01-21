@@ -28,7 +28,7 @@
                 android:gravity="center" >
 
                 <ProgressBar
-                    android:id="@+id/profileForumProgressBar"
+                    android:id="@+id/progress_bar"
                     android:indeterminateTint="#4900FF"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
@@ -36,7 +36,7 @@
             </LinearLayout>
 
             <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/profileForumImg"
+                android:id="@+id/profileForumIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="2dp"

@@ -5,11 +5,7 @@
         android:title="View forums"
         android:visible="true"/>
     <item
-        android:id="@+id/profileUpdate"
-        android:title="Update profile"
+        android:id="@+id/profileFollow"
+        android:title="Follow"
         android:visible="true"/>
-    <item
-        android:id="@+id/profileLogout"
-        android:title="Log out"
-        android:visible="false" />
 </menu>

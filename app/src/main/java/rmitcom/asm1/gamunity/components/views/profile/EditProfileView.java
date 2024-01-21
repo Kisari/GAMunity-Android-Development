@@ -85,6 +85,7 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
         fetchData();
     }
 
+
     private void chooseImageFromFile(Boolean isBackground){
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -214,6 +215,7 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                     });
         }
     }
+
 
     private void uploadIconImage(Uri submitFilePath) {
         if(submitFilePath != null)

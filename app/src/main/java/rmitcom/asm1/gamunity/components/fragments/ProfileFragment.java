@@ -13,15 +13,12 @@ import android.widget.TextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import rmitcom.asm1.gamunity.ProfileView;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.components.views.profile.EditProfileView;
 import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
 
 public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String profileId = userAuth.getUid();
 
     View currentView;
     public ProfileFragment() {
@@ -42,10 +39,6 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
 
         Intent testIntent = new Intent(view.getContext(), EditProfileView.class);
         startActivity(testIntent);
-
-//        Intent intent = new Intent(view.getContext(), ProfileView.class);
-//        intent.putExtra("userId", profileId);
-//        startActivity(intent);
 
         setUI();
         // Inflate the layout for this fragment
