@@ -235,26 +235,25 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                         newChatRoom.put("adminIds", adminIds);
                                         newChatRoom.put("memberIds", userIds);
 
-                                        final String[] chatId = {""};
                                         db.collection("CHATROOMS").add(newChatRoom).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                                             @Override
                                             public void onComplete(@NonNull Task<DocumentReference> task) {
                                                 if (task.isSuccessful()) {
-                                                    chatId[0] = task.getResult().getId();
-                                                    Log.i("TAG", "chatAddView getChatId: " + chatId[0]);
+                                                    String newChatId = task.getResult().getId();
+                                                    Log.i("TAG", "chatAddView getChatId: " + newChatId);
 
                                                     for (String id: allUserIds) {
-                                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayUnion(chatId[0]));
+                                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayUnion(newChatId));
                                                         counter.incrementAndGet();
                                                         Log.i("TAG", "chatAddView counter: " + counter.get());
 
                                                         if (counter.get() == size) {
                                                             Log.i("TAG", "chatAddView call Intent: called");
                                                             Intent chatIntent = new Intent(context, ChatView.class);
-                                                            chatIntent.putExtra("chatId", chatId[0]);
-                                                            Log.i("TAG", "chatAddView - chatId: " + chatId[0]);
-                                                            chatIntent.putExtra("isGroup", true);
-                                                            chatIntent.putExtra("dataId", "");
+                                                            chatIntent.putExtra("chatId", newChatId);
+//                                                            Log.i("TAG", "chatAddView - chatId: " + newChatId);
+//                                                            chatIntent.putExtra("isGroup", true);
+//                                                            chatIntent.putExtra("dataId", "");
 //                                                            ((Activity) context).startActivity(chatIntent);
                                                             ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
                                                             ((Activity) context).finish();

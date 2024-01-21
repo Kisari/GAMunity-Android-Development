@@ -58,7 +58,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
     public class PostRecyclerViewHolder extends RecyclerView.ViewHolder {
 
         public TextView title, username, timestamp, like, likeTrue, dislike, dislikeTrue, comment;
-        public RelativeLayout imageLayout;
+        public RelativeLayout imageLayout, postTabProfile;
         public ProgressBar userProgressBar, postProgressBar;
         public ImageView postImage, baseImage;
         public ShapeableImageView userImage;
@@ -82,6 +82,8 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             userImage = itemView.findViewById(R.id.postTabUserProfile);
 
             baseImage = itemView.findViewById(R.id.baseImg);
+
+            postTabProfile = itemView.findViewById(R.id.postTabProfile);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -242,12 +244,12 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             });
         }
 
-//        holder.userImage.setOnClickListener(v -> {
-//            Log.d(TAG, "onBindViewHolder: " + "avatar is clicked");
-//            Intent accessIntent = new Intent(context, ProfileView.class);
-//            accessIntent.putExtra("userId", userId);
-//            context.startActivity(accessIntent);
-//        });
+        holder.postTabProfile.setOnClickListener(v -> {
+            Log.d(TAG, "onBindViewHolder: " + "avatar is clicked");
+            Intent accessIntent = new Intent(context, ProfileView.class);
+            accessIntent.putExtra("userId", currPost.getOwnerId());
+            context.startActivity(accessIntent);
+        });
     }
 
     @Override
