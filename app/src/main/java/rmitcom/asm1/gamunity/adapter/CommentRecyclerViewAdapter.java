@@ -329,7 +329,7 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
                     if (document != null) {
                         holder.username.setText((String) document.get("name"));
 
-                        userImgUri = document.getString("image");
+                        userImgUri = document.getString("profileImgUri");
                         if (userImgUri != null) {
                             try {
                                 holder.baseImage.setVisibility(View.INVISIBLE);

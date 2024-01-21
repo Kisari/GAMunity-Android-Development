@@ -3,6 +3,8 @@ Truong Bach Minh - s3891909
 <br />
 Nguyen Thi Nha Uyen - s3819293
 <br />
+Note: Members within team have the same contribution to the project.
+<br />
 <br />
 ## Functionalities
 **Login/Signup**<br />

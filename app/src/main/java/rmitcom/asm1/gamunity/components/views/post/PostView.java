@@ -150,7 +150,7 @@ public class PostView extends AppCompatActivity {
                     postDescriptionStr = (String) document.get("description");
                     postTimestampStr = (String) document.get("date");
                     postUpdateTimestampStr = (String) document.get("updateDate");
-                    postImageUri = document.getString("image");
+                    postImageUri = document.getString("profileImgUri");
 
                     if(postImageUri != null) {
                         try {
