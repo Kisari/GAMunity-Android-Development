@@ -121,7 +121,7 @@ public class RemoveUser extends AppCompatActivity {
                         ArrayList<String> joinedForumIds = new ArrayList<>(), adminForumIds = new ArrayList<>();
                         if (document.exists()) {
                             username = document.getString("name");
-                            userProfileImg = document.getString("image");
+                            userProfileImg = document.getString("profileImgUri");
 
                             if (document.get("joinedForumIds") != null) {
                                 joinedForumIds = (ArrayList<String>) document.get("joinedForumIds");

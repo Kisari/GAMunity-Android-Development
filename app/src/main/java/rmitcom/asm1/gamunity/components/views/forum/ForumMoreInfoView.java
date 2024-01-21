@@ -208,7 +208,7 @@ public class ForumMoreInfoView extends AppCompatActivity {
                         String username = "", userProfileImg = "";
                         if (document.exists()) {
                             username = document.getString("name");
-                            userProfileImg = document.getString("image");
+                            userProfileImg = document.getString("profileImgUri");
                         }
 
                         User user = new User(userId, username, userProfileImg);
