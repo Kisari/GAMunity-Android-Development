@@ -468,6 +468,13 @@ public class ChatView extends AppCompatActivity {
                 }
             }
         }
+
+        if (requestCode == 117 || requestCode == 118) {
+            if (resultCode == RESULT_OK) {
+                setUI();
+                recreate();
+            }
+        }
     }
 
     private void uploadChatImage(Uri submitFilePath, boolean isIcon, AlertDialog dialog) {
@@ -998,13 +1005,13 @@ public class ChatView extends AppCompatActivity {
     public void addMember() {
         Intent moreInfoIntent = new Intent(ChatView.this, AddMemberToGroupChat.class);
         moreInfoIntent.putExtra("chatId", chatId);
-        startActivity(moreInfoIntent);
+        startActivityForResult(moreInfoIntent, 117);
     }
 
     public void removeMember() {
         Intent moreInfoIntent = new Intent(ChatView.this, RemoveMemberFromGroupChat.class);
         moreInfoIntent.putExtra("chatId", chatId);
-        startActivity(moreInfoIntent);
+        startActivityForResult(moreInfoIntent, 118);
     }
 
     private void returnToPreviousPage() {

@@ -247,9 +247,9 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                                             Log.i("TAG", "chatAddView - chatId: " + chatId[0]);
                                                             chatIntent.putExtra("isGroup", true);
                                                             chatIntent.putExtra("dataId", "");
-                                                            ((Activity) context).startActivity(chatIntent);
-//                                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
-//                                                            ((Activity) context).finish();
+//                                                            ((Activity) context).startActivity(chatIntent);
+                                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
+                                                            ((Activity) context).finish();
                                                         }
                                                     }
                                                 }
@@ -269,9 +269,9 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                             Log.i("TAG", "chatAddView - chatId: " + dataId);
                                             chatIntent.putExtra("isGroup", true);
                                             chatIntent.putExtra("dataId", "");
-                                            ((Activity) context).startActivity(chatIntent);
-//                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
-//                                            ((Activity) context).finish();
+//                                            ((Activity) context).startActivity(chatIntent);
+                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
+                                            ((Activity) context).finish();
                                         }
                                     }
                                 }
@@ -433,9 +433,9 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                                 Log.i("TAG", "chatRemoveView - chatId: " + dataId);
                                 chatIntent.putExtra("isGroup", true);
                                 chatIntent.putExtra("dataId", "");
-                                ((Activity) context).startActivity(chatIntent);
-//                                ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
-//                                ((Activity) context).finish();
+//                                ((Activity) context).startActivity(chatIntent);
+                                ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
+                                ((Activity) context).finish();
                             }
                         }
                     });

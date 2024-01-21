@@ -159,7 +159,8 @@
                         android:layout_height="wrap_content"
                         android:maxHeight="10000dp"
                         android:importantForAccessibility="no"
-                        android:scaleType="fitXY"/>
+                        android:scaleType="fitXY"
+                        android:adjustViewBounds="true"/>
                 </RelativeLayout>
                 <TextView
                     android:id="@+id/postDescription"

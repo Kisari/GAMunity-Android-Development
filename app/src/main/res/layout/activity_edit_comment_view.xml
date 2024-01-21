@@ -132,7 +132,8 @@
                 android:maxHeight="10000dp"
                 android:importantForAccessibility="no"
                 android:scaleType="fitXY"
-                tools:ignore="ImageContrastCheck"/>
+                tools:ignore="ImageContrastCheck"
+                android:adjustViewBounds="true"/>
         </RelativeLayout>
 
         <TextView

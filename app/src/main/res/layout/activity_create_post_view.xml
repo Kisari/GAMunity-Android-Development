@@ -123,7 +123,8 @@
             android:background="@drawable/rectangle_shadow"
             android:importantForAccessibility="no"
             android:scaleType="fitXY"
-            tools:ignore="ImageContrastCheck"/>
+            tools:ignore="ImageContrastCheck"
+            android:adjustViewBounds="true"/>
     </RelativeLayout>
 
 </androidx.core.widget.NestedScrollView>
