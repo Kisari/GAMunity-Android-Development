@@ -220,7 +220,7 @@ public class ChatMoreInfo extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, false, false, chatId);
+        adapter = new UserRecyclerViewAdapter(this, userList, false, false, true, chatId);
         userListView.setAdapter(adapter);
     }
 

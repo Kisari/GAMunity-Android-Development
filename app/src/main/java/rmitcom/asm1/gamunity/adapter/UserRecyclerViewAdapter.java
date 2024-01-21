@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -31,6 +32,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.fragments.HomeFragment;
@@ -49,13 +52,14 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
     private DocumentReference userData;
     private String usernameStr, userProfileImgUri, dataId, otherUserId;
     private ArrayList<String> userIds;
-    private boolean toAdmin, isChangeRole;
+    private boolean toAdmin, isChangeRole, isChat;
 
-    public UserRecyclerViewAdapter(Context context, ArrayList<User> userContent, boolean isChangeRole, boolean toAdmin, String dataId) {
+    public UserRecyclerViewAdapter(Context context, ArrayList<User> userContent, boolean isChangeRole, boolean toAdmin, boolean isChat, String dataId) {
         this.context = context;
         this.userContent = userContent;
         this.isChangeRole = isChangeRole;
         this.toAdmin = toAdmin;
+        this.isChat = isChat;
         this.dataId = dataId;
     }
 
@@ -75,7 +79,7 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
         TextView username;
         ProgressBar userProgressBar;
         ShapeableImageView userImage;
-        RelativeLayout userInfo;
+        RelativeLayout userInfo, userImg;
         Button userButton;
         ImageView baseImage;
         public UserRecyclerViewHolder(@NonNull View itemView) {
@@ -85,13 +89,21 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
             userProgressBar = itemView.findViewById(R.id.memberProgressBar1);
             userImage = itemView.findViewById(R.id.memberUserProfile);
             userInfo = itemView.findViewById(R.id.userInfo);
+            userImg = itemView.findViewById(R.id.userImg);
             userButton = itemView.findViewById(R.id.userButton);
             baseImage = itemView.findViewById(R.id.baseImg);
 
-            if (isChangeRole && toAdmin || isChangeRole || toAdmin) {
-                userButton.setVisibility(View.VISIBLE);
-            } else {
+//            if (isChangeRole && toAdmin || isChangeRole || toAdmin) {
+//                userButton.setVisibility(View.VISIBLE);
+//            } else {
+//                userButton.setVisibility(View.GONE);
+//            }
+
+            if (!isChangeRole && !toAdmin) {
                 userButton.setVisibility(View.GONE);
+            }
+            else {
+                userButton.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -124,43 +136,154 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                 holder.userImage.setVisibility(View.INVISIBLE);
             }
 
-            holder.userInfo.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    accessInfoPage(currUser);
-                }
-            });
-
             holder.userButton.setOnClickListener(new View.OnClickListener() {
                 @SuppressLint("NotifyDataSetChanged")
                 @Override
                 public void onClick(View v) {
-                    confirmChangeRole(currUser);
+                    executeAction(currUser);
 //                    notifyDataSetChanged();
+                }
+            });
 
-                    Intent returnIntent = new Intent(context, ForumView.class);
-                    returnIntent.putExtra("forumId", dataId);
+//            holder.userInfo.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if (!isChangeRole && toAdmin && isChat) {
+//                        executeAction(currUser);
+//                    }
+//                }
+//            });
 
-                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
-                    ((Activity) context).finish();
+            holder.userImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    accessInfoPage(currUser);
                 }
             });
         }
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private void confirmChangeRole(User currUser) {
+    private void executeAction(User currUser) {
         String currUserId = currUser.getUserId();
 
         ArrayList<String> joinedIds = currUser.getJoinedForumIds();
         ArrayList<String> adminIds = currUser.getAdminForumIds();
 
-        if (isChangeRole) {
-            if (toAdmin) { //Change user from member to moderator
-                joinedIds.remove(dataId);
-                adminIds.add(dataId);
+        ArrayList<String> chatgroupIds = currUser.getChatGroupIds();
 
-                if (dataId != null) {
+        if (isChangeRole) {
+            if (toAdmin) {
+                //Add user to a chat group
+                if (isChat) {
+                    DocumentReference chatData = db.collection("CHATROOMS").document(dataId);
+                    chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+
+                                if (document.exists()) {
+                                    boolean isGroup = document.getBoolean("isGroup");
+
+                                    if (!isGroup) {
+                                        ArrayList<String> adminIds = new ArrayList<>(), userIds = new ArrayList<>(), tempUserIds, allUserIds = new ArrayList<>();
+
+                                        if (document.get("adminIds") != null) {
+                                            tempUserIds = (ArrayList) document.get("adminIds");
+                                            adminIds.add(userId);
+                                            allUserIds.add(userId);
+
+                                            if (tempUserIds != null) {
+                                                for (String id: tempUserIds) {
+                                                    if (!Objects.equals(id, userId)) {
+                                                        Log.i("TAG", "chatAddView - userId: " + id);
+                                                        userIds.add(id);
+                                                        allUserIds.add(id);
+                                                    }
+                                                }
+                                            }
+
+                                            userIds.add(currUserId);
+                                            allUserIds.add(currUserId);
+
+                                            Log.i("TAG", "chatAddView - adminIds: " + tempUserIds);
+                                            Log.i("TAG", "chatAddView - current user chose: " + currUserId);
+                                            Log.i("TAG", "chatAddView - userIds: " + userIds);
+                                            Log.i("TAG", "chatAddView - all user: " + allUserIds);
+                                        }
+
+                                        final int size = allUserIds.size();
+                                        AtomicInteger counter = new AtomicInteger(0);
+
+                                        Log.i("TAG", "chatAddView - userList size: " + size);
+
+                                        Map<String, Object> newChatRoom = new HashMap<>();
+                                        newChatRoom.put("chatTitle", "Group chat");
+                                        newChatRoom.put("chatImg", null);
+                                        newChatRoom.put("isGroup", true);
+                                        newChatRoom.put("lastMessageSenderId", "");
+                                        newChatRoom.put("lastTimestamp", Timestamp.now());
+                                        newChatRoom.put("adminIds", adminIds);
+                                        newChatRoom.put("memberIds", userIds);
+
+                                        final String[] chatId = {""};
+                                        db.collection("CHATROOMS").add(newChatRoom).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentReference> task) {
+                                                if (task.isSuccessful()) {
+                                                    chatId[0] = task.getResult().getId();
+                                                    Log.i("TAG", "chatAddView getChatId: " + chatId[0]);
+
+                                                    for (String id: allUserIds) {
+                                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayUnion(chatId[0]));
+                                                        counter.incrementAndGet();
+                                                        Log.i("TAG", "chatAddView counter: " + counter.get());
+
+                                                        if (counter.get() == size) {
+                                                            Log.i("TAG", "chatAddView call Intent: called");
+                                                            Intent chatIntent = new Intent(context, ChatView.class);
+                                                            chatIntent.putExtra("chatId", chatId[0]);
+                                                            Log.i("TAG", "chatAddView - chatId: " + chatId[0]);
+                                                            chatIntent.putExtra("isGroup", true);
+                                                            chatIntent.putExtra("dataId", "");
+                                                            ((Activity) context).startActivity(chatIntent);
+//                                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
+//                                                            ((Activity) context).finish();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+
+                                    }
+                                    else {
+                                        String data = document.getString("dataId");
+                                        if (data == null) {
+                                            chatData.update("memberIds", FieldValue.arrayUnion(currUserId));
+
+                                            db.collection("users").document(currUserId).update("chatGroupIds", FieldValue.arrayUnion(dataId));
+
+                                            Intent chatIntent = new Intent(context, ChatView.class);
+                                            chatIntent.putExtra("chatId", dataId);
+                                            Log.i("TAG", "chatAddView - chatId: " + dataId);
+                                            chatIntent.putExtra("isGroup", true);
+                                            chatIntent.putExtra("dataId", "");
+                                            ((Activity) context).startActivity(chatIntent);
+//                                            ((Activity) context).setResult(Activity.RESULT_OK, chatIntent);
+                                            ((Activity) context).finish();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                //Promote user in forum
+                else {
+                    joinedIds.remove(dataId);
+                    adminIds.add(dataId);
+
                     DocumentReference forumData = db.collection("FORUMS").document(dataId);
                     forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
@@ -250,15 +373,27 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                     DocumentReference userData = db.collection("users").document(currUserId);
                     userData.update("joinedForumIds", FieldValue.arrayRemove(dataId));
                     userData.update("adminForumIds", FieldValue.arrayUnion(dataId));
+
+                    notifyDataSetChanged();
+
+                    Intent returnIntent = new Intent(context, ForumView.class);
+                    returnIntent.putExtra("forumId", dataId);
+
+                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                    ((Activity) context).finish();
+
                 }
-
-                notifyDataSetChanged();
             }
-            else { //Change user from moderator to member
-                joinedIds.add(dataId);
-                adminIds.remove(dataId);
+            else {
+                //Remove user from chat group
+                if (isChat) {
 
-                if (dataId != null) {
+                }
+                //Demote user in forum
+                else {
+                    joinedIds.add(dataId);
+                    adminIds.remove(dataId);
+
                     DocumentReference forumData = db.collection("FORUMS").document(dataId);
                     forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
@@ -348,110 +483,160 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
                     DocumentReference userData = db.collection("users").document(currUserId);
                     userData.update("joinedForumIds", FieldValue.arrayUnion(dataId));
                     userData.update("adminForumIds", FieldValue.arrayRemove(dataId));
-                }
 
-                notifyDataSetChanged();
+                    notifyDataSetChanged();
+
+                    Intent returnIntent = new Intent(context, ForumView.class);
+                    returnIntent.putExtra("forumId", dataId);
+
+                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                    ((Activity) context).finish();
+                }
             }
         }
         else {
-            if (toAdmin) { //For remove user from forum
-                joinedIds.remove(dataId);
-                adminIds.remove(dataId);
+            if (toAdmin) {
+                //Chat Search User
+                if (isChat) {
+                    Intent accessIntent = new Intent(context, ChatView.class);
+                    accessIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
 
-                if (dataId != null) {
-                    DocumentReference forumData = db.collection("FORUMS").document(dataId);
-                    forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
-                                ArrayList<String> memberIds, moderatorIds;
+                    String otherId = currUser.getUserId();
+                    String chatId = "";
 
-                                if (document.exists()) {
-                                    memberIds = new ArrayList<>();
-                                    moderatorIds = new ArrayList<>();
+                    if (userId.hashCode() < otherId.hashCode()) {
+                        chatId = userId + "_" + otherId;
+                    }
+                    else {
+                        chatId = otherId + "_" + userId;
+                    }
 
-                                    Map<String, ArrayList<String>> memberList = new HashMap<>();
-                                    Map<String, ArrayList<String>> moderatorList = new HashMap<>();
-                                    if (document.get("memberIds") != null) {
-                                        memberIds = (ArrayList<String>) document.get("memberIds");
+                    db.collection("users").document(userId)
+                            .update("chatGroupIds", FieldValue.arrayUnion(chatId));
+                    db.collection("users").document(currUser.getUserId())
+                            .update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
-                                        if (memberIds != null) {
-                                            memberIds.remove(currUserId);
-                                            memberList.put("memberIds", memberIds);
-                                            forumData.set(memberList, SetOptions.merge());
+                    accessIntent.putExtra("chatId", chatId);
+                    accessIntent.putExtra("isGroup", false);
+                    accessIntent.putExtra("dataId", currUser.getUserId());
+
+                    context.startActivity(accessIntent);
+                    ((Activity) context).finish();
+
+                }
+                //Remove user
+                else {
+                    joinedIds.remove(dataId);
+                    adminIds.remove(dataId);
+
+                    if (dataId != null) {
+                        DocumentReference forumData = db.collection("FORUMS").document(dataId);
+                        forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot document = task.getResult();
+                                    ArrayList<String> memberIds, moderatorIds;
+
+                                    if (document.exists()) {
+                                        memberIds = new ArrayList<>();
+                                        moderatorIds = new ArrayList<>();
+
+                                        Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                        Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+                                        if (document.get("memberIds") != null) {
+                                            memberIds = (ArrayList<String>) document.get("memberIds");
+
+                                            if (memberIds != null) {
+                                                memberIds.remove(currUserId);
+                                                memberList.put("memberIds", memberIds);
+                                                forumData.set(memberList, SetOptions.merge());
+                                            }
                                         }
-                                    }
 
-                                    if (document.get("moderatorIds") != null) {
-                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                                        if (document.get("moderatorIds") != null) {
+                                            moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                                        if (moderatorIds != null) {
-                                            moderatorIds.remove(currUserId);
-                                            moderatorList.put("moderatorIds", moderatorIds);
-                                            forumData.set(moderatorList, SetOptions.merge());
+                                            if (moderatorIds != null) {
+                                                moderatorIds.remove(currUserId);
+                                                moderatorList.put("moderatorIds", moderatorIds);
+                                                forumData.set(moderatorList, SetOptions.merge());
+                                            }
                                         }
-                                    }
 //                                    forumData.update("memberIds", FieldValue.arrayRemove(currUserId));
 //                                    forumData.update("moderatorIds", FieldValue.arrayRemove(currUserId));
 
-                                    DocumentReference userData = db.collection("users").document(currUserId);
-                                    userData.update("joinedForumIds", FieldValue.arrayRemove(dataId));
-                                    userData.update("adminForumIds", FieldValue.arrayRemove(dataId));
+                                        DocumentReference userData = db.collection("users").document(currUserId);
+                                        userData.update("joinedForumIds", FieldValue.arrayRemove(dataId));
+                                        userData.update("adminForumIds", FieldValue.arrayRemove(dataId));
 
-                                    String chatId = document.getString("chatId");
-                                    Log.i("confirmChangeRole", "chatId: " + chatId);
-                                    if (chatId != null) {
-                                        DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
-                                        chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                if (task.isSuccessful()) {
-                                                    DocumentSnapshot document = task.getResult();
+                                        String chatId = document.getString("chatId");
+                                        Log.i("confirmChangeRole", "chatId: " + chatId);
+                                        if (chatId != null) {
+                                            DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+                                            chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                    if (task.isSuccessful()) {
+                                                        DocumentSnapshot document = task.getResult();
 
-                                                    if (document.exists()) {
-                                                        ArrayList<String> memberIds = new ArrayList<>();
-                                                        ArrayList<String> moderatorIds = new ArrayList<>();
+                                                        if (document.exists()) {
+                                                            ArrayList<String> memberIds = new ArrayList<>();
+                                                            ArrayList<String> moderatorIds = new ArrayList<>();
 
-                                                        Map<String, ArrayList<String>> memberList = new HashMap<>();
-                                                        Map<String, ArrayList<String>> moderatorList = new HashMap<>();
+                                                            Map<String, ArrayList<String>> memberList = new HashMap<>();
+                                                            Map<String, ArrayList<String>> moderatorList = new HashMap<>();
 
-                                                        if (document.get("memberIds") != null) {
-                                                            memberIds = (ArrayList<String>) document.get("memberIds");
+                                                            if (document.get("memberIds") != null) {
+                                                                memberIds = (ArrayList<String>) document.get("memberIds");
 
-                                                            if (memberIds != null) {
-                                                                memberIds.remove(currUserId);
-                                                                memberList.put("memberIds", memberIds);
-                                                                chatData.set(memberList, SetOptions.merge());
+                                                                if (memberIds != null) {
+                                                                    memberIds.remove(currUserId);
+                                                                    memberList.put("memberIds", memberIds);
+                                                                    chatData.set(memberList, SetOptions.merge());
+                                                                }
                                                             }
-                                                        }
 
-                                                        if (document.get("moderatorIds") != null) {
-                                                            moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                                                            if (document.get("moderatorIds") != null) {
+                                                                moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                                                            if (moderatorIds != null) {
-                                                                moderatorIds.remove(currUserId);
-                                                                moderatorList.put("moderatorIds", moderatorIds);
-                                                                chatData.set(moderatorList, SetOptions.merge());
+                                                                if (moderatorIds != null) {
+                                                                    moderatorIds.remove(currUserId);
+                                                                    moderatorList.put("moderatorIds", moderatorIds);
+                                                                    chatData.set(moderatorList, SetOptions.merge());
+                                                                }
                                                             }
+
+                                                            userData.update("chatGroupIds", FieldValue.arrayRemove(chatId));
+
                                                         }
-
-                                                        userData.update("chatGroupIds", FieldValue.arrayRemove(chatId));
-
                                                     }
                                                 }
-                                            }
-                                        });
+                                            });
+
+                                        }
 
                                     }
-
                                 }
                             }
-                        }
-                    });
-                }
+                        });
+                    }
+                    notifyDataSetChanged();
 
-                notifyDataSetChanged();
+                    Intent returnIntent = new Intent(context, ForumView.class);
+                    returnIntent.putExtra("forumId", dataId);
+
+                    ((Activity) context).setResult(Activity.RESULT_OK, returnIntent);
+                    ((Activity) context).finish();
+                }
+            }
+            else {
+                if (isChat) { //Display chat info
+
+                }
+                else { //Display forum info
+
+                }
             }
         }
 
@@ -462,56 +647,10 @@ public class UserRecyclerViewAdapter extends RecyclerView.Adapter<UserRecyclerVi
     }
 
     private void accessInfoPage(User currUser) {
-        if (!isChangeRole && !toAdmin) {
-            Intent accessIntent;
-            if (dataId != null) {
-                accessIntent = new Intent(context, HomeFragment.class);
-            }
-            else {
-                accessIntent = new Intent(context, ChatView.class);
-                accessIntent.setFlags(Intent.FLAG_ACTIVITY_FORWARD_RESULT);
-
-                String otherId = currUser.getUserId();
-                String chatId = "";
-
-                if (userId.hashCode() < otherId.hashCode()) {
-                    chatId = userId + "_" + otherId;
-                }
-                else {
-                    chatId = otherId + "_" + userId;
-                }
-
-                db.collection("users").document(userId)
-                        .update("chatGroupIds", FieldValue.arrayUnion(chatId));
-                db.collection("users").document(currUser.getUserId())
-                        .update("chatGroupIds", FieldValue.arrayUnion(chatId));
-
-//                Map<String, Object> newChatroom = new HashMap<>();
-//
-//                db.collection("CHATROOMS")
-//                        .add(newChatroom)
-//                        .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-//                            @Override
-//                            public void onComplete(@NonNull Task<DocumentReference> task) {
-//                                if(task.isSuccessful()) {
-//                                    String newChatId = task.getResult().getId();
-//
-//                                    Map<String, String> chatroomId = new HashMap<>();
-//                                    chatroomId.put("chatId", newChatId);
-//                                }
-//                            }
-//                        });
-
-                accessIntent.putExtra("chatId", chatId);
-                accessIntent.putExtra("isGroup", false);
-                accessIntent.putExtra("dataId", currUser.getUserId());
-//                accessIntent.putExtra("dataName", currUser.getName());
-//                accessIntent.putExtra("dataImg", currUser.getProfileImgUri());
-
-
-            }
-            context.startActivity(accessIntent);
-            ((Activity) context).finish();
-        }
+        String currId = currUser.getUserId();
+        Intent accessIntent = new Intent(context, HomeFragment.class);
+        accessIntent.putExtra("currUserId", currId);
+        context.startActivity(accessIntent);
+        ((Activity) context).finish();
     }
 }

@@ -227,7 +227,7 @@ public class ForumMoreInfoView extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         userListView.setLayoutManager(layoutManager);
 
-        adapter = new UserRecyclerViewAdapter(this, userList, false, false, forumId);
+        adapter = new UserRecyclerViewAdapter(this, userList, false, false, false, forumId);
         userListView.setAdapter(adapter);
     }
 

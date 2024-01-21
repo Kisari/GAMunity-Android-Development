@@ -48,7 +48,7 @@
         android:orientation="vertical">
 
         <android.widget.SearchView
-            android:id="@+id/userSearchBar"
+            android:id="@+id/addUserSearchBar"
             android:maxWidth="10000dp"
             android:layout_margin="12dp"
             android:backgroundTint="#ffffff"
@@ -60,7 +60,7 @@
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/userSearchList"
+        android:id="@+id/addUserSearchList"
         android:background="@color/white"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
