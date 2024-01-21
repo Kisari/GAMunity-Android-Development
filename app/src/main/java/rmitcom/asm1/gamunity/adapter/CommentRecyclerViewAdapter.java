@@ -48,6 +48,7 @@ import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.EditCommentView;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
+import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
 
@@ -351,14 +352,14 @@ public class CommentRecyclerViewAdapter extends RecyclerView.Adapter<CommentRecy
         setLikeComment(holder, currComment, position);
         setDislikeComment(holder, currComment, position);
 
-//        holder.userImage.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent accessIntent = new Intent(context, Profile.class);
-//                accessIntent.putExtra("userId", userId);
-//                context.startActivity(accessIntent);
-//            }
-//        });
+        holder.userImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent accessIntent = new Intent(context, ProfileView.class);
+                accessIntent.putExtra("userId", userId);
+                context.startActivity(accessIntent);
+            }
+        });
     }
 
     private void toggleLikeDislike(int position, Comment currComment,

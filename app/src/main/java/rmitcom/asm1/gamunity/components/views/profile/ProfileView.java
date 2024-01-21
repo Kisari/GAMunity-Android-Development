@@ -4,423 +4,333 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Locale;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 
 import rmitcom.asm1.gamunity.R;
-import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
-import rmitcom.asm1.gamunity.components.views.LoginView;
-import rmitcom.asm1.gamunity.model.Constant;
-import rmitcom.asm1.gamunity.model.Forum;
-import rmitcom.asm1.gamunity.model.Post;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.User;
 
 public class ProfileView extends AppCompatActivity {
     private final String TAG = "Profile View";
+
+    private final FireBaseManager manager = new FireBaseManager();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final FirebaseStorage storage = FirebaseStorage.getInstance();
-    private final String userId = userAuth.getUid();
 
     // Define correct profile to be displayed
     private String targetUserId;
 
     // Firebase data
-    private DocumentReference userData, forumData, postData;
+//    private DocumentReference userData;
 
     // User data
-    private String nameStr, dobStr, noFollowStr, noFollowingStr,
+    private String nameStr, dobStr, noFollowStr, noFollowingStr, emailStr,
             profileImageUri, profileBackgroundUri;
     private ArrayList<String> followList;
     private ArrayList<String> followingList;
 
-    // Forum data
-    private ArrayList<String> forumIds;
-    private ArrayList<Forum> forumList;
-    private ArrayList<String> postIds;
-    private ArrayList<Post> postList;
-
     // Display data
-    private TextView profileName, profileDob, profileFollow, profileFollowing,
-            moreOptionButton;
-    private RecyclerView postListView, forumListView;
+    private TextView profileName, profileDob, profileFollow, profileFollowing, profileEmail;
     private ProgressBar backgroundProgressBar, iconProgressBar;
-    private ImageView profilePicture, profileBackground;
+    private ImageView profilePicture, profileBackground, backBtn;
+    private Button profileActionFollow, profileActionUnFollow;
+    private User profileUser;
 
-    private PostRecyclerViewAdapter postAdapter;
-    private User currentUser;
-    private Constant constant = new Constant();
+    private String targetProfileId;
+
+    private String profileUserRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_view);
 
-        targetUserId = getIntent().getStringExtra("userId");
+        Intent getIntent = getIntent();
+        targetUserId = getIntent.getStringExtra("userId");
         setUI(targetUserId);
     }
 
     private void setUI(String profileId) {
-        Intent getIntent = getIntent();
-
-        if (getIntent != null) {
-            userData = db.collection("users").document(profileId);
-        }
-
-        Log.i(TAG, "profileId: " + userId);
+        targetProfileId = profileId;
 
         profileName = findViewById(R.id.profileName);
+        profileEmail = findViewById(R.id.profileEmail);
         profileDob = findViewById(R.id.profileDOB);
         profileFollow = findViewById(R.id.profileFollow);
         profileFollowing = findViewById(R.id.profileFollowing);
+        profileActionFollow = findViewById(R.id.profileActionFollow);
+        profileActionUnFollow = findViewById(R.id.profileActionUnFollow);
 
         profilePicture = findViewById(R.id.profilePicture);
         iconProgressBar = findViewById(R.id.profileProgress1);
         profileBackground = findViewById(R.id.profileBackgroundImage);
         backgroundProgressBar = findViewById(R.id.profileProgress2);
-        moreOptionButton = findViewById(R.id.profileMoreOption);
-
-        postListView = findViewById(R.id.profilePostList);
+        backBtn = findViewById(R.id.backBtn);
 
         setProfileData();
+
+        backBtn.setOnClickListener(v -> {
+            finish();
+        });
     }
 
     @SuppressLint("SetTextI18n")
     private void setProfileData() {
-        userData.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot document = task.getResult();
+        db.collection("users")
+                .whereEqualTo("userId", targetProfileId)
+                .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (document.exists()) {
+                                nameStr = document.getString("name");
+                                if (nameStr != null) {
+                                    profileName.setText(nameStr);
+                                }
 
-                if (document.exists()) {
-                    nameStr = (String) document.get("name");
-                    if (nameStr != null) {
-                        profileName.setText(nameStr);
-                    }
+                                dobStr = document.getString("dob");
+                                if (dobStr != null) {
+                                    profileDob.setText(dobStr);
+                                }
 
-                    dobStr = (String) document.get("dob");
-                    if (dobStr != null) {
-                        profileDob.setText(dobStr);
-                    }
+                                emailStr = document.getString("email");
+                                if(emailStr != null){
+                                    profileEmail.setText(emailStr);
+                                }
 
-                    if(document.get("followersIds") != null){
-                        noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size());
-                        profileFollow.setText(noFollowStr);
-                    }
-                    else{
-                        noFollowStr = "0";
-                        profileFollow.setText(noFollowStr);
-                    }
+                                if(document.get("followersIds") != null){
+                                    noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size());
+                                    profileFollow.setText(noFollowStr);
+                                }
+                                else{
+                                    noFollowStr = "0";
+                                    profileFollow.setText(noFollowStr);
+                                }
 
-                    if(document.get("followingIds") != null){
-                        noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size());
-                        profileFollowing.setText(noFollowingStr);
-                    }
-                    else{
-                        noFollowingStr = "0";
-                        profileFollowing.setText(noFollowingStr);
-                    }
+                                if(document.get("followingIds") != null){
+                                    noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size());
+                                    profileFollowing.setText(noFollowingStr);
+                                }
+                                else{
+                                    noFollowingStr = "0";
+                                    profileFollowing.setText(noFollowingStr);
+                                }
 
-                    profileImageUri = (String) document.get("profileImage");
-                    profileBackgroundUri = (String) document.get("profileBackground");
-                    Log.i(TAG, "profileImageUri: " + profileImageUri);
-                    Log.i(TAG, "profileBackgroundUri: " + profileBackgroundUri);
-                    try {
-                        new AsyncImage(profilePicture, iconProgressBar).loadImage(profileImageUri);
-                        new AsyncImage(profileBackground, backgroundProgressBar).loadImage(profileBackgroundUri);
-                    } catch (Exception e) {
-                        Log.e(TAG, "setProfileData: ", e);
-                        e.printStackTrace();
-                    }
+                                profileImageUri = document.getString("profileImgUri");
+                                profileBackgroundUri = document.getString("backgroundImgUri");
 
-                    if (document.get("postIds") != null) {
-                        postIds = (ArrayList<String>) document.get("postIds");
-                        if (postIds != null) {
-                            displayPostList(postIds);
-                        }
-                    }
+                                try {
+                                    new AsyncImage(profilePicture, iconProgressBar).loadImage(profileImageUri);
+                                    new AsyncImage(profileBackground, backgroundProgressBar).loadImage(profileBackgroundUri);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "setProfileData: ", e);
+                                    e.printStackTrace();
+                                }
 
-                    currentUser = new User(document.getString("userId"), document.getBoolean("isAdmin"),
-                            document.getString("name"), document.getString("dob"), document.getString("email"),
-                            (ArrayList<String>) document.get("ownedForumIds"), (ArrayList<String>) document.get("adminForumIds"),
-                            (ArrayList<String>) document.get("joinedForumIds"), (ArrayList<String>) document.get("postIds"),
-                            (ArrayList<String>) document.get("commentIds"), (ArrayList<String>) document.get("followersIds"),
-                            (ArrayList<String>) document.get("followingIds"));
+                                profileUser = new User(document.getString("userId"), document.getBoolean("isAdmin"),
+                                        document.getString("name"), document.getString("dob"), document.getString("email"),
+                                        (ArrayList<String>) document.get("ownedForumIds"), (ArrayList<String>) document.get("adminForumIds"),
+                                        (ArrayList<String>) document.get("joinedForumIds"), (ArrayList<String>) document.get("postIds"),
+                                        (ArrayList<String>) document.get("commentIds"), (ArrayList<String>) document.get("followersIds"),
+                                        (ArrayList<String>) document.get("followingIds"));
 
-                    moreOption();
+                                profileUserRef = document.getId();
 
-                } else {
-                    Log.d(TAG, "No such document");
-                }
-            } else {
-                Log.d(TAG, "get failed with ", task.getException());
-            }
-        });
-    }
+                                manager.getDb().collection("users")
+                                        .whereEqualTo("userId", manager.getCurrentUser().getUid())
+                                        .get()
+                                        .addOnCompleteListener(task1 -> {
+                                            for(QueryDocumentSnapshot queryDocumentSnapshot: task1.getResult()){
+                                                if(queryDocumentSnapshot.get("followingIds") != null){
+                                                    ArrayList<String> currentUserFollowingList = (ArrayList<String>) queryDocumentSnapshot.get("followingIds");
 
-    private void displayPostList(ArrayList<String> postIds) {
-        postList = new ArrayList<>();
+                                                    assert currentUserFollowingList != null;
+                                                    if(currentUserFollowingList.contains(profileUser.getUserId())){
+                                                        profileActionFollow.setVisibility(View.GONE);
+                                                        profileActionUnFollow.setVisibility(View.VISIBLE);
+                                                    }
+                                                    else{
+                                                        profileActionFollow.setVisibility(View.VISIBLE);
+                                                        profileActionUnFollow.setVisibility(View.GONE);
+                                                    }
+                                                }
+                                                else{
+                                                    profileActionFollow.setVisibility(View.VISIBLE);
+                                                    profileActionUnFollow.setVisibility(View.GONE);
+                                                }
+                                            }
+                                        });
 
-        final int[] listLength = {postIds.size()};
-        AtomicInteger counter = new AtomicInteger(0);
+                                profileActionFollow.setOnClickListener(v -> followUser());
 
-        for (String postId : postIds) {
-            Log.i(TAG, "displayList - postId: " + postId);
-
-            db.collection("POSTS").document(postId).get().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-
-                    String postTitle, postOwnerId, postForumId, postDescription, timestampStr, updateTimestampStr, imgUri;
-                    Date timestamp = new Date(), updateTimestamp = new Date();
-
-                    ArrayList<String> postLikeIds, postDislikeIds, postCommentIds;
-
-                    if (document.exists()) {
-                        postTitle = (String) document.get("title");
-                        postOwnerId = (String) document.get("ownerId");
-                        postForumId = (String) document.get("forumId");
-
-                        postDescription = (String) document.get("description");
-
-                        postLikeIds = (ArrayList<String>) document.get("likeIds");
-                        postDislikeIds = (ArrayList<String>) document.get("dislikeIds");
-                        postCommentIds = (ArrayList<String>) document.get("commentIds");
-
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-
-                        timestampStr = (String) document.get("date");
-                        if (timestampStr != null) {
-                            try {
-                                timestamp = sdf.parse(timestampStr);
-                            } catch (ParseException e) {
-                                e.printStackTrace();
+                                profileActionUnFollow.setOnClickListener(v -> unfollowUser());
                             }
                         }
-
-                        updateTimestampStr = (String) document.get("updateDate");
-                        if (updateTimestampStr != null) {
-                            try {
-                                updateTimestamp = sdf.parse(updateTimestampStr);
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            updateTimestamp = null;
-                        }
-
-                        if (document.getString("image") != null) {
-                            imgUri = document.getString("image");
-                        } else {
-                            imgUri = null;
-                        }
-
-                        Log.i(TAG, "onComplete - postId: " + postId);
-
-                        Post post = new Post(postId, postOwnerId, postForumId, postTitle, postDescription, timestamp, updateTimestamp, imgUri, postCommentIds, postLikeIds, postDislikeIds);
-
-                        Collections.sort(postList, (post1, post2)
-                                -> post2.getTimestamp().compareTo(post1.getTimestamp()));
-
-                        int index = Collections.binarySearch(postList, post, (post1, post2)
-                                -> post2.getTimestamp().compareTo(post1.getTimestamp()));
-
-                        int insertionPoint = (index < 0) ? -index : index;
-
-                        if (insertionPoint >= postList.size()) {
-                            postList.add(post);
-                        } else {
-                            postList.add(insertionPoint, post);
-                        }
-
-                        if (counter.incrementAndGet() == listLength[0]) {
-                            setUpPostList(postList);
-                        }
                     }
-                }
-            });
-        }
-    }
 
-    private void setUpPostList(ArrayList<Post> postList) {
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        postListView.setLayoutManager(layoutManager);
-
-        postAdapter = new PostRecyclerViewAdapter(this, postList);
-        postListView.setAdapter(postAdapter);
-    }
-
-    // Refresh UI after editing or deleting a post
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == constant.EDIT) {
-            if (resultCode == RESULT_OK) {
-                recreate();
-            }
-        }
-
-        if (requestCode == constant.DELETE) {
-            if (resultCode == RESULT_OK) {
-                recreate();
-            }
-
-            if (resultCode == 0) {
-                setUI(targetUserId);
-            }
-        }
-
-        if (requestCode == 107 || requestCode == 108 || requestCode == 109) {
-            if (resultCode == RESULT_OK) {
-                setUI(targetUserId);
-                recreate();
-            }
-        }
-    }
-
-    // Display profile's more option menu
-    private void moreOption() {
-        PopupMenu popupMenu = new PopupMenu(ProfileView.this, moreOptionButton);
-        popupMenu.getMenuInflater().inflate(R.menu.profile_more_option, popupMenu.getMenu());
-
-        MenuItem viewForumList = popupMenu.getMenu().findItem(R.id.forumListView);
-        MenuItem profileUpdate = popupMenu.getMenu().findItem(R.id.profileUpdate);
-        MenuItem profileLogout = popupMenu.getMenu().findItem(R.id.profileLogout);
-        MenuItem profileFollow = popupMenu.getMenu().findItem(R.id.profileFollow);
-        MenuItem profileUnfollow = popupMenu.getMenu().findItem(R.id.profileUnfollow);
-
-
-        if (Objects.equals(userId, targetUserId)) {
-            viewForumList.setVisible(true);
-            profileUpdate.setVisible(true);
-            profileLogout.setVisible(true);
-            profileFollow.setVisible(false);
-            profileUnfollow.setVisible(false);
-        } else {
-            viewForumList.setVisible(false);
-            profileUpdate.setVisible(false);
-            profileLogout.setVisible(false);
-
-            if (currentUser.getFollowingIds().contains(targetUserId)) {
-                profileFollow.setVisible(false);
-                profileUnfollow.setVisible(true);
-            } else {
-                profileFollow.setVisible(true);
-                profileUnfollow.setVisible(false);
-            }
-        }
-
-        moreOptionButton.setOnClickListener(v -> {
-            popupMenu.setOnMenuItemClickListener(item -> {
-                int itemId = item.getItemId();
-
-                if (itemId == R.id.forumListView) {
-//                    viewForumList();
-
-                } else if (itemId == R.id.profileUpdate) {
-                    Intent editIntent = new Intent(ProfileView.this, EditProfileView.class);
-                    startActivity(editIntent);
-
-                } else if (itemId == R.id.profileLogout) {
-                    userAuth.signOut();
-                    Intent newIntent = new Intent(ProfileView.this, LoginView.class);
-                    startActivity(newIntent);
-
-                } else if (itemId == R.id.profileFollow) {
-                    followUser();
-
-                } else if (itemId == R.id.profileUnfollow) {
-                    unfollowUser();
-                }
-
-                return false;
-            });
-            popupMenu.show();
         });
     }
 
     private void followUser() { // Check for error
-        userData.get().addOnCompleteListener(task -> {
+        manager.getDb().collection("users").document(profileUserRef).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
 
                 if (document.exists()) {
-                    followList = (ArrayList<String>) document.get("followersIds");
-                    assert followList != null;
-                    followList.add(userId);
+                    String[] newFollowList;
+                    if(document.get("followersIds") != null){
 
-                    userData.update("followersIds", followList).addOnCompleteListener(task1 -> {
-                        if (task1.isSuccessful()) {
-                            Log.i(TAG, "followUser: " + "Followed");
+                        followList = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("followersIds")));
+
+                        newFollowList = new String[followList.size()+1];
+                        for (int i = 0; i < followList.size(); i++) {
+                            newFollowList[i] = followList.get(i);
                         }
+                        newFollowList[followList.size()] = manager.getCurrentUser().getUid();
+                    }
+                    else{
+                        newFollowList = new String[] {manager.getCurrentUser().getUid()};
+                    }
+
+                    Map<String, Object> newFollowersList = new HashMap<>();
+                    newFollowersList.put("followersIds", Arrays.asList(newFollowList));
+
+                    manager.getDb().collection("users").document(profileUserRef)
+                            .set(newFollowersList, SetOptions.merge())
+                            .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                Log.i(TAG, "Add the followerId to current profile: ");
+                            }
                     });
 
-                    followingList = (ArrayList<String>) document.get("followingIds");
-                    assert followingList != null;
-                    followingList.add(targetUserId);
+                    manager.getDb().collection("users")
+                            .whereEqualTo("userId", manager.getCurrentUser().getUid())
+                            .get()
+                            .addOnCompleteListener(task12 -> {
+                                if(task12.isSuccessful()){
+                                    String[] newFollowingList;
+                                    for (QueryDocumentSnapshot returnDocument: task12.getResult()){
+                                        if(returnDocument.get("followingIds") != null){
+                                            ArrayList<String> currentUserFollowingList = new ArrayList<>((List<String>) Objects.requireNonNull(returnDocument.get("followingIds")));
 
-                    userData.update("followingIds", followingList).addOnCompleteListener(task12 -> {
-                        if (task12.isSuccessful()) {
-                            Log.i(TAG, "followUser: " + "Following");
-                        }
-                    });
+                                            newFollowingList = new String[currentUserFollowingList.size()+1];
+                                            for (int i = 0; i < currentUserFollowingList.size(); i++) {
+                                                newFollowingList[i] = currentUserFollowingList.get(i);
+                                            }
+                                            newFollowingList[currentUserFollowingList.size()] = targetProfileId;
+
+                                        }else{
+                                            newFollowingList = new String[] {targetProfileId};
+                                        }
+
+                                        Map<String, Object> newObject = new HashMap<>();
+                                        newObject.put("followingIds", Arrays.asList(newFollowingList));
+
+                                        manager.getDb().collection("users")
+                                                .document(returnDocument.getId()).set(newObject, SetOptions.merge())
+                                                .addOnCompleteListener(task13 -> {
+                                                    recreate();
+                                                    Log.i(TAG, "Add the followerId to current user: ");
+                                                });
+                                    }
+                                }
+                            });
                 }
             }
         });
     }
 
     private void unfollowUser() { // Check for error
-        userData.get().addOnCompleteListener(task -> {
+        manager.getDb().collection("users").document(profileUserRef).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
 
                 if (document.exists()) {
-                    followList = (ArrayList<String>) document.get("followersIds");
-                    assert followList != null;
-                    followList.remove(userId);
 
-                    userData.update("followersIds", followList).addOnCompleteListener(task1 -> {
-                        if (task1.isSuccessful()) {
-                            Log.i(TAG, "unfollowUser: " + "Unfollowed");
-                        }
+                    followList = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("followersIds")));
+                    String[] newFollowList = removeItemFromArray(followList.toArray(new String[0]), manager.getCurrentUser().getUid());
+
+                    Map<String, Object> newFollowersList = new HashMap<>();
+                    newFollowersList.put("followersIds", Arrays.asList(newFollowList));
+
+                    manager.getDb().collection("users").document(profileUserRef)
+                            .set(newFollowersList, SetOptions.merge())
+                            .addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    Log.i(TAG, "Remove the followerId to current profile: ");
+                                }
                     });
 
-                    followingList = (ArrayList<String>) document.get("followingIds");
-                    assert followingList != null;
-                    followingList.remove(targetUserId);
 
-                    userData.update("followingIds", followingList).addOnCompleteListener(task12 -> {
-                        if (task12.isSuccessful()) {
-                            Log.i(TAG, "unfollowUser: " + "Unfollowing");
-                        }
-                    });
+                    manager.getDb().collection("users")
+                            .whereEqualTo("userId", manager.getCurrentUser().getUid())
+                            .get()
+                            .addOnCompleteListener(task12 -> {
+                                if(task12.isSuccessful()){
+                                    String[] newFollowingList;
+                                    for (QueryDocumentSnapshot returnDocument: task12.getResult()){
+                                        ArrayList<String> currentUserFollowingList = new ArrayList<>((List<String>) Objects.requireNonNull(returnDocument.get("followingIds")));
+                                        newFollowingList = removeItemFromArray(currentUserFollowingList.toArray(new String[0]), targetProfileId);
+
+                                        Map<String, Object> newObject = new HashMap<>();
+                                        newObject.put("followingIds", Arrays.asList(newFollowingList));
+
+                                        manager.getDb().collection("users")
+                                                .document(returnDocument.getId()).set(newObject, SetOptions.merge())
+                                                .addOnCompleteListener(task13 -> {
+                                                    recreate();
+                                                    Log.i(TAG, "Remove the followerId to current user: ");
+                                                });
+                                    }
+                                }
+                            });
+
                 }
             }
         });
     }
+
+    public static String[] removeItemFromArray(String[] input, String item) {
+        if (input == null) {
+            return null;
+        } else if (input.length == 0) {
+            return input;
+        } else {
+            String[] output = new String[input.length - 1];
+            int count = 0;
+            for (String i : input) {
+                if (!i.equals(item)) {
+                    output[count++] = i;
+                }
+            }
+            return output;
+        }
+    }
+
 }
 

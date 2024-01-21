@@ -1,5 +1,7 @@
 package rmitcom.asm1.gamunity.adapter;
 
+import static android.content.ContentValues.TAG;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -240,14 +242,12 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
             });
         }
 
-        holder.userImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent accessIntent = new Intent(context, ProfileView.class);
-                accessIntent.putExtra("userId", userId);
-                context.startActivity(accessIntent);
-            }
-        });
+//        holder.userImage.setOnClickListener(v -> {
+//            Log.d(TAG, "onBindViewHolder: " + "avatar is clicked");
+//            Intent accessIntent = new Intent(context, ProfileView.class);
+//            accessIntent.putExtra("userId", userId);
+//            context.startActivity(accessIntent);
+//        });
     }
 
     @Override

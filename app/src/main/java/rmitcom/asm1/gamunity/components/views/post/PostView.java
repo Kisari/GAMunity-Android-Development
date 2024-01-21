@@ -54,6 +54,7 @@ import rmitcom.asm1.gamunity.adapter.CommentRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.components.views.forum.ForumView;
+import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
 
@@ -301,35 +302,32 @@ public class PostView extends AppCompatActivity {
 
                     }
 
-                    forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
+                    forumData.get().addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            DocumentSnapshot document1 = task1.getResult();
 
-                                if (document.exists()) {
-                                    postForumName.setText(document.getString("title"));
+                            if (document1.exists()) {
+                                postForumName.setText(document1.getString("title"));
 
-                                    chiefAdminId = (String) document.get("chiefAdmin");
+                                chiefAdminId = (String) document1.get("chiefAdmin");
 
-                                    if (document.get("moderatorIds") != null) {
-                                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                                if (document1.get("moderatorIds") != null) {
+                                    moderatorIds = (ArrayList<String>) document1.get("moderatorIds");
 
-                                    } else {
-                                        moderatorIds = new ArrayList<>();
-                                    }
-
-                                    if (document.get("memberIds") != null) {
-                                        memberIds = (ArrayList<String>) document.get("memberIds");
-
-                                    } else {
-                                        memberIds = new ArrayList<>();
-                                    }
+                                } else {
+                                    moderatorIds = new ArrayList<>();
                                 }
 
-                                setButton(chiefAdminId, moderatorIds, memberIds, ownerId);
-                                moreOption(chiefAdminId, moderatorIds, memberIds, ownerId);
+                                if (document1.get("memberIds") != null) {
+                                    memberIds = (ArrayList<String>) document1.get("memberIds");
+
+                                } else {
+                                    memberIds = new ArrayList<>();
+                                }
                             }
+
+                            setButton(chiefAdminId, moderatorIds, memberIds, ownerId);
+                            moreOption(chiefAdminId, moderatorIds, memberIds, ownerId);
                         }
                     });
                 }
@@ -339,14 +337,11 @@ public class PostView extends AppCompatActivity {
         setLikePost();
         setDislikePost();
 
-//        postUserImage.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent accessIntent = new Intent(PostView.this, Profile.class);
-//                accessIntent.putExtra("userId", ownerId);
-//                startActivity(accessIntent);
-//            }
-//        });
+        postUserImage.setOnClickListener(v -> {
+            Intent accessIntent = new Intent(PostView.this, ProfileView.class);
+            accessIntent.putExtra("userId", ownerId);
+            startActivity(accessIntent);
+        });
     }
 
     private void displayList(ArrayList<String> commentIds) {

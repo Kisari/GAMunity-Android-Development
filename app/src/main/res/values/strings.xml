@@ -38,4 +38,6 @@
     <string name="followers">Followers</string>
     <string name="following">Following</string>
     <string name="forum_list">Forum List</string>
+    <string name="user_profile">User Profile</string>
+    <string name="follow">Follow</string>
 </resources>
