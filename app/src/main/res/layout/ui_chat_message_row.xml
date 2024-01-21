@@ -48,7 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:layout_marginEnd="20dp">
             <TextView
                 android:id="@+id/otherUserName"
                 android:layout_width="wrap_content"
@@ -88,11 +89,11 @@
                     android:visibility="visible"/>
                 <ImageView
                     android:id="@+id/otherPicture"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:maxHeight="1000dp"
                     android:importantForAccessibility="no"
-                    android:scaleType="centerInside"
+                    android:scaleType="fitXY"
                     android:adjustViewBounds="true"/>
             </RelativeLayout>
         </LinearLayout>
@@ -137,11 +138,11 @@
                 android:visibility="visible"/>
             <ImageView
                 android:id="@+id/userPicture"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxHeight="1000dp"
                 android:importantForAccessibility="no"
-                android:scaleType="centerInside"
+                android:scaleType="fitCenter"
                 android:adjustViewBounds="true"/>
         </RelativeLayout>
     </LinearLayout>
