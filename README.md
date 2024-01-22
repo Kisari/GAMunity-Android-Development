@@ -29,6 +29,7 @@ Note: Members within team have the same contribution to the project.
 -Delete acccount: The users can delete their account which can not be reverted.<br />
 <br />
 **Forum View**<br />
+-View forum info: Any users can see detail info of the forum (title, description, caterory, list of members and their role).<br />
 -Edit forum info: chief admin and moderators can edit some of the forum info (title, description, caterory, forum icon and forum background).<br />
 -Delete forum: only chief admin can delete a forum, once delete it will pop up an alert box to ask for comfirmation. If process, then all information of the forum, posts of the forum and comments of thge posts will be delete and users data will be updated accordingly.<br />
 -Join/Unjoin forum: a user can join a forum they haven't joined before and vise versa. When joined, user will be added to the forum database as a member. Only members and moderators can unjoin.<br />
