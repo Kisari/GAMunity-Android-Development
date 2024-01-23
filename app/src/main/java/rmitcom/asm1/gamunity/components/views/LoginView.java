@@ -35,6 +35,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Objects;
+
 import rmitcom.asm1.gamunity.MainActivity;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
@@ -72,7 +74,7 @@ public class LoginView extends AppCompatActivity {
                     auth.signInWithEmailAndPassword(email, pass)
                             .addOnSuccessListener(authResult -> {
                                 Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                db.changeUserIdWithDeviceToken(auth.getCurrentUser().getUid(), LoginView.this);
+                                db.changeUserIdWithDeviceToken(Objects.requireNonNull(auth.getCurrentUser()).getUid(), LoginView.this);
                                 startActivity(new Intent(LoginView.this, HomeView.class));
                                 finish();
                             }).addOnFailureListener(e -> Toast.makeText(LoginView.this, "Login Failed", Toast.LENGTH_SHORT).show());
@@ -99,7 +101,7 @@ public class LoginView extends AppCompatActivity {
             dialogView.findViewById(R.id.reset_button).setOnClickListener(view12 -> {
                 String userEmail = emailBox.getText().toString();
 
-                if (TextUtils.isEmpty(userEmail) || !Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()){
+                if (TextUtils.isEmpty(userEmail) && !Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()){
                     Toast.makeText(LoginView.this, "Enter your registered email id", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -144,14 +146,17 @@ public class LoginView extends AppCompatActivity {
                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                         try {
                             task.getResult(ApiException.class);
+                            Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginView.this, HomeView.class);
                             startActivity(intent);
                             finish();
+
                         } catch (ApiException e){
                             Toast.makeText(LoginView.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
+
         loginGoogle.setOnClickListener(view -> {
             Intent signInIntent = gClient.getSignInIntent();
             activityResultLauncher.launch(signInIntent);

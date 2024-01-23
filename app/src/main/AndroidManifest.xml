@@ -35,9 +35,6 @@
             android:name=".components.views.profile.ProfileView"
             android:exported="false" />
         <activity
-            android:name=".components.views.chat.EditChat"
-            android:exported="false" />
-        <activity
             android:name=".components.views.chat.ChatSearchUser"
             android:exported="false" />
         <activity
@@ -85,9 +82,6 @@
             android:exported="false" />
         <activity
             android:name=".components.views.post.CreatePostView"
-            android:exported="false" />
-        <activity
-            android:name=".components.views.post.MainActivity"
             android:exported="false" />
         <activity
             android:name=".components.views.post.PostView"

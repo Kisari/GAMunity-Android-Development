@@ -13,7 +13,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
 
-import rmitcom.asm1.gamunity.MainActivity;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.model.User;
 
