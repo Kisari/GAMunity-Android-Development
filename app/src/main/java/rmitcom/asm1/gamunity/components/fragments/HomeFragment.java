@@ -24,6 +24,7 @@ import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -90,6 +91,14 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
                 this.forumListAdapter.notifyDataSetChanged();
             }
         }
+
+        if (requestCode == constant.DELETE) {
+            if (resultCode == constant.SUCCESS) {
+                recreate(requireActivity());
+            }
+        }
+
+
     }
 
     @SuppressWarnings("unchecked")
@@ -135,6 +144,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
             createForumViewIntent.putExtra("nextForumID", String.valueOf(forumList.size()+1));
             startActivityForResult(createForumViewIntent, constant.CREATE);
         });
+
     }
 
     private void initializeForumListView(){
@@ -146,6 +156,14 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
         //set adapter to forum view list
         forumListView.setAdapter(forumListAdapter);
+
+        forumListView.setOnItemClickListener((parent, view, position, id) -> {
+            Intent toForumDetailView = new Intent(currentView.getContext(), ForumView.class);
+
+            toForumDetailView.putExtra("forumId", forumList.get(position).getForumRef());
+            startActivityForResult(toForumDetailView, constant.DELETE);
+        });
+
     }
 
     private void initializeForumTagSelectionView(){

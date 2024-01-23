@@ -121,7 +121,7 @@ public class FireBaseManager extends FirebaseMessagingService {
                                 .set(newNotificationToken, SetOptions.merge())
                                 .addOnCompleteListener(updateToken -> {
                                     if(updateToken.isSuccessful()){
-                                        Log.d(TAG, "Change token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        Log.d(TAG, "Change token device " + token + " to user with id " + userID);
                                     }
                                     else {
                                         Log.d(TAG, "updateTheDeviceToken: " + "Failed");
@@ -137,7 +137,7 @@ public class FireBaseManager extends FirebaseMessagingService {
                         ref.add(newNotificationToken)
                                 .addOnCompleteListener(task1 -> {
                                     if(task.isSuccessful()){
-                                        Log.d(TAG, "New token device " + msgProvider.getToken() + " to user with id " + currentUser.getUid());
+                                        Log.d(TAG, "New token device " + token + " to user with id " + userID);
                                     }
                                 });
                     }

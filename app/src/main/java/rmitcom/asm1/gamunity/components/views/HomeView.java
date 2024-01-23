@@ -96,4 +96,5 @@ public class HomeView extends AppCompatActivity {
     public int getCurrentItemPosition(){
         return viewPager.getCurrentItem();
     }
+
 }

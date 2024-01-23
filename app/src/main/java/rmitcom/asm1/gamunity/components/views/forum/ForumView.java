@@ -87,8 +87,8 @@ public class ForumView extends AppCompatActivity {
     private PostRecyclerViewAdapter adapter;
     private Forum currForum;
     private Constant constant = new Constant();
-
     private String mode = "";
+    private String isJoinedWithForumId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,8 +152,10 @@ public class ForumView extends AppCompatActivity {
                     if (Objects.equals(userId, chiefAdminId)) {
                         userRole.setText("Admin");
                     } else if (moderatorIds != null && moderatorIds.contains(userId)) {
+                        isJoinedWithForumId = document.getString("forumId");
                         userRole.setText("Moderator");
                     } else if (memberIds != null && memberIds.contains(userId)) {
+                        isJoinedWithForumId = document.getString("forumId");
                         userRole.setText("Member");
                     } else {
                         userRole.setText("Guest");
@@ -902,6 +904,11 @@ public class ForumView extends AppCompatActivity {
     }
 
     private void returnToPreviousPage() {
-        returnBackButton.setOnClickListener(v -> finish());
+        returnBackButton.setOnClickListener(v -> {
+            Intent backIntent = new Intent();
+            backIntent.putExtra("isJoinedWithForumId", isJoinedWithForumId);
+            setResult(constant.SUCCESS, backIntent);
+            finish();
+        });
     }
 }
