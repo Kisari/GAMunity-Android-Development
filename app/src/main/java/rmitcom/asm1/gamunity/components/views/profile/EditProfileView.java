@@ -21,21 +21,32 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.LoginView;
+import rmitcom.asm1.gamunity.components.views.chat.ChatView;
+import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
 import rmitcom.asm1.gamunity.model.Constant;
@@ -50,9 +61,8 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
     private ImageButton userIconBtn;
     private Button deleteButton;
     private ProgressBar backgroundProgress, iconProgress;
-    private Uri backgroundFilePath;
-    private String userDocumentRef;
-    private Uri iconFilePath;
+    private Uri backgroundFilePath, iconFilePath;
+    private String userDocumentRef, backgroundImgUri, profileImgUri;
     private User currentUser;
 
     @Override
@@ -71,8 +81,6 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
         editProfileSubmitButton = findViewById(R.id.editProfileSubmitButton);
         returnBack = findViewById(R.id.returnBack);
         deleteButton = findViewById(R.id.delete_button);
-
-
 
         userBackgroundBtn.setOnClickListener(v -> chooseImageFromFile(true));
         userIconBtn.setOnClickListener(v -> chooseImageFromFile(false));
@@ -107,22 +115,95 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
             dialogMessage.setText("Are you sure you want delete this account ? This can not be reverted");
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-            deleteButton.setOnClickListener(v -> db.getCurrentUser().delete()
-                .addOnCompleteListener(task -> {
-                   if(task.isSuccessful()){
-                       Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
-                       dialog.dismiss();
-
-                       Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
-                       startActivity(loginIntent);
-                       finish();
-                   }
-                }));
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    deleteProfile(dialog);
+//                    db.getCurrentUser().delete()
+//                    .addOnCompleteListener(task -> {
+//                        if(task.isSuccessful()){
+//                            Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
+//                            dialog.dismiss();
+//
+//                            Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
+//                            startActivity(loginIntent);
+//                            finish();
+//                        }
+//                    });
+                }
+            });
 
         } catch (Exception e) {
             Log.e("Forum", "getView: ", e);
             e.printStackTrace();
         }
+    }
+
+    private void deleteProfile(AlertDialog dialog) {
+        DocumentReference userData = db.getDb().collection("users").document(db.getCurrentUser().getUid());
+        userData.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+
+                            if (document.exists()) {
+                                if (document.get("joinedForumIds") != null) {
+                                    ArrayList<String> memberForumIds = (ArrayList<String>) document.get("joinedForumIds");
+
+                                    if (memberForumIds != null) {
+                                        for (String forumId: memberForumIds) {
+                                            db.getDb().collection("FORUMS").document(forumId)
+                                                    .update("memberIds", FieldValue.arrayRemove(db.getCurrentUser().getUid()));
+                                        }
+                                    }
+                                }
+
+                                if (document.get("adminForumIds") != null) {
+                                    ArrayList<String> moderatorForumIds = (ArrayList<String>) document.get("adminForumIds");
+
+                                    if (moderatorForumIds != null) {
+                                        for (String forumId: moderatorForumIds) {
+                                            db.getDb().collection("FORUMS").document(forumId)
+                                                    .update("moderatorIds", FieldValue.arrayRemove(db.getCurrentUser().getUid()));
+                                        }
+                                    }
+                                }
+
+                                if (document.get("ownedForumIds") != null) {
+                                    ArrayList<String> adminForumIds = (ArrayList<String>) document.get("ownedForumIds");
+
+                                    if (adminForumIds != null) {
+                                        ForumView forumView = new ForumView();
+                                        for (String forumId: adminForumIds) {
+                                            forumView.deleteForumFromProfile(forumId);
+                                        }
+                                    }
+                                }
+
+                                if (document.get("chatGroupIds") != null) {
+                                    ArrayList<String> chatGroupIds = (ArrayList<String>) document.get("chatGroupIds");
+
+                                    if (chatGroupIds != null) {
+                                        ChatView chatView = new ChatView();
+                                        for (String chatId: chatGroupIds) {
+                                            chatView.deleteOrRemoveChatRoomFromProfile(chatId, db.getCurrentUser().getUid());
+                                        }
+                                    }
+                                }
+                            }
+                            userData.delete();
+
+                            Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+
+                            Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
+                            startActivity(loginIntent);
+                            finish();
+                        }
+                    }
+                });
     }
 
     private void chooseImageFromFile(Boolean isBackground){
@@ -176,8 +257,8 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
                         for (QueryDocumentSnapshot documentSnapshot: task.getResult()){
-                            String profileImgUri = documentSnapshot.getString("profileImgUri");
-                            String backgroundImgUri = documentSnapshot.getString("backgroundImgUri");
+                            profileImgUri = documentSnapshot.getString("profileImgUri");
+                            backgroundImgUri = documentSnapshot.getString("backgroundImgUri");
                             String name = documentSnapshot.getString("name");
                             String dob = documentSnapshot.getString("dob");
                             userDocumentRef = documentSnapshot.getId();
@@ -201,10 +282,10 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
 
         try{
             if(currentUser.getBackgroundImgUri() != null){
-                new AsyncImage(userIconBtn, iconProgress).loadImage(currentUser.getProfileImgUri());
+                new AsyncImage(userIconBtn, iconProgress).loadImage(currentUser.getBackgroundImgUri());
             }
             if(currentUser.getProfileImgUri() != null){
-                new AsyncImage(userBackground, backgroundProgress).loadImage(currentUser.getBackgroundImgUri());
+                new AsyncImage(userBackground, backgroundProgress).loadImage(currentUser.getProfileImgUri());
             }
         }
         catch (Exception e){
@@ -238,6 +319,24 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                     .addOnSuccessListener(taskSnapshot -> {
                         progressDialog.dismiss();
                         Toast.makeText(EditProfileView.this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+
+                        if (backgroundImgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(backgroundImgUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = db.getStorageRef().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
                         ref.getDownloadUrl().addOnSuccessListener(uri -> {
                             backgroundFilePath = uri;
                             uploadIconImage(iconFilePath);
@@ -270,6 +369,24 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                     .addOnSuccessListener(taskSnapshot -> {
                         progressDialog.dismiss();
                         Toast.makeText(EditProfileView.this, "Uploaded Image", Toast.LENGTH_SHORT).show();
+
+                        if (profileImgUri != null) {
+                            String pattern = "images%2F(.*?)\\?";
+                            Pattern p = Pattern.compile(pattern);
+                            Matcher m = p.matcher(profileImgUri);
+
+                            if (m.find()) {
+                                String oldUri = m.group(1);
+
+                                StorageReference oldImageRef = db.getStorageRef().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                    Log.i("Delete image", "Old image deleted successfully");
+                                }).addOnFailureListener(e -> {
+                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                });
+                            }
+                        }
+
                         ref.getDownloadUrl().addOnSuccessListener(uri -> {
                             iconFilePath = uri;
                             updateUserInfo();

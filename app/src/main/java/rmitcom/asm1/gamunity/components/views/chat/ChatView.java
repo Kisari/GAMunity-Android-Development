@@ -926,6 +926,90 @@ public class ChatView extends AppCompatActivity {
 
     public void deleteChatRoomFromForum(String chatId) {
         DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+        chatData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+
+                ArrayList<String> adminIds = new ArrayList<>(), moderatorIds = new ArrayList<>(), memberIds = new ArrayList<>();
+
+                if (document.exists()) {
+
+                    if (document.get("adminIds") != null) {
+                        adminIds = (ArrayList<String>) document.get("adminIds");
+
+                        if (adminIds != null) {
+                            for (String id: adminIds) {
+                                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                            }
+                        }
+                    }
+
+                    if (document.get("moderatorIds") != null) {
+                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                        if (moderatorIds != null) {
+                            for (String id: moderatorIds) {
+                                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                            }
+                        }
+                    }
+
+                    if (document.get("memberIds") != null) {
+                        memberIds = (ArrayList<String>) document.get("memberIds");
+
+                        if (memberIds != null) {
+                            for (String id: memberIds) {
+                                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                            }
+                        }
+                    }
+
+                    CollectionReference chatRef = chatData.collection("CHATS");
+                    chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                            if (task.isSuccessful()) {
+                                ArrayList<Message> messageList = new ArrayList<>();
+                                String messageId;
+
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    messageId = document.getId();
+                                    Log.i(TAG, "chatView - messageId: " + messageId);
+                                    boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
+
+                                    if (isImage) {
+                                        String imageUri = document.getString("messageContent");
+                                        String pattern = "images%2F(.*?)\\?";
+                                        Pattern p = Pattern.compile(pattern);
+                                        Matcher m = p.matcher(imageUri);
+
+                                        if (m.find()) {
+                                            String oldUri = m.group(1);
+
+                                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                                Log.i("Delete image", "Old image deleted successfully");
+                                            }).addOnFailureListener(e -> {
+                                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                            });
+                                        }
+                                    }
+                                    chatRef.document(messageId).delete()
+                                            .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
+                                            .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
+                                }
+                            }
+                        }
+                    });
+                }
+
+                chatData.delete();
+            }
+        });
+    }
+
+    public void deleteOrRemoveChatRoomFromProfile(String chatId, String userId) {
+        DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
         chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -936,76 +1020,83 @@ public class ChatView extends AppCompatActivity {
 
                     if (document.exists()) {
 
-                        if (document.get("adminIds") != null) {
-                            adminIds = (ArrayList<String>) document.get("adminIds");
-
-                            if (adminIds != null) {
-                                for (String id: adminIds) {
-                                    db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-                                }
-                            }
-                        }
-
                         if (document.get("moderatorIds") != null) {
                             moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                            if (moderatorIds != null) {
-                                for (String id: moderatorIds) {
-                                    db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-                                }
+                            if (moderatorIds != null && moderatorIds.contains(userId)) {
+                                chatData.update("moderatorIds", FieldValue.arrayRemove(userId));
+                                db.collection("users").document(userId).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                             }
                         }
 
                         if (document.get("memberIds") != null) {
                             memberIds = (ArrayList<String>) document.get("memberIds");
 
-                            if (memberIds != null) {
-                                for (String id: memberIds) {
-                                    db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                            if (memberIds != null && memberIds.contains(userId)) {
+                                chatData.update("memberIds", FieldValue.arrayRemove(userId));
+                                db.collection("users").document(userId).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                            }
+                        }
+
+                        if (document.get("adminIds") != null) {
+                            adminIds = (ArrayList<String>) document.get("adminIds");
+
+                            if (adminIds != null) {
+                                for (String id: adminIds) {
+                                    if (!adminIds.contains(userId)) {
+                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                                    }
+                                    else {
+                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId))
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void unused) {
+                                                        CollectionReference chatRef = chatData.collection("CHATS");
+                                                        chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                                                if (task.isSuccessful()) {
+                                                                    ArrayList<Message> messageList = new ArrayList<>();
+                                                                    String messageId;
+
+                                                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                                                        messageId = document.getId();
+                                                                        Log.i(TAG, "chatView - messageId: " + messageId);
+                                                                        boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
+
+                                                                        if (isImage) {
+                                                                            String imageUri = document.getString("messageContent");
+                                                                            String pattern = "images%2F(.*?)\\?";
+                                                                            Pattern p = Pattern.compile(pattern);
+                                                                            Matcher m = p.matcher(imageUri);
+
+                                                                            if (m.find()) {
+                                                                                String oldUri = m.group(1);
+
+                                                                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                                                                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                                                                    Log.i("Delete image", "Old image deleted successfully");
+                                                                                }).addOnFailureListener(e -> {
+                                                                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                                                                                });
+                                                                            }
+                                                                        }
+                                                                        chatRef.document(messageId).delete()
+                                                                                .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
+                                                                                .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+                                                        chatData.delete();
+                                                    }
+                                                });
+                                    }
                                 }
                             }
                         }
 
-                        CollectionReference chatRef = chatData.collection("CHATS");
-                        chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    ArrayList<Message> messageList = new ArrayList<>();
-                                    String messageId;
-
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        messageId = document.getId();
-                                        Log.i(TAG, "chatView - messageId: " + messageId);
-                                        boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
-
-                                        if (isImage) {
-                                            String imageUri = document.getString("messageContent");
-                                            String pattern = "images%2F(.*?)\\?";
-                                            Pattern p = Pattern.compile(pattern);
-                                            Matcher m = p.matcher(imageUri);
-
-                                            if (m.find()) {
-                                                String oldUri = m.group(1);
-
-                                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                                    Log.i("Delete image", "Old image deleted successfully");
-                                                }).addOnFailureListener(e -> {
-                                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                                });
-                                            }
-                                        }
-                                        chatRef.document(messageId).delete()
-                                                .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
-                                                .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
-                                    }
-                                }
-                            }
-                        });
                     }
-
-                    chatData.delete();
                 }
             }
         });

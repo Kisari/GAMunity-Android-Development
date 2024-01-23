@@ -494,15 +494,15 @@ public class ForumView extends AppCompatActivity {
                     DocumentSnapshot document = task.getResult();
 
                     if (document.exists()) {
-                        String chiefAdmin = document.getString("chiefAdmin");
+//                        String chiefAdminId = document.getString("chiefAdmin");
 
-                        if (chiefAdmin != null) {
-                            DocumentReference userData = db.collection("users").document(chiefAdmin);
+                        if (chiefAdminId != null) {
+                            DocumentReference userData = db.collection("users").document(chiefAdminId);
                             userData.update("ownedForumIds", FieldValue.arrayRemove(forumId));
                         }
 
-                        if (document.get("moderatorIds") != null) {
-                            ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+//                        if (document.get("moderatorIds") != null) {
+//                            ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
                             if (moderatorIds != null) {
                                 for (String id: moderatorIds) {
@@ -511,10 +511,10 @@ public class ForumView extends AppCompatActivity {
                                     userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
                                 }
                             }
-                        }
+//                        }
 
-                        if (document.get("memberIds") != null) {
-                            ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
+//                        if (document.get("memberIds") != null) {
+//                            ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
 
                             if (memberIds != null) {
                                 for (String id: memberIds) {
@@ -523,10 +523,10 @@ public class ForumView extends AppCompatActivity {
                                     userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
                                 }
                             }
-                        }
+//                        }
 
-                        if (document.get("postIds") != null) {
-                            ArrayList<String> postIds = (ArrayList<String>) document.get("postIds");
+//                        if (document.get("postIds") != null) {
+//                            ArrayList<String> postIds = (ArrayList<String>) document.get("postIds");
 
                             if (postIds != null) {
                                 PostView postView = new PostView();
@@ -534,7 +534,7 @@ public class ForumView extends AppCompatActivity {
                                     postView.deletePostFromForum(id);
                                 }
                             }
-                        }
+//                        }
 
                         String backgroundImgUri = document.getString("forumBackground");
                         String iconImgUri = document.getString("forumIcon");
@@ -587,6 +587,109 @@ public class ForumView extends AppCompatActivity {
                     forumData.delete();
 
                 }
+            }
+        });
+    }
+
+    public void deleteForumFromProfile(String forumId) {
+        DocumentReference forumData = db.collection("FORUMS").document(forumId);
+        forumData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+
+                if (document.exists()) {
+                    String chiefAdminId = document.getString("chiefAdmin");
+
+                    if (chiefAdminId != null) {
+                        DocumentReference userData = db.collection("users").document(chiefAdminId);
+                        userData.update("ownedForumIds", FieldValue.arrayRemove(forumId));
+                    }
+
+                    if (document.get("moderatorIds") != null) {
+                        ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+
+                        if (moderatorIds != null) {
+                            for (String id: moderatorIds) {
+                                DocumentReference userData = db.collection("users").document(id);
+
+                                userData.update("adminForumIds", FieldValue.arrayRemove(forumId));
+                            }
+                        }
+                    }
+
+                    if (document.get("memberIds") != null) {
+                        ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
+
+                        if (memberIds != null) {
+                            for (String id: memberIds) {
+                                DocumentReference userData = db.collection("users").document(id);
+
+                                userData.update("joinedForumIds", FieldValue.arrayRemove(forumId));
+                            }
+                        }
+                    }
+
+                    if (document.get("postIds") != null) {
+                        ArrayList<String> postIds = (ArrayList<String>) document.get("postIds");
+
+                        if (postIds != null) {
+                            PostView postView = new PostView();
+                            for (String id: postIds) {
+                                postView.deletePostFromForum(id);
+                            }
+                        }
+                    }
+
+                    String backgroundImgUri = document.getString("forumBackground");
+                    String iconImgUri = document.getString("forumIcon");
+
+                    if (backgroundImgUri != null) {
+                        String pattern = "images%2F(.*?)\\?";
+                        Pattern p = Pattern.compile(pattern);
+                        Matcher m = p.matcher(backgroundImgUri);
+
+                        if (m.find()) {
+                            String oldUri = m.group(1);
+
+                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                Log.i("Delete image", "Old image deleted successfully");
+                            }).addOnFailureListener(e -> {
+                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                            });
+                        }
+                    }
+
+                    if (iconImgUri != null) {
+                        String pattern = "images%2F(.*?)\\?";
+                        Pattern p = Pattern.compile(pattern);
+                        Matcher m = p.matcher(iconImgUri);
+
+                        if (m.find()) {
+                            String oldUri = m.group(1);
+
+                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
+                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
+                                Log.i("Delete image", "Old image deleted successfully");
+                            }).addOnFailureListener(e -> {
+                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
+                            });
+                        }
+                    }
+
+                    if (document.getString("chatId") != null) {
+                        String chatId = document.getString("chatId");
+
+                        if (chatId != null) {
+                            ChatView chatView = new ChatView();
+                            chatView.deleteChatRoomFromForum(chatId);
+
+                        }
+                    }
+                }
+
+                forumData.delete();
+
             }
         });
     }

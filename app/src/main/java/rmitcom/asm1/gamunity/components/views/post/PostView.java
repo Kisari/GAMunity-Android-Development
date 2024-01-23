@@ -134,6 +134,7 @@ public class PostView extends AppCompatActivity {
         returnToPreviousPage();
     }
 
+    @SuppressLint("SetTextI18n")
     private void setPostData() {
         commentList = new ArrayList<>();
 
@@ -241,11 +242,14 @@ public class PostView extends AppCompatActivity {
                                     DocumentSnapshot userDocument = userTask.getResult();
 
                                     if (userDocument.exists()) {
-                                        postUsernameStr = (String) userDocument.get("name");
+                                        postUsernameStr = userDocument.getString("name");
                                         postUserImageUri = userDocument.getString("profileImgUri");
 
                                         if (postUsernameStr != null) {
                                             postUsername.setText(postUsernameStr);
+                                        }
+                                        else {
+                                            postUsername.setText("Unknown User");
                                         }
 
                                         if (postUserImageUri != null) {
