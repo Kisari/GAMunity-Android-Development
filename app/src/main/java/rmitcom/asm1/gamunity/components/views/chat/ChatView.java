@@ -1042,11 +1042,10 @@ public class ChatView extends AppCompatActivity {
                             adminIds = (ArrayList<String>) document.get("adminIds");
 
                             if (adminIds != null) {
-                                for (String id: adminIds) {
+                                for (String id : adminIds) {
                                     if (!adminIds.contains(userId)) {
                                         db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-                                    }
-                                    else {
+                                    } else {
                                         db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId))
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
@@ -1087,8 +1086,13 @@ public class ChatView extends AppCompatActivity {
                                                                     }
                                                                 }
                                                             }
+                                                        }).addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                                                // Delete the chatData after messages and images are deleted
+                                                                chatData.delete();
+                                                            }
                                                         });
-                                                        chatData.delete();
                                                     }
                                                 });
                                     }

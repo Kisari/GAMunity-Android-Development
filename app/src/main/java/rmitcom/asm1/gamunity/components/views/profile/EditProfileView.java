@@ -149,6 +149,10 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                             DocumentSnapshot document = task.getResult();
 
                             if (document.exists()) {
+                                if (document.get("followingIds") != null) {
+                                    
+                                }
+
                                 if (document.get("joinedForumIds") != null) {
                                     ArrayList<String> memberForumIds = (ArrayList<String>) document.get("joinedForumIds");
 
