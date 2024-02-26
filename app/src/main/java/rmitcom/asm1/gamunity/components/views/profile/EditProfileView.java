@@ -118,18 +118,17 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
             deleteButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    deleteProfile(dialog);
-//                    db.getCurrentUser().delete()
-//                    .addOnCompleteListener(task -> {
-//                        if(task.isSuccessful()){
-//                            Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
-//                            dialog.dismiss();
-//
-//                            Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
-//                            startActivity(loginIntent);
-//                            finish();
-//                        }
-//                    });
+                    db.getCurrentUser().delete()
+                    .addOnCompleteListener(task -> {
+                        if(task.isSuccessful()){
+                            Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
+                            dialog.dismiss();
+
+                            Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
+                            startActivity(loginIntent);
+                            finish();
+                        }
+                    });
                 }
             });
 

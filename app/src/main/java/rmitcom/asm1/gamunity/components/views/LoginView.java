@@ -99,7 +99,7 @@ public class LoginView extends AppCompatActivity {
             dialogView.findViewById(R.id.reset_button).setOnClickListener(view12 -> {
                 String userEmail = emailBox.getText().toString();
 
-                if (TextUtils.isEmpty(userEmail) || !Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()){
+                if (TextUtils.isEmpty(userEmail) && !Patterns.EMAIL_ADDRESS.matcher(userEmail).matches()){
                     Toast.makeText(LoginView.this, "Enter your registered email id", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -144,6 +144,7 @@ public class LoginView extends AppCompatActivity {
                         Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                         try {
                             task.getResult(ApiException.class);
+                            Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(LoginView.this, HomeView.class);
                             startActivity(intent);
                             finish();

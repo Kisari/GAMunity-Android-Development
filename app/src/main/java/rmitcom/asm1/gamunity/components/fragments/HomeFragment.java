@@ -203,7 +203,6 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
         else{
             if(!Objects.equals(forumListAdapter.getTagName(), "") && forumListAdapter.getTagPosition() != -1){
                 RecyclerView.ViewHolder prevHolder = forumTagLayout.findViewHolderForLayoutPosition(forumListAdapter.getTagPosition());
-                assert prevHolder != null;
                 TextView prevTagName = prevHolder.itemView.findViewById(R.id.forumTagItem);
                 GradientDrawable drawable = (GradientDrawable)prevTagName.getBackground();
                 drawable.mutate();
