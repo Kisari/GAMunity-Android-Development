@@ -1,34 +1,24 @@
 package rmitcom.asm1.gamunity.components.views.chat;
 
-import androidx.annotation.NonNull;
+import android.os.Bundle;
+import android.widget.SearchView;
+import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Bundle;
-import android.widget.ImageView;
-import android.widget.SearchView;
-import android.widget.TextView;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.User;
 
 public class ChatSearchUser extends AppCompatActivity {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String currUserId = userAuth.getUid();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FireBaseManager manager = new FireBaseManager();
     private TextView returnBackButton;
     private SearchView chatUserSearchBar;
     private RecyclerView userListView;
@@ -55,24 +45,21 @@ public class ChatSearchUser extends AppCompatActivity {
     }
 
     private void setPageData() {
-        db.collection("users").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    userList = new ArrayList<>();
+        manager.getDb().collection("users").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                userList = new ArrayList<>();
 
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        String userId = document.getId();
-                        if (!userId.equals(currUserId)) {
-                            String userName = document.getString("name");
-                            String userImg = document.getString("profileImgUri");
+                for (QueryDocumentSnapshot document : task.getResult()) {
+                    String userId = document.getId();
+                    if (!userId.equals(manager.getCurrentUser().getUid())) {
+                        String userName = document.getString("name");
+                        String userImg = document.getString("profileImgUri");
 
-                            User user = new User(userId, userName, userImg);
-                            userList.add(user);
-                        }
+                        User user = new User(userId, userName, userImg);
+                        userList.add(user);
                     }
-                    setupList(userList, userListView);
                 }
+                setupList(userList, userListView);
             }
         });
     }
@@ -110,7 +97,7 @@ public class ChatSearchUser extends AppCompatActivity {
 
     private boolean isUserAlreadyAdded(String searchText, ArrayList<User> users) {
         for (User user : users) {
-            if (user.getUserId().equals(currUserId)) {
+            if (user.getUserId().equals(manager.getCurrentUser().getUid())) {
                 return true;
             }
         }

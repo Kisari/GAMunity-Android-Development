@@ -9,24 +9,20 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.User;
 
 public class SignupView extends AppCompatActivity {
     private EditText signupFName, signupLName, signupDOB, signupEmail, signupPassword;
+    private final FireBaseManager manager = new FireBaseManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         signupFName = findViewById(R.id.signup_firstname);
         signupLName = findViewById(R.id.signup_lastname);
@@ -59,17 +55,17 @@ public class SignupView extends AppCompatActivity {
             if (pass.isEmpty()){
                 signupPassword.setError("Password cannot be empty");
             } else{
-                auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(task -> {
+                manager.getAuthProvider().createUserWithEmailAndPassword(email, pass).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         // User has been created successfully
-                        String userId = Objects.requireNonNull(auth.getCurrentUser()).getUid();
+                        String userId = Objects.requireNonNull(manager.getCurrentUser()).getUid();
                         String name = fName + " " + lName;
 
                         // Create a User object with the provided details
                         User newUser = new User(userId, false, name, dob, email);
 
                         // Add the user to Firestore
-                        db.collection("users").document(userId)
+                        manager.getDb().collection("users").document(userId)
                                 .set(newUser)
                                 .addOnSuccessListener(documentReference -> {
                                     // DocumentSnapshot added successfully
@@ -82,8 +78,6 @@ public class SignupView extends AppCompatActivity {
                                     Toast.makeText(SignupView.this, "Firestore Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                 });
 
-//                        Toast.makeText(SignupView.this, "SignUp Successful", Toast.LENGTH_SHORT).show();
-//                        startActivity(new Intent(SignupView.this, LoginView.class));
                     } else {
                         Toast.makeText(SignupView.this, "SignUp Failed" + Objects.requireNonNull(task.getException()).getMessage(), Toast.LENGTH_SHORT).show();
                     }

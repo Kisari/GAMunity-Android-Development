@@ -1,45 +1,38 @@
 package rmitcom.asm1.gamunity.components.views.chat;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.SearchView;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.User;
 
 public class RemoveMemberFromGroupChat extends AppCompatActivity {
 
     private final String TAG = "Remove user View";
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
-    private DocumentReference forumData, chatData, userData;
+    private final FireBaseManager manager = new FireBaseManager();
+    private DocumentReference chatData;
     private TextView returnBackButton;
     private SearchView removeUserSearchBar;
     private RecyclerView removeUserListView;
     private String chatId;
     private ArrayList<String> memberIds, moderatorIds, adminIds, userIds;
-    private ArrayList<User> adminList, moderatorList, memberList, userList;
+    private ArrayList<User> userList;
     private UserRecyclerViewAdapter adapter;
 
     @Override
@@ -52,9 +45,9 @@ public class RemoveMemberFromGroupChat extends AppCompatActivity {
 
     private void setUI() {
         Intent getIntent = getIntent();
-        if (getIntent != null) {
+        if (getIntent.getExtras() != null) {
             chatId = getIntent.getExtras().getString("chatId");
-            chatData = db.collection("CHATROOMS").document(chatId);
+            chatData = manager.getDb().collection("CHATROOMS").document(chatId);
         }
 
         returnBackButton = findViewById(R.id.returnBack);
@@ -69,63 +62,57 @@ public class RemoveMemberFromGroupChat extends AppCompatActivity {
     }
 
     private void setupAddPage() {
-        chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()){
-                    DocumentSnapshot document = task.getResult();
+        chatData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()){
+                DocumentSnapshot document = task.getResult();
 
-                    if (document.exists()) {
-                        memberIds = new ArrayList<>();
-                        moderatorIds = new ArrayList<>();
-                        adminIds = new ArrayList<>();
+                if (document.exists()) {
+                    memberIds = new ArrayList<>();
+                    moderatorIds = new ArrayList<>();
+                    adminIds = new ArrayList<>();
 
-                        if (document.get("adminIds") != null) {
-                            adminIds = (ArrayList<String>) document.get("adminIds");
-                        }
+                    if (document.get("adminIds") != null) {
+                        adminIds = (ArrayList<String>) document.get("adminIds");
+                    }
 
-                        if (document.get("moderatorIds") != null) {
-                            moderatorIds = (ArrayList<String>) document.get("moderatorIds");
-                        }
+                    if (document.get("moderatorIds") != null) {
+                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                    }
 
-                        if (document.get("memberIds") != null) {
-                            memberIds = (ArrayList<String>) document.get("memberIds");
-                        }
+                    if (document.get("memberIds") != null) {
+                        memberIds = (ArrayList<String>) document.get("memberIds");
+                    }
 
-                        CollectionReference userCollection = db.collection("users");
-                        userCollection.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    userIds = new ArrayList<>();
-                                    userList = new ArrayList<>();
+                    CollectionReference userCollection = manager.getDb().collection("users");
+                    userCollection.get().addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            userIds = new ArrayList<>();
+                            userList = new ArrayList<>();
 
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        String currUserId = document.getId();
+                            for (QueryDocumentSnapshot document1 : task1.getResult()) {
+                                String currUserId = document1.getId();
 
-                                        Log.i(TAG, "removeChatUser - adminIds: " + adminIds);
-                                        Log.i(TAG, "removeChatUser - moderatorIds: " + moderatorIds);
-                                        Log.i(TAG, "removeChatUser - memberIds: " + memberIds);
+                                Log.i(TAG, "removeChatUser - adminIds: " + adminIds);
+                                Log.i(TAG, "removeChatUser - moderatorIds: " + moderatorIds);
+                                Log.i(TAG, "removeChatUser - memberIds: " + memberIds);
 
-                                        if (!adminIds.contains(currUserId) && (moderatorIds.contains(currUserId) || memberIds.contains(currUserId))) {
-                                            userIds.add(currUserId);
+                                if (!adminIds.contains(currUserId) && (moderatorIds.contains(currUserId) || memberIds.contains(currUserId))) {
+                                    userIds.add(currUserId);
 
-                                            String userName = document.getString("name");
-                                            String userImg = document.getString("profileImgUri");
+                                    String userName = document1.getString("name");
+                                    String userImg = document1.getString("profileImgUri");
 
-                                            User user = new User(currUserId, userName, userImg);
-                                            userList.add(user);
-                                        }
-                                    }
-
-                                    setupList(userList, removeUserListView);
+                                    User user = new User(currUserId, userName, userImg);
+                                    userList.add(user);
                                 }
                             }
-                        });
-                    }
-                }
 
+                            setupList(userList, removeUserListView);
+                        }
+                    });
+                }
             }
+
         });
     }
 
@@ -162,7 +149,7 @@ public class RemoveMemberFromGroupChat extends AppCompatActivity {
 
     private boolean isUserAlreadyAdded(String searchText, ArrayList<User> users) {
         for (User user : users) {
-            if (user.getUserId().equals(userId)) {
+            if (user.getUserId().equals(manager.getCurrentUser().getUid())) {
                 return true;
             }
         }

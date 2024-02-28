@@ -4,12 +4,6 @@ import static android.content.ContentValues.TAG;
 
 import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,30 +14,30 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentSnapshot;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
+import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.PostRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.HomeView;
 import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.components.views.profile.EditProfileView;
 import rmitcom.asm1.gamunity.components.views.profile.ProfileForumListView;
-import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
-import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.User;
 
 public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
-    private final FireBaseManager db = new FireBaseManager();
-    private Constant constant = new Constant();
+    private final FireBaseManager manager = new FireBaseManager();
+    private final Constant constant = new Constant();
 
     private String nameStr, dobStr, noFollowStr, noFollowingStr, emailStr,
             profileImageUri, profileBackgroundUri;
@@ -97,8 +91,9 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (requestCode == constant.PROFILE_REQUEST) {
             if (resultCode == constant.EDIT) {
-                User newUserData = (User) data.getSerializableExtra("updatedInfo");
+                User newUserData = (User) Objects.requireNonNull(data).getSerializableExtra("updatedInfo");
 
+                assert newUserData != null;
                 profileName.setText(newUserData.getName());
                 profileDob.setText(newUserData.getDob());
                 new AsyncImage(profilePicture, iconProgressBar).loadImage(newUserData.getProfileImgUri());
@@ -110,8 +105,8 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
 
     @Override
     public void fetchData() {
-        db.getDb().collection("users")
-                .whereEqualTo("userId", db.getCurrentUser().getUid())
+        manager.getDb().collection("users")
+                .whereEqualTo("userId", manager.getCurrentUser().getUid())
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
@@ -132,7 +127,7 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
                             }
 
                             if(document.get("followersIds") != null){
-                                noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size());
+                                noFollowStr = String.valueOf(((ArrayList<String>) Objects.requireNonNull(document.get("followersIds"))).size());
                                 profileFollow.setText(noFollowStr);
                             }
                             else{
@@ -141,7 +136,7 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
                             }
 
                             if(document.get("followingIds") != null){
-                                noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size());
+                                noFollowingStr = String.valueOf(((ArrayList<String>) Objects.requireNonNull(document.get("followingIds"))).size());
                                 profileFollowing.setText(noFollowingStr);
                             }
                             else{
@@ -201,7 +196,7 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
                 if (itemId == R.id.forumListView) {
 //                    viewForumList();
                     Intent userForumList = new Intent(currentView.getContext(), ProfileForumListView.class);
-                    userForumList.putExtra("userId", db.getCurrentUser().getUid());
+                    userForumList.putExtra("userId", manager.getCurrentUser().getUid());
                     startActivity(userForumList);
 
                 } else if (itemId == R.id.profileUpdate) {
@@ -209,7 +204,7 @@ public class ProfileFragment extends Fragment implements FirebaseFetchAndSetUI {
                     startActivityForResult(editIntent, constant.PROFILE_REQUEST);
 
                 } else if (itemId == R.id.profileLogout) {
-                    db.getAuthProvider().signOut();
+                    manager.getAuthProvider().signOut();
                     Intent newIntent = new Intent(currentView.getContext(), LoginView.class);
                     startActivity(newIntent);
                     ((HomeView) currentView.getContext()).finish();

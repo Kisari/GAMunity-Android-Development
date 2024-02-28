@@ -1,9 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.post;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -18,22 +14,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -43,26 +33,21 @@ import java.util.UUID;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.views.forum.ForumView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 
 public class CreatePostView extends AppCompatActivity {
     private final String TAG = "Add Post";
     private WeakReference<Activity> activityReference;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference forumData, userData;
-    //    private String forumId = "IYvjtX2OyUr5C4DDWS28";
     private String forumId;
-//    private String userId = "testUser1";
     private String title, description, date, imageUri;
-    private ArrayList<String> memberIds, moderatorIds;
     private TextView returnBackButton, addImageButton, createPostButton;
     private EditText inputPostTitle, inputPostDescription;
     private ImageView postImage;
     private Uri postImageFilePath;
-    private Constant constant = new Constant();
+    private final Constant constant = new Constant();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,8 +61,8 @@ public class CreatePostView extends AppCompatActivity {
         Intent getIntent = getIntent();
         if (getIntent != null) {
             forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
-            forumData = db.collection("FORUMS").document(forumId);
-            userData = db.collection("users").document(userId);
+            forumData = manager.getDb().collection("FORUMS").document(forumId);
+            userData = manager.getDb().collection("users").document(manager.getCurrentUser().getUid());
         }
 
         inputPostTitle = findViewById(R.id.addPostTitle);
@@ -141,7 +126,7 @@ public class CreatePostView extends AppCompatActivity {
 
             String randomId = UUID.randomUUID().toString();
             Log.i(TAG, "uploadPostImage - randomId: " + randomId);
-            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+            StorageReference storageRef = manager.getStorageRef().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
@@ -206,7 +191,7 @@ public class CreatePostView extends AppCompatActivity {
     private void addDataToFirebase() {
 
         Map<String, Object> data = new HashMap<>();
-        data.put("ownerId", userId);
+        data.put("ownerId", manager.getCurrentUser().getUid());
         data.put("forumId", forumId);
         data.put("title", title);
         data.put("description", description);
@@ -216,13 +201,13 @@ public class CreatePostView extends AppCompatActivity {
             data.put("image", imageUri);
         }
 
-        db.collection("POSTS").add(data)
+        manager.getDb().collection("POSTS").add(data)
                 .addOnSuccessListener(documentReference -> {
                     String postId = documentReference.getId();
 
-                    db.collection("users").document(userId)
+                    manager.getDb().collection("users").document(manager.getCurrentUser().getUid())
                             .update("postIds", FieldValue.arrayUnion(postId));
-                    db.collection("FORUMS").document(forumId)
+                    manager.getDb().collection("FORUMS").document(forumId)
                             .update("postIds", FieldValue.arrayUnion(postId));
 
                     Intent postIntent = new Intent(CreatePostView.this, ForumView.class);

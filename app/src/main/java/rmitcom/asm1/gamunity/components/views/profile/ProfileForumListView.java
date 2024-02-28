@@ -2,17 +2,14 @@ package rmitcom.asm1.gamunity.components.views.profile;
 
 import static android.content.ContentValues.TAG;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import androidx.appcompat.app.AppCompatActivity;
 
-import org.checkerframework.checker.units.qual.A;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +23,9 @@ import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
 
 public class ProfileForumListView extends AppCompatActivity implements FirebaseFetchAndSetUI {
-    private final FireBaseManager db = new FireBaseManager();
-    private Constant constant = new Constant();
-    private ArrayList<Forum> forumList= new ArrayList<>();
+    private final FireBaseManager manager = new FireBaseManager();
+    private final Constant constant = new Constant();
+    private final ArrayList<Forum> forumList= new ArrayList<>();
     private ProfileForumListAdapter adapter;
 
     @Override
@@ -41,7 +38,7 @@ public class ProfileForumListView extends AppCompatActivity implements FirebaseF
 
     @Override
     public void fetchData() {
-        db.getDb().collection(constant.forums)
+        manager.getDb().collection(constant.forums)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -49,7 +46,7 @@ public class ProfileForumListView extends AppCompatActivity implements FirebaseF
                             String forumId = document.getString("forumId");
                             String forumRef = document.getId();
                             String forumTitle = document.getString("title");
-                            String forumChiefAdmin = document.getString("chiefAdmin");
+                            String forumChiefAdmin = Objects.requireNonNull(document.getString("chiefAdmin"));
                             ArrayList<String> forumCategory = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("category")));
                             ArrayList<String> forumMemberIds = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("memberIds")));
                             ArrayList<String> moderatorIds = new ArrayList<>((List<String>) Objects.requireNonNull(document.get("moderatorIds")));
@@ -57,7 +54,7 @@ public class ProfileForumListView extends AppCompatActivity implements FirebaseF
                             String forumIcon = document.getString("forumIcon");
 
                             Forum newForum = new Forum(forumId, forumRef, forumChiefAdmin, forumTitle, forumCategory, forumMemberIds, moderatorIds, forumBackground, forumIcon);
-                            if(moderatorIds.contains(db.getCurrentUser().getUid()) || forumMemberIds.contains(db.getCurrentUser().getUid()) || forumChiefAdmin.equals(db.getCurrentUser().getUid())){
+                            if(moderatorIds.contains(manager.getCurrentUser().getUid()) || forumMemberIds.contains(manager.getCurrentUser().getUid()) || forumChiefAdmin.equals(manager.getCurrentUser().getUid())){
                                 forumList.add(newForum);
                             }
                         }
@@ -77,8 +74,6 @@ public class ProfileForumListView extends AppCompatActivity implements FirebaseF
         profileForumList.setAdapter(adapter);
 
         ImageButton closeButton = findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(v -> {
-            finish();
-        });
+        closeButton.setOnClickListener(v -> finish());
     }
 }

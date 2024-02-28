@@ -18,13 +18,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,18 +31,17 @@ import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
 import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Post;
 
 public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerViewAdapter.PostRecyclerViewHolder> {
     private final Context context;
-    private ArrayList<Post> postContent;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
+    private final ArrayList<Post> postContent;
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference userData;
     private String postId;
-    private Constant constant = new Constant();
+    private final Constant constant = new Constant();
 
     @NonNull
     @Override
@@ -85,14 +80,11 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
 
             postTabProfile = itemView.findViewById(R.id.postTabProfile);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        Post post = postContent.get(position);
-                        navigateToPostView(post);
-                    }
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    Post post = postContent.get(position);
+                    navigateToPostView(post);
                 }
             });
         }
@@ -124,7 +116,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         if (likeIds != null) {
             likeCount = likeIds.size();
 
-            if (likeIds.contains(userId)) {
+            if (likeIds.contains(manager.getCurrentUser().getUid())) {
                 holder.like.setVisibility(View.INVISIBLE);
                 holder.likeTrue.setVisibility(View.VISIBLE);
 
@@ -149,7 +141,7 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         if (dislikeIds != null) {
             dislikeCount = dislikeIds.size();
 
-            if (dislikeIds.contains(userId)) {
+            if (dislikeIds.contains(manager.getCurrentUser().getUid())) {
                 holder.dislike.setVisibility(View.INVISIBLE);
                 holder.dislikeTrue.setVisibility(View.VISIBLE);
 
@@ -210,34 +202,31 @@ public class PostRecyclerViewAdapter extends RecyclerView.Adapter<PostRecyclerVi
         Log.i("TAG", "ownerId: " + ownerId);
 
         if (ownerId != null) {
-            userData = db.collection("users").document(ownerId);
+            userData = manager.getDb().collection("users").document(ownerId);
 
-            userData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
+            userData.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
 
-                        String userImgUri;
-                        if (document != null) {
-                            holder.username.setText((String) document.get("name"));
+                    String userImgUri;
+                    if (document != null) {
+                        holder.username.setText((String) document.get("name"));
 
-                            userImgUri = document.getString("profileImgUri");
-                            if (userImgUri != null) {
-                                try {
-                                    holder.baseImage.setVisibility(View.INVISIBLE);
-                                    holder.userProgressBar.setVisibility(View.VISIBLE);
-                                    holder.userImage.setVisibility(View.VISIBLE);
-                                    new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                        userImgUri = document.getString("profileImgUri");
+                        if (userImgUri != null) {
+                            try {
+                                holder.baseImage.setVisibility(View.INVISIBLE);
+                                holder.userProgressBar.setVisibility(View.VISIBLE);
+                                holder.userImage.setVisibility(View.VISIBLE);
+                                new AsyncImage(holder.userImage, holder.userProgressBar).loadImage(userImgUri);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                            else {
-                                holder.baseImage.setVisibility(View.VISIBLE);
-                                holder.userProgressBar.setVisibility(View.INVISIBLE);
-                                holder.userImage.setVisibility(View.INVISIBLE);
-                            }
+                        }
+                        else {
+                            holder.baseImage.setVisibility(View.VISIBLE);
+                            holder.userProgressBar.setVisibility(View.INVISIBLE);
+                            holder.userImage.setVisibility(View.INVISIBLE);
                         }
                     }
                 }

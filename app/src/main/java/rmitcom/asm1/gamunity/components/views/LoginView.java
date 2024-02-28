@@ -1,17 +1,9 @@
 package rmitcom.asm1.gamunity.components.views;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
@@ -23,17 +15,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Objects;
 
@@ -44,8 +36,7 @@ import rmitcom.asm1.gamunity.db.FireBaseManager;
 public class LoginView extends AppCompatActivity {
 
     private EditText loginEmail, loginPassword;
-    private final FireBaseManager db = new FireBaseManager();
-    private FirebaseAuth auth;
+    private final FireBaseManager manager = new FireBaseManager();
     TextView forgotPassword;
     GoogleSignInOptions gOptions;
     GoogleSignInClient gClient;
@@ -62,7 +53,6 @@ public class LoginView extends AppCompatActivity {
         forgotPassword = findViewById(R.id.forgot_password);
         ImageView loginGoogle = findViewById(R.id.google_btn);
 
-        auth = FirebaseAuth.getInstance();
 
         loginButton.setOnClickListener(v -> {
 
@@ -71,10 +61,10 @@ public class LoginView extends AppCompatActivity {
 
             if (!email.isEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 if (!pass.isEmpty()) {
-                    auth.signInWithEmailAndPassword(email, pass)
+                    manager.getAuthProvider().signInWithEmailAndPassword(email, pass)
                             .addOnSuccessListener(authResult -> {
                                 Toast.makeText(LoginView.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                db.changeUserIdWithDeviceToken(Objects.requireNonNull(auth.getCurrentUser()).getUid(), LoginView.this);
+                                manager.changeUserIdWithDeviceToken(Objects.requireNonNull(manager.getCurrentUser()).getUid(), LoginView.this);
                                 startActivity(new Intent(LoginView.this, HomeView.class));
                                 finish();
                             }).addOnFailureListener(e -> Toast.makeText(LoginView.this, "Login Failed", Toast.LENGTH_SHORT).show());
@@ -105,7 +95,7 @@ public class LoginView extends AppCompatActivity {
                     Toast.makeText(LoginView.this, "Enter your registered email id", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                auth.sendPasswordResetEmail(userEmail).addOnCompleteListener(task -> {
+                manager.getAuthProvider().sendPasswordResetEmail(userEmail).addOnCompleteListener(task -> {
                     if (task.isSuccessful()){
                         Toast.makeText(LoginView.this, "Check your email", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();

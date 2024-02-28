@@ -10,17 +10,10 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
@@ -29,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
@@ -40,20 +32,12 @@ public class ProfileView extends AppCompatActivity {
     private final String TAG = "Profile View";
 
     private final FireBaseManager manager = new FireBaseManager();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
 
-    // Define correct profile to be displayed
     private String targetUserId;
 
-    // Firebase data
-//    private DocumentReference userData;
-
-    // User data
     private String nameStr, dobStr, noFollowStr, noFollowingStr, emailStr,
             profileImageUri, profileBackgroundUri;
     private ArrayList<String> followList;
-    private ArrayList<String> followingList;
 
     // Display data
     private TextView profileName, profileDob, profileFollow, profileFollowing, profileEmail;
@@ -95,14 +79,12 @@ public class ProfileView extends AppCompatActivity {
 
         setProfileData();
 
-        backBtn.setOnClickListener(v -> {
-            finish();
-        });
+        backBtn.setOnClickListener(v -> finish());
     }
 
     @SuppressLint("SetTextI18n")
     private void setProfileData() {
-        db.collection("users")
+        manager.getDb().collection("users")
                 .whereEqualTo("userId", targetProfileId)
                 .get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -124,7 +106,7 @@ public class ProfileView extends AppCompatActivity {
                                 }
 
                                 if(document.get("followersIds") != null){
-                                    noFollowStr = String.valueOf(((ArrayList<String>) document.get("followersIds")).size());
+                                    noFollowStr = String.valueOf(((ArrayList<String>) Objects.requireNonNull(document.get("followersIds"))).size());
                                     profileFollow.setText(noFollowStr);
                                 }
                                 else{
@@ -133,7 +115,7 @@ public class ProfileView extends AppCompatActivity {
                                 }
 
                                 if(document.get("followingIds") != null){
-                                    noFollowingStr = String.valueOf(((ArrayList<String>) document.get("followingIds")).size());
+                                    noFollowingStr = String.valueOf(((ArrayList<String>) Objects.requireNonNull(document.get("followingIds"))).size());
                                     profileFollowing.setText(noFollowingStr);
                                 }
                                 else{

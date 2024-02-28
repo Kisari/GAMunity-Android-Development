@@ -1,10 +1,6 @@
 package rmitcom.asm1.gamunity.adapter;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,30 +14,19 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.imageview.ShapeableImageView;
+import com.google.firebase.Timestamp;
+
+import java.util.ArrayList;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Message;
-
-//import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-//import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-
-import java.io.IOException;
-import java.util.ArrayList;
 public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMessageRecyclerViewAdapter.ChatMessageRecyclerViewHolder> {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
-    private final FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FireBaseManager manager = new FireBaseManager();
     private final Context context;
-    private ArrayList<Message> messagesList;
+    private final ArrayList<Message> messagesList;
 
     public ChatMessageRecyclerViewAdapter(Context context, ArrayList<Message> messagesList) {
         this.context = context;
@@ -52,7 +37,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
     @Override
     public ChatMessageRecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.ui_chat_message_row, parent,false);
-        return new ChatMessageRecyclerViewAdapter.ChatMessageRecyclerViewHolder(view);
+        return new ChatMessageRecyclerViewHolder(view);
     }
 
     @Override
@@ -65,7 +50,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
             Timestamp messTimestamp = currMess.getTimestamp();
             boolean isImage = currMess.isImage();
 
-            if (messSender.equals(userId)) {
+            if (messSender.equals(manager.getCurrentUser().getUid())) {
                 Log.i("Message body", "isCurrUser: " + messContent);
                 holder.userLayout.setVisibility(View.VISIBLE);
                 holder.otherLayout.setVisibility(View.GONE);
@@ -113,24 +98,21 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
                     holder.otherChat.setText(messContent);
                 }
 
-                db.collection("users").document(messSender).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot document) {
-                        if (document.exists()) {
-                            String otherName = document.getString("name");
-                            String otherImg = document.getString("profileImgUri");
+                manager.getDb().collection("users").document(messSender).get().addOnSuccessListener(document -> {
+                    if (document.exists()) {
+                        String otherName = document.getString("name");
+                        String otherImg = document.getString("profileImgUri");
 
-                            if (otherName != null) {
-                                holder.otherName.setText(otherName);
+                        if (otherName != null) {
+                            holder.otherName.setText(otherName);
+                        }
+
+                        if (otherImg != null) {
+                            try {
+                                new AsyncImage(holder.otherImage, holder.otherProgressBar).loadImage(otherImg);
                             }
-
-                            if (otherImg != null) {
-                                try {
-                                    new AsyncImage(holder.otherImage, holder.otherProgressBar).loadImage(otherImg);
-                                }
-                                catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+                            catch (Exception e) {
+                                e.printStackTrace();
                             }
                         }
                     }
@@ -145,7 +127,7 @@ public class ChatMessageRecyclerViewAdapter extends RecyclerView.Adapter<ChatMes
         return messagesList.size();
     }
 
-    public class ChatMessageRecyclerViewHolder extends RecyclerView.ViewHolder {
+    public static class ChatMessageRecyclerViewHolder extends RecyclerView.ViewHolder {
         LinearLayout userLayout, otherLayout, userTextLayout, otherTextLayout;
         RelativeLayout userPictureLayout, otherPictureLayout;
         ProgressBar userPictureProgressBar, otherPictureProgressBar;

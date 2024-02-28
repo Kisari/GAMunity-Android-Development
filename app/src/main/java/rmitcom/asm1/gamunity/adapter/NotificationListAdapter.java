@@ -19,7 +19,7 @@ import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.model.Notification;
 
 public class NotificationListAdapter extends BaseAdapter {
-    private ArrayList<Notification> notificationList;
+    private final ArrayList<Notification> notificationList;
     private View currentView;
 
     public NotificationListAdapter(ArrayList<Notification> notificationList) {
@@ -38,7 +38,7 @@ public class NotificationListAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return (long) position;
+        return position;
     }
 
     public String getId(int position){

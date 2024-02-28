@@ -1,9 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.comment;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -16,25 +12,20 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -45,29 +36,25 @@ import java.util.UUID;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 
 public class CreateCommentForm extends AppCompatActivity {
     private final String TAG = "Add Comment";
     private WeakReference<Activity> activityReference;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference postData, userData;
-    //    private String forumId = "IYvjtX2OyUr5C4DDWS28";
     private String postId;
-//    private String userId = "testUser1";
-    private String description, date, commentRepliedId, imageUri;
-    private ArrayList<String> memberIds, moderatorIds;
+    private String description;
+    private String date;
+    private String imageUri;
     private TextView returnBackButton, addImageButton, createCommentButton;
     private EditText inputCommentDescription;
     private ProgressBar userProgressBar;
     private ImageView commentImage, baseImage;
     private ShapeableImageView commentUserImage;
     private Uri commentImageFilePath;
-    private boolean isReply;
-    private Constant constant = new Constant();
+    private final Constant constant = new Constant();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,8 +68,8 @@ public class CreateCommentForm extends AppCompatActivity {
         Intent getIntent = getIntent();
         if (getIntent != null) {
             postId = (String) Objects.requireNonNull(getIntent.getExtras()).get("postId");
-            postData = db.collection("POSTS").document(postId);
-            userData = db.collection("users").document(userId);
+            postData = manager.getDb().collection("POSTS").document(postId);
+            userData = manager.getDb().collection("users").document(manager.getCurrentUser().getUid());
 //            isReply = getIntent.getExtras().get("isReply") != null;
 //            if (isReply) {
 //                commentRepliedId = (String) getIntent.getExtras().get("commentId");
@@ -108,28 +95,25 @@ public class CreateCommentForm extends AppCompatActivity {
     }
 
     private void setCommentData() {
-        userData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot userDocument) {
-                if (userDocument.exists()) {
-                    String profileImg = userDocument.getString("profileImgUri");
+        userData.get().addOnSuccessListener(userDocument -> {
+            if (userDocument.exists()) {
+                String profileImg = userDocument.getString("profileImgUri");
 
-                    if (profileImg != null) {
-                        try {
-                            baseImage.setVisibility(View.INVISIBLE);
-                            commentUserImage.setVisibility(View.VISIBLE);
-                            userProgressBar.setVisibility(View.VISIBLE);
-                            new AsyncImage(commentUserImage, userProgressBar).loadImage(profileImg);
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                if (profileImg != null) {
+                    try {
+                        baseImage.setVisibility(View.INVISIBLE);
+                        commentUserImage.setVisibility(View.VISIBLE);
+                        userProgressBar.setVisibility(View.VISIBLE);
+                        new AsyncImage(commentUserImage, userProgressBar).loadImage(profileImg);
                     }
-                    else {
-                        baseImage.setVisibility(View.VISIBLE);
-                        commentUserImage.setVisibility(View.INVISIBLE);
-                        userProgressBar.setVisibility(View.INVISIBLE);
+                    catch (Exception e) {
+                        e.printStackTrace();
                     }
+                }
+                else {
+                    baseImage.setVisibility(View.VISIBLE);
+                    commentUserImage.setVisibility(View.INVISIBLE);
+                    userProgressBar.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -182,7 +166,7 @@ public class CreateCommentForm extends AppCompatActivity {
 
             String randomId = UUID.randomUUID().toString();
             Log.i(TAG, "uploadCommentImage - randomId: " + randomId);
-            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+            StorageReference storageRef = manager.getStorageRef().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
@@ -242,7 +226,7 @@ public class CreateCommentForm extends AppCompatActivity {
     private void addDataToFirebase() {
 
         Map<String, Object> data = new HashMap<>();
-        data.put("ownerId", userId);
+        data.put("ownerId", manager.getCurrentUser().getUid());
         data.put("postId", postId);
         data.put("description", description);
         data.put("date", date);
@@ -255,13 +239,13 @@ public class CreateCommentForm extends AppCompatActivity {
 //            data.put("commentRepliedId", commentRepliedId);
 //        }
 
-        db.collection("COMMENTS").add(data)
+        manager.getDb().collection("COMMENTS").add(data)
                 .addOnSuccessListener(documentReference -> {
                     String commentId = documentReference.getId();
 
-                    db.collection("users").document(userId)
+                    manager.getDb().collection("users").document(manager.getCurrentUser().getUid())
                             .update("commentIds", FieldValue.arrayUnion(commentId));
-                    db.collection("POSTS").document(postId)
+                    manager.getDb().collection("POSTS").document(postId)
                             .update("commentIds", FieldValue.arrayUnion(commentId));
 
 //                    if (isReply) {

@@ -1,8 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.post;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -19,12 +16,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
@@ -41,15 +38,13 @@ import java.util.regex.Pattern;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 
 public class EditPostView extends AppCompatActivity {
     private final String TAG = "Edit Post";
     private WeakReference<Activity> activityReference;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final FirebaseStorage storage = FirebaseStorage.getInstance();
-    private final String userId = userAuth.getUid();
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference forumData, postData, userData;
     private String forumId, postId, title, description, postImageUri, updateDate, imageUri;
     private EditText postEditTitle, postEditDescription;
@@ -73,9 +68,9 @@ public class EditPostView extends AppCompatActivity {
             forumId = Objects.requireNonNull(getIntent.getExtras()).getString("forumId");
             postId = getIntent.getExtras().getString("postId");
 
-            forumData = db.collection("FORUMS").document(forumId);
-            postData = db.collection("POSTS").document(postId);
-            userData = db.collection("users").document(userId);
+            forumData = manager.getDb().collection("FORUMS").document(forumId);
+            postData = manager.getDb().collection("POSTS").document(postId);
+            userData = manager.getDb().collection("users").document(manager.getCurrentUser().getUid());
 
             Log.i(TAG, "forumId: " + forumId);
         }
@@ -184,7 +179,7 @@ public class EditPostView extends AppCompatActivity {
 
             String randomId = UUID.randomUUID().toString();
             Log.i(TAG, "uploadPostImage - randomId: " + randomId);
-            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+            StorageReference storageRef = manager.getStorageRef().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
@@ -203,12 +198,8 @@ public class EditPostView extends AppCompatActivity {
                                 String oldUri = m.group(1);
 
                                 // Create a reference to the old image and delete it
-                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i("Delete image", "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                });
+                                StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                             }
                         }
 

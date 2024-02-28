@@ -20,22 +20,16 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
@@ -47,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,12 +54,8 @@ import rmitcom.asm1.gamunity.model.Notification;
 public class EditForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
     private final String TAG = "Edit Forum View";
     private WeakReference<Activity> activityReference;
-    private final FireBaseManager dbManager = new FireBaseManager();
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FireBaseManager manager = new FireBaseManager();
     private final Constant constant = new Constant();
-    private final String userId = userAuth.getUid();
     private DocumentReference forumData, userData;
     private String forumId, title, description, forumIconUri, forumBackgroundUri, backgroundUri = "", iconUri = "", forumNumberId;
     private ArrayList<String> forumMemberIds, forumTagList;
@@ -92,8 +81,8 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
         if (getIntent != null) {
             forumId = (String) Objects.requireNonNull(getIntent.getExtras()).get("forumId");
 
-            forumData = db.collection("FORUMS").document(forumId);
-            userData = db.collection("USERS").document(userId);
+            forumData = manager.getDb().collection("FORUMS").document(forumId);
+            userData = manager.getDb().collection("USERS").document(manager.getCurrentUser().getUid());
 
             Log.i(TAG, "forumId: " + forumId);
         }
@@ -217,7 +206,6 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
         view.startDrag(dragData, myShadow, null, 0);
         Log.d(TAG, "onItemLongClick: " + tagListAdapter.getItem(position));
     }
-    @SuppressWarnings("unchecked")
     private void setForumData() {
         forumData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -355,7 +343,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference().child("images/"+ UUID.randomUUID().toString());
+            StorageReference storageRef = manager.getStorageRef().child("images/"+ UUID.randomUUID().toString());
 
             storageRef.putFile(submitFilePath).addOnSuccessListener(taskSnapshot -> {
                 Activity activity = activityReference.get();
@@ -374,12 +362,8 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
                     if (m.find()) {
                         String oldUri = m.group(1);
 
-                        StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                        oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                            Log.i("Delete image", "Old image deleted successfully");
-                        }).addOnFailureListener(e -> {
-                            Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                        });
+                        StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                        oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                     }
                 }
 
@@ -417,7 +401,7 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
             progressDialog.show();
 
-            StorageReference storageRef = storage.getReference().child("images/"+ UUID.randomUUID().toString());
+            StorageReference storageRef = manager.getStorageRef().child("images/"+ UUID.randomUUID().toString());
 
             storageRef.putFile(submitFilePath).addOnSuccessListener(taskSnapshot -> {
                 Activity activity = activityReference.get();
@@ -436,12 +420,8 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
                     if (m.find()) {
                         String oldUri = m.group(1);
 
-                        StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                        oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                            Log.i("Delete image", "Old image deleted successfully");
-                        }).addOnFailureListener(e -> {
-                            Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                        });
+                        StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                        oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                     }
                 }
 
@@ -483,8 +463,8 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
         forumData.set(data, SetOptions.merge()).addOnCompleteListener(task -> {
             if(task.isSuccessful()){
-                dbManager.getDb().collection("users")
-                        .whereEqualTo("userId", dbManager.getCurrentUser().getUid())
+                manager.getDb().collection("users")
+                        .whereEqualTo("userId", manager.getCurrentUser().getUid())
                         .get()
                         .addOnCompleteListener(checkingUser -> {
                             if(checkingUser.isSuccessful()){
@@ -499,8 +479,8 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
 
                                         String notificationBody = userName + " has edit the content of the forum that you are currently join in " +
                                                 title;
-                                        Notification newNotification = new Notification("Join the forum", forumIconUrl, notificationBody, dbManager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
-                                        dbManager.sendNotificationToDevice(newNotification, userName, constant.EDIT_FORUM);
+                                        Notification newNotification = new Notification("Join the forum", forumIconUrl, notificationBody, manager.getCurrentUser().getUid(), forumReceiverId, false, Calendar.getInstance().getTime().toString(), forumNumberId);
+                                        manager.sendNotificationToDevice(newNotification, userName, constant.EDIT_FORUM);
                                     }
                                     Toast.makeText(EditForumView.this, "Sent notification to members",Toast.LENGTH_SHORT).show();
                                 }
@@ -509,28 +489,25 @@ public class EditForumView extends AppCompatActivity implements ForumTagListAdap
             }
         });
 
-        forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+        forumData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
 
-                    if (document.exists()) {
-                        String chatId = document.getString("chatId");
-                        String iconImg = document.getString("forumIcon");
-                        Log.i(TAG, "edit forum - chatId: " + chatId);
-                        Log.i(TAG, "edit forum - title: " + title);
-                        Log.i(TAG, "edit forum - forumIcon: " + iconImg);
+                if (document.exists()) {
+                    String chatId = document.getString("chatId");
+                    String iconImg = document.getString("forumIcon");
+                    Log.i(TAG, "edit forum - chatId: " + chatId);
+                    Log.i(TAG, "edit forum - title: " + title);
+                    Log.i(TAG, "edit forum - forumIcon: " + iconImg);
 
-                        if (chatId != null) {
-                            DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
-                            chatData.update("chatTitle", title + "'s Group Chat");
-                            chatData.update("chatImg", iconImg);
+                    if (chatId != null) {
+                        DocumentReference chatData = manager.getDb().collection("CHATROOMS").document(chatId);
+                        chatData.update("chatTitle", title + "'s Group Chat");
+                        chatData.update("chatImg", iconImg);
 
-                            Intent returnIntent = new Intent(EditForumView.this, ForumView.class);
-                            setResult(RESULT_OK, returnIntent);
-                            finish();
-                        }
+                        Intent returnIntent = new Intent(EditForumView.this, ForumView.class);
+                        setResult(RESULT_OK, returnIntent);
+                        finish();
                     }
                 }
             }

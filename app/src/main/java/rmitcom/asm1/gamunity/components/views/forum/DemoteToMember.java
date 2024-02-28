@@ -1,36 +1,30 @@
 package rmitcom.asm1.gamunity.components.views.forum;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.SearchView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.User;
 
 public class DemoteToMember extends AppCompatActivity {
     private final String TAG = "Demote View";
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
-    private DocumentReference forumData, userData;
+    private final FireBaseManager manager = new FireBaseManager();
+    private DocumentReference forumData;
     private ImageView returnBackButton;
     private SearchView demoteSearchBar;
     private RecyclerView userListView;
@@ -49,9 +43,9 @@ public class DemoteToMember extends AppCompatActivity {
 
     private void setUI() {
         Intent getIntent = getIntent();
-        if (getIntent != null) {
+        if (getIntent.getExtras() != null) {
             forumId = getIntent.getExtras().getString("forumId");
-            forumData = db.collection("FORUMS").document(forumId);
+            forumData = manager.getDb().collection("FORUMS").document(forumId);
         }
 
         returnBackButton = findViewById(R.id.returnBack);
@@ -63,31 +57,28 @@ public class DemoteToMember extends AppCompatActivity {
     }
 
     private void setPageData() {
-        forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
+        forumData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
 
-                    DocumentSnapshot document = task.getResult();
+                DocumentSnapshot document = task.getResult();
 
-                    if (document.exists()) {
+                if (document.exists()) {
 
-                        memberIds = new ArrayList<>();
-                        moderatorIds = new ArrayList<>();
+                    memberIds = new ArrayList<>();
+                    moderatorIds = new ArrayList<>();
 
-                        memberList = new ArrayList<>();
-                        moderatorList = new ArrayList<>();
+                    memberList = new ArrayList<>();
+                    moderatorList = new ArrayList<>();
 
-                        if (document.get("memberIds") != null) {
-                            memberIds = (ArrayList<String>) document.get("memberIds");
+                    if (document.get("memberIds") != null) {
+                        memberIds = (ArrayList<String>) document.get("memberIds");
 
-                        }
+                    }
 
-                        if (document.get("moderatorIds") != null) {
-                            moderatorIds = (ArrayList<String>) document.get("moderatorIds");
-                            if (moderatorIds != null) {
-                                displayList(moderatorIds, moderatorList);
-                            }
+                    if (document.get("moderatorIds") != null) {
+                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                        if (moderatorIds != null) {
+                            displayList(moderatorIds, moderatorList);
                         }
                     }
                 }
@@ -101,35 +92,32 @@ public class DemoteToMember extends AppCompatActivity {
         AtomicInteger counter = new AtomicInteger(0);
 
         for (String id: userIds) {
-            db.collection("users").document(id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
+            manager.getDb().collection("users").document(id).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
 
-                        String username = "", userProfileImg = "";
+                    String username = "", userProfileImg = "";
 
-                        ArrayList<String> joinedForumIds = new ArrayList<>(), adminForumIds = new ArrayList<>();
-                        if (document.exists()) {
-                            username = document.getString("name");
-                            userProfileImg = document.getString("profileImgUri");
+                    ArrayList<String> joinedForumIds = new ArrayList<>(), adminForumIds = new ArrayList<>();
+                    if (document.exists()) {
+                        username = document.getString("name");
+                        userProfileImg = document.getString("profileImgUri");
 
-                            if (document.get("joinedForumIds") != null) {
-                                joinedForumIds = (ArrayList<String>) document.get("joinedForumIds");
-                            }
-
-                            if (document.get("adminForumIds") != null) {
-                                adminForumIds = (ArrayList<String>) document.get("adminForumIds");
-                            }
+                        if (document.get("joinedForumIds") != null) {
+                            joinedForumIds = (ArrayList<String>) document.get("joinedForumIds");
                         }
 
-                        User user = new User(id, username, userProfileImg, adminForumIds, joinedForumIds);
-                        userList.add(user);
-
-                        if (counter.incrementAndGet() == listLength) {
-                            setupList(userList, userListView);
-                            initSearch(userList);
+                        if (document.get("adminForumIds") != null) {
+                            adminForumIds = (ArrayList<String>) document.get("adminForumIds");
                         }
+                    }
+
+                    User user = new User(id, username, userProfileImg, adminForumIds, joinedForumIds);
+                    userList.add(user);
+
+                    if (counter.incrementAndGet() == listLength) {
+                        setupList(userList, userListView);
+                        initSearch(userList);
                     }
                 }
             });

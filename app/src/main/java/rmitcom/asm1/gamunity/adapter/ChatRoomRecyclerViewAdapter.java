@@ -15,10 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 
@@ -30,11 +26,6 @@ import rmitcom.asm1.gamunity.model.GroupChat;
 public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRecyclerViewAdapter.ChatRoomRecyclerViewHolder>{
     private final Context context;
     private ArrayList<GroupChat> chatGroupContent;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    //    private final String userId = userAuth.getUid();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
-    private DocumentReference userData, chatData;
     private String chatName, chatImg, chatId, dataId;
     private boolean isGroup;
     @NonNull
@@ -83,10 +74,6 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
         return chatGroupContent.size();
     }
 
-    public ArrayList<GroupChat> getChatGroupContent() {
-        return chatGroupContent;
-    }
-
     @SuppressLint("NotifyDataSetChanged")
     public void setChatGroupContent(ArrayList<GroupChat> chatGroupContent) {
         this.chatGroupContent = chatGroupContent;
@@ -106,14 +93,11 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
             chatImage = itemView.findViewById(R.id.chatTabImg);
             baseImage = itemView.findViewById(R.id.baseImg);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        GroupChat groupChat = chatGroupContent.get(position);
-                        navigateToChatView(groupChat);
-                    }
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION) {
+                    GroupChat groupChat = chatGroupContent.get(position);
+                    navigateToChatView(groupChat);
                 }
             });
         }
@@ -123,8 +107,6 @@ public class ChatRoomRecyclerViewAdapter extends RecyclerView.Adapter<ChatRoomRe
             intent.putExtra("chatId", groupChat.getChatId());
             intent.putExtra("isGroup", groupChat.isGroup());
             intent.putExtra("dataId", groupChat.getDataId());
-//            intent.putExtra("dataName", groupChat.getChatTitle());
-//            intent.putExtra("dataImg", groupChat.getChatImage());
 
             ((Activity) context).startActivityForResult(intent, 189);
         }

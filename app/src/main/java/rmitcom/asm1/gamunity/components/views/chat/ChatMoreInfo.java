@@ -1,10 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.chat;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,13 +9,13 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -29,14 +24,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.adapter.UserRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
-import rmitcom.asm1.gamunity.model.Constant;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.User;
 
 public class ChatMoreInfo extends AppCompatActivity {
     private final String TAG = "Chat More Info View";
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference chatData, userData;
     private String chatId;
     private UserRecyclerViewAdapter adapter;
@@ -56,7 +49,7 @@ public class ChatMoreInfo extends AppCompatActivity {
         Intent getIntent = getIntent();
         if (getIntent != null) {
             chatId = (String) Objects.requireNonNull(getIntent.getExtras()).get("chatId");
-            chatData = db.collection("CHATROOMS").document(chatId);
+            chatData = manager.getDb().collection("CHATROOMS").document(chatId);
             Log.i(TAG, "chatMoreInfo - chatId: " + chatId);
         }
 
@@ -192,24 +185,21 @@ public class ChatMoreInfo extends AppCompatActivity {
         AtomicInteger counter = new AtomicInteger(0);
 
         for (String userId: userIds) {
-            db.collection("users").document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
+            manager.getDb().collection("users").document(userId).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
 
-                        String username = "", userProfileImg = "";
-                        if (document.exists()) {
-                            username = document.getString("name");
-                            userProfileImg = document.getString("profileImgUri");
-                        }
+                    String username = "", userProfileImg = "";
+                    if (document.exists()) {
+                        username = document.getString("name");
+                        userProfileImg = document.getString("profileImgUri");
+                    }
 
-                        User user = new User(userId, username, userProfileImg);
-                        userList.add(user);
+                    User user = new User(userId, username, userProfileImg);
+                    userList.add(user);
 
-                        if (counter.incrementAndGet() == listLength) {
-                            setupList(userList, userListView);
-                        }
+                    if (counter.incrementAndGet() == listLength) {
+                        setupList(userList, userListView);
                     }
                 }
             });

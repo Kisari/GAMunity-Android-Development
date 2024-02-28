@@ -1,8 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.comment;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -19,14 +16,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnSuccessListener;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
@@ -43,15 +39,13 @@ import java.util.regex.Pattern;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.post.PostView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 
 public class EditCommentView extends AppCompatActivity {
     private final String TAG = "Edit Comment View";
     private WeakReference<Activity> activityReference;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
-    private final String userId = userAuth.getUid();
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference postData, commentData, userData;
     private String postId, commentId, description, commentImageUri, updateDate, imageUri;
     private EditText commentEditDescription;
@@ -73,13 +67,13 @@ public class EditCommentView extends AppCompatActivity {
 
     private void setUI() {
         Intent getIntent = getIntent();
-        if (getIntent != null) {
+        if (getIntent.getExtras() != null) {
             postId = getIntent.getExtras().getString("postId");
             commentId = getIntent.getExtras().getString("commentId");
 
-            postData = db.collection("POSTS").document(postId);
-            commentData = db.collection("COMMENTS").document(commentId);
-            userData = db.collection("users").document(userId);
+            postData = manager.getDb().collection("POSTS").document(postId);
+            commentData = manager.getDb().collection("COMMENTS").document(commentId);
+            userData = manager.getDb().collection("users").document(manager.getCurrentUser().getUid());
 
             Log.i(TAG, "postId: " + postId);
         }
@@ -129,28 +123,25 @@ public class EditCommentView extends AppCompatActivity {
                         }
                     }
 
-                    userData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot userDocument) {
-                            if (userDocument.exists()) {
-                                String profileImg = userDocument.getString("profileImgUri");
+                    userData.get().addOnSuccessListener(userDocument -> {
+                        if (userDocument.exists()) {
+                            String profileImg = userDocument.getString("profileImgUri");
 
-                                if (profileImg != null) {
-                                    try {
-                                        baseImage.setVisibility(View.INVISIBLE);
-                                        commentUserImage.setVisibility(View.VISIBLE);
-                                        userProgressBar.setVisibility(View.VISIBLE);
-                                        new AsyncImage(commentUserImage, userProgressBar).loadImage(profileImg);
-                                    }
-                                    catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                            if (profileImg != null) {
+                                try {
+                                    baseImage.setVisibility(View.INVISIBLE);
+                                    commentUserImage.setVisibility(View.VISIBLE);
+                                    userProgressBar.setVisibility(View.VISIBLE);
+                                    new AsyncImage(commentUserImage, userProgressBar).loadImage(profileImg);
                                 }
-                                else {
-                                    baseImage.setVisibility(View.VISIBLE);
-                                    commentUserImage.setVisibility(View.INVISIBLE);
-                                    userProgressBar.setVisibility(View.INVISIBLE);
+                                catch (Exception e) {
+                                    e.printStackTrace();
                                 }
+                            }
+                            else {
+                                baseImage.setVisibility(View.VISIBLE);
+                                commentUserImage.setVisibility(View.INVISIBLE);
+                                userProgressBar.setVisibility(View.INVISIBLE);
                             }
                         }
                     });
@@ -210,7 +201,7 @@ public class EditCommentView extends AppCompatActivity {
 
             String randomId = UUID.randomUUID().toString();
             Log.i(TAG, "uploadCommentImage - randomId: " + randomId);
-            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+            StorageReference storageRef = manager.getStorageRef().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
@@ -232,12 +223,8 @@ public class EditCommentView extends AppCompatActivity {
                                     Log.i(TAG, "uploadPostImage - oldUri: " + oldUri);
 
                                     // Create a reference to the old image and delete it
-                                    StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                    oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                        Log.i(TAG, "Old image deleted successfully");
-                                    }).addOnFailureListener(e -> {
-                                        Log.e(TAG, "Failed to delete old image: " + e.getMessage());
-                                    });
+                                    StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                    oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i(TAG, "Old image deleted successfully")).addOnFailureListener(e -> Log.e(TAG, "Failed to delete old image: " + e.getMessage()));
                                 }
                             }
 

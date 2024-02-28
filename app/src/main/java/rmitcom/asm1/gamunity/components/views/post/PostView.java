@@ -1,12 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.post;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -22,24 +15,23 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.imageview.ShapeableImageView;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -55,20 +47,17 @@ import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.comment.CreateCommentForm;
 import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.components.views.profile.ProfileView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Comment;
 import rmitcom.asm1.gamunity.model.Constant;
 
 public class PostView extends AppCompatActivity {
     private final String TAG = "Post View";
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final FirebaseStorage storage = FirebaseStorage.getInstance();
-    private final String userId = userAuth.getUid();
+    private final FireBaseManager manager = new FireBaseManager();
     private DocumentReference forumData, userData, postData;
     private String postId, forumId, ownerId, chiefAdminId,
             postUsernameStr, postTimestampStr, postUpdateTimestampStr,
             postTitleStr, postDescriptionStr, postUserImageUri, postImageUri;
-    private int noLike, noDislike, noComment;
     private Date postTimestampDate, postUpdateTimestampDate;
     private ArrayList<String> memberIds, moderatorIds, postLikeIds, postDislikeIds, commentIds;
     private ArrayList<String> commentLikeIds, commentDislikeIds, replyCommentIds;
@@ -82,7 +71,7 @@ public class PostView extends AppCompatActivity {
     private ImageView postImage, baseImage;
     private ShapeableImageView postUserImage;
     private CommentRecyclerViewAdapter adapter;
-    private Constant constant = new Constant();
+    private final Constant constant = new Constant();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,13 +83,13 @@ public class PostView extends AppCompatActivity {
 
     private void setUI() {
         Intent getIntent = getIntent();
-        if (getIntent != null) {
+        if (getIntent.getExtras() != null) {
             postId = getIntent.getExtras().getString("postId");
             forumId = getIntent.getExtras().getString("forumId");
 
-            postData = db.collection("POSTS").document(postId);
-            forumData = db.collection("FORUMS").document(forumId);
-            userData = db.collection("users").document(userId);
+            postData = manager.getDb().collection("POSTS").document(postId);
+            forumData = manager.getDb().collection("FORUMS").document(forumId);
+            userData = manager.getDb().collection("users").document(manager.getCurrentUser().getUid());
         }
 
         postUsername = findViewById(R.id.postUserName);
@@ -188,7 +177,7 @@ public class PostView extends AppCompatActivity {
                         if (postLikeIds != null) {
                             int likeCount = postLikeIds.size();
 
-                            if (postLikeIds.contains(userId)) {
+                            if (postLikeIds.contains(manager.getCurrentUser().getUid())) {
                                 postLike.setVisibility(View.INVISIBLE);
                                 postLikeTrue.setVisibility(View.VISIBLE);
 
@@ -214,7 +203,7 @@ public class PostView extends AppCompatActivity {
                         if (postDislikeIds != null) {
                             int dislikeCount = postDislikeIds.size();
 
-                            if (postDislikeIds.contains(userId)) {
+                            if (postDislikeIds.contains(manager.getCurrentUser().getUid())) {
                                 postDislike.setVisibility(View.INVISIBLE);
                                 postDislikeTrue.setVisibility(View.VISIBLE);
 
@@ -236,7 +225,7 @@ public class PostView extends AppCompatActivity {
                     }
 
                     if (ownerId != null) {
-                        db.collection("users").document(ownerId).get()
+                        manager.getDb().collection("users").document(ownerId).get()
                             .addOnCompleteListener(userTask -> {
                                 if (userTask.isSuccessful()) {
                                     DocumentSnapshot userDocument = userTask.getResult();
@@ -354,39 +343,36 @@ public class PostView extends AppCompatActivity {
 
         for (String commentId: commentIds) {
             Log.i(TAG, "displayList - commentId: " + commentId);
-            db.collection("COMMENTS").document(commentId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
+            manager.getDb().collection("COMMENTS").document(commentId).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
 
-                        String commentDescription, commentOwnerId, timestampStr, updateTimestampStr, repliedCommentId, imgUri;
-                        boolean isReply;
-                        Date timestamp = new Date(), updateTimeStamp = new Date();
+                    String commentDescription, commentOwnerId, timestampStr, updateTimestampStr, repliedCommentId, imgUri;
+                    Date timestamp = new Date(), updateTimeStamp = new Date();
 
-                        if (document.exists()) {
-                            commentDescription = (String) document.get("description");
-                            commentOwnerId = (String) document.get("ownerId");
+                    if (document.exists()) {
+                        commentDescription = (String) document.get("description");
+                        commentOwnerId = (String) document.get("ownerId");
 
-                            repliedCommentId = (String) document.get("repliedCommentId");
+                        repliedCommentId = (String) document.get("repliedCommentId");
 
-                            if (document.getString("image") != null) {
-                                imgUri = document.getString("image");
-                            } else {
-                                imgUri = null;
-                            }
+                        if (document.getString("image") != null) {
+                            imgUri = document.getString("image");
+                        } else {
+                            imgUri = null;
+                        }
 
-                            if (document.get("likeIds") != null) {
-                                commentLikeIds = (ArrayList<String>) document.get("likeIds");
-                            } else {
-                                commentLikeIds = new ArrayList<>();
-                            }
+                        if (document.get("likeIds") != null) {
+                            commentLikeIds = (ArrayList<String>) document.get("likeIds");
+                        } else {
+                            commentLikeIds = new ArrayList<>();
+                        }
 
-                            if (document.get("dislikeIds") != null) {
-                                commentDislikeIds = (ArrayList<String>) document.get("dislikeIds");
-                            } else {
-                                commentDislikeIds = new ArrayList<>();
-                            }
+                        if (document.get("dislikeIds") != null) {
+                            commentDislikeIds = (ArrayList<String>) document.get("dislikeIds");
+                        } else {
+                            commentDislikeIds = new ArrayList<>();
+                        }
 
 //                            if (document.get("replyCommentIds") != null) {
 //                                replyCommentIds = (ArrayList<String>) document.get("replyCommentIds");
@@ -396,51 +382,50 @@ public class PostView extends AppCompatActivity {
 //                                replyCommentIds = new ArrayList<>();
 //                            }
 
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
 
-                            timestampStr = (String) document.get("date");
-                            updateTimestampStr = (String) document.get("updateDate");
+                        timestampStr = (String) document.get("date");
+                        updateTimestampStr = (String) document.get("updateDate");
 
-                            if (timestampStr != null) {
-                                try {
-                                    timestamp = sdf.parse(timestampStr);
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
+                        if (timestampStr != null) {
+                            try {
+                                timestamp = sdf.parse(timestampStr);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
                             }
+                        }
 
-                            if (updateTimestampStr != null) {
-                                try {
-                                    updateTimeStamp = sdf.parse(updateTimestampStr);
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                            } else {
-                                updateTimeStamp = null;
+                        if (updateTimestampStr != null) {
+                            try {
+                                updateTimeStamp = sdf.parse(updateTimestampStr);
+                            } catch (ParseException e) {
+                                e.printStackTrace();
                             }
+                        } else {
+                            updateTimeStamp = null;
+                        }
 
 //                            isReply = repliedCommentId != null;
 
-                            Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, imgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
+                        Comment comment = new Comment(commentId, commentOwnerId, postId, commentDescription, repliedCommentId, timestamp, updateTimeStamp, imgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
 
-                            Collections.sort(commentList, (comment1, comment2)
-                                    -> comment2.getTimestamp().compareTo(comment1.getTimestamp()));
+                        commentList.sort((comment1, comment2)
+                                -> comment2.getTimestamp().compareTo(comment1.getTimestamp()));
 
-                            int index = Collections.binarySearch(commentList, comment, (comment1, comment2)
-                                    -> comment2.getTimestamp().compareTo(comment1.getTimestamp()));
+                        int index = Collections.binarySearch(commentList, comment, (comment1, comment2)
+                                -> comment2.getTimestamp().compareTo(comment1.getTimestamp()));
 
 
-                            int insertionPoint = (index < 0) ? -index : index;
+                        int insertionPoint = (index < 0) ? -index : index;
 
-                            if (insertionPoint >= commentList.size()) {
-                                commentList.add(comment);
-                            } else {
-                                commentList.add(insertionPoint, comment);
-                            }
+                        if (insertionPoint >= commentList.size()) {
+                            commentList.add(comment);
+                        } else {
+                            commentList.add(insertionPoint, comment);
+                        }
 
-                            if (counter.incrementAndGet() == listLength[0]) {
-                                setupList(commentList);
-                            }
+                        if (counter.incrementAndGet() == listLength[0]) {
+                            setupList(commentList);
                         }
                     }
                 }
@@ -453,17 +438,17 @@ public class PostView extends AppCompatActivity {
         Log.i(TAG, "setButton - moderatorIds: " + moderatorIds);
         Log.i(TAG, "setButton - memberIds: " + memberIds);
         Log.i(TAG, "setButton - ownerId: " + ownerId);
-        Log.i(TAG, "setButton - userId: " + userId);
+        Log.i(TAG, "setButton - userId: " + manager.getCurrentUser().getUid());
 
-        if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
+        if (Objects.equals(manager.getCurrentUser().getUid(), chiefAdminId) || (moderatorIds != null && moderatorIds.contains(manager.getCurrentUser().getUid()))) {
             moreOptionButton.setVisibility(View.VISIBLE);
             addCommentButton.setVisibility(View.VISIBLE);
 
-        } else if (memberIds != null && memberIds.contains(userId)) {
+        } else if (memberIds != null && memberIds.contains(manager.getCurrentUser().getUid())) {
             addCommentButton.setVisibility(View.VISIBLE);
 //            moreOptionButton.setVisibility(View.VISIBLE);
 
-            if (Objects.equals(userId, ownerId)) {
+            if (Objects.equals(manager.getCurrentUser().getUid(), ownerId)) {
                 moreOptionButton.setVisibility(View.VISIBLE);
             }
             else {
@@ -480,84 +465,20 @@ public class PostView extends AppCompatActivity {
                                    String currField, String otherField, final TextView likeView, final TextView dislikeView,
                                    final TextView likeViewTrue, final TextView dislikeViewTrue) {
         if (currentList != null) {
-            if (!currentList.contains(userId)) {
+            if (!currentList.contains(manager.getCurrentUser().getUid())) {
                 ArrayList<String> finalCurrList = currentList;
-                postData.update(currField, FieldValue.arrayUnion(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        likeViewTrue.setVisibility(View.VISIBLE);
-                        likeView.setVisibility(View.INVISIBLE);
-
-                        likeViewTrue.setText(String.valueOf(finalCurrList.size()));
-
-                        if (otherList != null && otherList.contains(userId)) {
-                            postData.update(otherField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void unused) {
-                                    dislikeView.setVisibility(View.VISIBLE);
-                                    dislikeViewTrue.setVisibility(View.INVISIBLE);
-
-                                    dislikeView.setText(String.valueOf(otherList.size() - 1));
-                                }
-                            });
-                        } else {
-                            dislikeView.setVisibility(View.VISIBLE);
-                            dislikeViewTrue.setVisibility(View.INVISIBLE);
-
-                            dislikeView.setText("0");
-                        }
-//                        recreate();
-                        setUI();
-                    }
-                });
-            } else {
-                currentList.remove(userId);
-                ArrayList<String> finalCurrList = currentList;
-                postData.update(currField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        likeView.setVisibility(View.VISIBLE);
-                        likeViewTrue.setVisibility(View.INVISIBLE);
-
-                        likeView.setText(String.valueOf(finalCurrList.size()));
-
-                        if (otherList != null) {
-                            dislikeView.setText(String.valueOf(otherList.size()));
-                        } else {
-                            dislikeView.setText("0");
-                        }
-
-//                        recreate();
-                        setUI();
-                    }
-                });
-            }
-        }
-        else {
-            currentList = new ArrayList<>();
-            currentList.add(userId);
-
-            Map<String, ArrayList<String>> actionData = new HashMap<>();
-            actionData.put(currField, currentList);
-
-            ArrayList<String> finalCurrList = currentList;
-            postData.set(actionData, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void unused) {
-                    likeView.setVisibility(View.INVISIBLE);
+                postData.update(currField, FieldValue.arrayUnion(manager.getCurrentUser().getUid())).addOnSuccessListener(unused -> {
                     likeViewTrue.setVisibility(View.VISIBLE);
+                    likeView.setVisibility(View.INVISIBLE);
 
                     likeViewTrue.setText(String.valueOf(finalCurrList.size()));
 
-                    if (otherList != null && otherList.contains(userId)) {
-                        postData.update(otherField, FieldValue.arrayRemove(userId)).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                dislikeView.setVisibility(View.VISIBLE);
-                                dislikeViewTrue.setVisibility(View.INVISIBLE);
+                    if (otherList != null && otherList.contains(manager.getCurrentUser().getUid())) {
+                        postData.update(otherField, FieldValue.arrayRemove(manager.getCurrentUser().getUid())).addOnSuccessListener(unused1 -> {
+                            dislikeView.setVisibility(View.VISIBLE);
+                            dislikeViewTrue.setVisibility(View.INVISIBLE);
 
-                                dislikeView.setText(String.valueOf(otherList.size() - 1));
-                            }
+                            dislikeView.setText(String.valueOf(otherList.size() - 1));
                         });
                     } else {
                         dislikeView.setVisibility(View.VISIBLE);
@@ -565,48 +486,77 @@ public class PostView extends AppCompatActivity {
 
                         dislikeView.setText("0");
                     }
+//                        recreate();
+                    setUI();
+                });
+            } else {
+                currentList.remove(manager.getCurrentUser().getUid());
+                ArrayList<String> finalCurrList = currentList;
+                postData.update(currField, FieldValue.arrayRemove(manager.getCurrentUser().getUid())).addOnSuccessListener(unused -> {
+                    likeView.setVisibility(View.VISIBLE);
+                    likeViewTrue.setVisibility(View.INVISIBLE);
+
+                    likeView.setText(String.valueOf(finalCurrList.size()));
+
+                    if (otherList != null) {
+                        dislikeView.setText(String.valueOf(otherList.size()));
+                    } else {
+                        dislikeView.setText("0");
+                    }
+
+//                        recreate();
+                    setUI();
+                });
+            }
+        }
+        else {
+            currentList = new ArrayList<>();
+            currentList.add(manager.getCurrentUser().getUid());
+
+            Map<String, ArrayList<String>> actionData = new HashMap<>();
+            actionData.put(currField, currentList);
+
+            ArrayList<String> finalCurrList = currentList;
+            postData.set(actionData, SetOptions.merge()).addOnSuccessListener(unused -> {
+                likeView.setVisibility(View.INVISIBLE);
+                likeViewTrue.setVisibility(View.VISIBLE);
+
+                likeViewTrue.setText(String.valueOf(finalCurrList.size()));
+
+                if (otherList != null && otherList.contains(manager.getCurrentUser().getUid())) {
+                    postData.update(otherField, FieldValue.arrayRemove(manager.getCurrentUser().getUid())).addOnSuccessListener(unused12 -> {
+                        dislikeView.setVisibility(View.VISIBLE);
+                        dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                        dislikeView.setText(String.valueOf(otherList.size() - 1));
+                    });
+                } else {
+                    dislikeView.setVisibility(View.VISIBLE);
+                    dislikeViewTrue.setVisibility(View.INVISIBLE);
+
+                    dislikeView.setText("0");
+                }
 
 //                    recreate();
-                    setUI();
-                }
+                setUI();
             });
         }
     }
 
     private void setLikePost() {
-        postLike.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleLikeDislike(postLikeIds, postDislikeIds, "likeIds", "dislikeIds",
-                        postLike, postDislike, postLikeTrue, postDislikeTrue);
-            }
-        });
+        postLike.setOnClickListener(v -> toggleLikeDislike(postLikeIds, postDislikeIds, "likeIds", "dislikeIds",
+                postLike, postDislike, postLikeTrue, postDislikeTrue));
 
-        postLikeTrue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleLikeDislike(postLikeIds, postDislikeIds, "likeIds", "dislikeIds",
-                        postLike, postDislike, postLikeTrue, postDislikeTrue);
-            }
-        });
+        postLikeTrue.setOnClickListener(v -> toggleLikeDislike(postLikeIds, postDislikeIds, "likeIds", "dislikeIds",
+                postLike, postDislike, postLikeTrue, postDislikeTrue));
     }
 
     private void setDislikePost() {
-        postDislike.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleLikeDislike(postDislikeIds, postLikeIds, "dislikeIds", "likeIds",
-                        postDislike, postLike, postDislikeTrue, postLikeTrue);
-            }
-        });
+        postDislike.setOnClickListener(v -> toggleLikeDislike(postDislikeIds, postLikeIds, "dislikeIds", "likeIds",
+                postDislike, postLike, postDislikeTrue, postLikeTrue));
 
-        postDislikeTrue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleLikeDislike(postDislikeIds, postLikeIds, "dislikeIds", "likeIds",
-                        postDislike, postLike, postDislikeTrue, postLikeTrue);
-            }
-        });
+        postDislikeTrue.setOnClickListener(v -> toggleLikeDislike(postDislikeIds, postLikeIds, "dislikeIds", "likeIds",
+                postDislike, postLike, postDislikeTrue, postLikeTrue));
     }
     private void addComment() {
         addCommentButton.setOnClickListener(v -> {
@@ -626,7 +576,7 @@ public class PostView extends AppCompatActivity {
 
         if (requestCode == constant.CREATE && resultCode == RESULT_OK) {
             if (data != null) {
-                commentId = (String) data.getExtras().get("commentId");
+                commentId = (String) Objects.requireNonNull(data.getExtras()).get("commentId");
                 commentDescription = (String) data.getExtras().get("description");
                 commentTimestamp = (String) data.getExtras().get("date");
 
@@ -650,13 +600,13 @@ public class PostView extends AppCompatActivity {
 
                 ArrayList<String> commentLikeIds = new ArrayList<>(), commentDislikeIds = new ArrayList<>(), replyCommentIds = new ArrayList<>();
 
-                Comment comment = new Comment(commentId, userId, postId, commentDescription, null, timestamp, null, commentImgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
+                Comment comment = new Comment(commentId, manager.getCurrentUser().getUid(), postId, commentDescription, null, timestamp, null, commentImgUri, commentLikeIds, commentDislikeIds, replyCommentIds);
 
                 if (commentList == null) {
                     commentList = new ArrayList<>();
                 }
 
-                Collections.sort(commentList, (comment1, comment2)
+                commentList.sort((comment1, comment2)
                         -> comment2.getTimestamp().compareTo(comment1.getTimestamp()));
 
                 int index = Collections.binarySearch(commentList, comment, (comment1, comment2)
@@ -701,15 +651,15 @@ public class PostView extends AppCompatActivity {
         Log.i(TAG, "moreOption - moderatorIds: " + moderatorIds);
         Log.i(TAG, "moreOption - memberIds: " + memberIds);
         Log.i(TAG, "moreOption - ownerId: " + ownerId);
-        Log.i(TAG, "moreOption - userId: " + userId);
+        Log.i(TAG, "moreOption - userId: " + manager.getCurrentUser().getUid());
 
-        if (Objects.equals(userId, chiefAdminId) || (moderatorIds != null && moderatorIds.contains(userId))) {
+        if (Objects.equals(manager.getCurrentUser().getUid(), chiefAdminId) || (moderatorIds != null && moderatorIds.contains(manager.getCurrentUser().getUid()))) {
             deletePost.setVisible(true);
 
-            editPost.setVisible(Objects.equals(userId, ownerId));
+            editPost.setVisible(Objects.equals(manager.getCurrentUser().getUid(), ownerId));
 
-        } else if (memberIds != null && memberIds.contains(userId)) {
-            if (Objects.equals(userId, ownerId)) {
+        } else if (memberIds != null && memberIds.contains(manager.getCurrentUser().getUid())) {
+            if (Objects.equals(manager.getCurrentUser().getUid(), ownerId)) {
                 editPost.setVisible(true);
                 deletePost.setVisible(true);
             }
@@ -723,30 +673,24 @@ public class PostView extends AppCompatActivity {
             editPost.setVisible(false);
         }
 
-        moreOptionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        int itemId = item.getItemId();
+        moreOptionButton.setOnClickListener(v -> {
+            popupMenu.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
 
-                        if (itemId == R.id.postUpdate) {
-                            updatePost();
-                        } else if (itemId == R.id.postDelete) {
-                            deletePostAlert();
-                        } else if (itemId == R.id.postBanUser) {
+                if (itemId == R.id.postUpdate) {
+                    updatePost();
+                } else if (itemId == R.id.postDelete) {
+                    deletePostAlert();
+                } else if (itemId == R.id.postBanUser) {
 
-                        } else if (itemId == R.id.postReport) {
+                } else if (itemId == R.id.postReport) {
 
-                        }
+                }
 
-                        return false;
-                    }
-                });
+                return false;
+            });
 
-                popupMenu.show();
-            }
+            popupMenu.show();
         });
     }
 
@@ -758,6 +702,7 @@ public class PostView extends AppCompatActivity {
 
     }
 
+    @SuppressLint("SetTextI18n")
     private void deletePostAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(PostView.this);
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -794,10 +739,10 @@ public class PostView extends AppCompatActivity {
     }
 
     private void deletePost(String postId) {
-        DocumentReference ownerData = db.collection("users").document(ownerId);
+        DocumentReference ownerData = manager.getDb().collection("users").document(ownerId);
         ownerData.update("postIds", FieldValue.arrayRemove(postId));
 
-        DocumentReference forumData = db.collection("FORUMS").document(forumId);
+        DocumentReference forumData = manager.getDb().collection("FORUMS").document(forumId);
         forumData.update("postIds", FieldValue.arrayRemove(postId));
 
         if (postImageUri != null) {
@@ -809,104 +754,85 @@ public class PostView extends AppCompatActivity {
                 String oldUri = m.group(1);
 
                 // Create a reference to the old image and delete it
-                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                    Log.i("Delete image", "Old image deleted successfully");
-                }).addOnFailureListener(e -> {
-                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                });
+                StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
             }
         }
 
-        postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+        postData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
 
-                    if (document.exists()) {
-                        ArrayList<String> commentIds = new ArrayList<>();
+                if (document.exists()) {
+                    ArrayList<String> commentIds;
 
-                        if (document.get("commentIds") != null) {
-                            commentIds = new ArrayList<>((ArrayList<String>) document.get("commentIds"));
-                            Log.i(TAG, "onComplete: commentIds: " + commentIds);
+                    if (document.get("commentIds") != null) {
+                        commentIds = new ArrayList<>((ArrayList<String>) Objects.requireNonNull(document.get("commentIds")));
+                        Log.i(TAG, "onComplete: commentIds: " + commentIds);
 
-                            for (String id : commentIds) {
-                                adapter.deleteCommentFromPost(id);
-                            }
+                        for (String id : commentIds) {
+                            adapter.deleteCommentFromPost(id);
                         }
-
-                        postData.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Log.i(TAG, "onSuccess: delete post");
-                            }
-                        });
                     }
+
+                    postData.delete().addOnSuccessListener(unused -> Log.i(TAG, "onSuccess: delete post"));
                 }
             }
         });
     }
 
     public void deletePostFromForum(String postId) {
-        DocumentReference postData = db.collection("POSTS").document(postId);
+        DocumentReference postData = manager.getDb().collection("POSTS").document(postId);
 
-        postData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    String forumId, ownerId, imgUri;
+        postData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                String forumId, ownerId, imgUri;
 
-                    if (document.exists()) {
-                        forumId = document.getString("forumId");
-                        ownerId = document.getString("ownerId");
+                if (document.exists()) {
+                    forumId = document.getString("forumId");
+                    ownerId = document.getString("ownerId");
 
-                        ArrayList<String> commentIds = new ArrayList<>();
+                    ArrayList<String> commentIds;
 
-                        if(ownerId != null) {
-                            DocumentReference ownerData = db.collection("users").document(ownerId);
-                            ownerData.update("postIds", FieldValue.arrayRemove(postId));
-                        }
+                    if(ownerId != null) {
+                        DocumentReference ownerData = manager.getDb().collection("users").document(ownerId);
+                        ownerData.update("postIds", FieldValue.arrayRemove(postId));
+                    }
 
-                        if (forumId != null) {
-                            DocumentReference forumData = db.collection("FORUMS").document(forumId);
-                            forumData.update("postIds", FieldValue.arrayRemove(postId));
-                        }
+                    if (forumId != null) {
+                        DocumentReference forumData = manager.getDb().collection("FORUMS").document(forumId);
+                        forumData.update("postIds", FieldValue.arrayRemove(postId));
+                    }
 
-                        if (document.get("commentIds") != null) {
-                            commentIds = new ArrayList<>((ArrayList<String>) document.get("commentIds"));
-                            CommentRecyclerViewAdapter adapter = new CommentRecyclerViewAdapter(getBaseContext(), commentIds, true);
+                    if (document.get("commentIds") != null) {
+                        commentIds = new ArrayList<>((ArrayList<String>) Objects.requireNonNull(document.get("commentIds")));
+                        CommentRecyclerViewAdapter adapter = new CommentRecyclerViewAdapter(getBaseContext(), commentIds, true);
 
-                            Log.i(TAG, "onComplete: commentIds: " + commentIds);
+                        Log.i(TAG, "onComplete: commentIds: " + commentIds);
 
-                            for (String id : commentIds) {
-                                adapter.deleteCommentFromPost(id);
-                            }
-                        }
-
-                        imgUri = document.getString("image");
-                        if (imgUri != null) {
-                            String pattern = "images%2F(.*?)\\?";
-                            Pattern p = Pattern.compile(pattern);
-                            Matcher m = p.matcher(imgUri);
-
-                            if (m.find()) {
-                                String oldUri = m.group(1);
-
-                                // Create a reference to the old image and delete it
-                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i("Delete image", "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                });
-                            }
+                        for (String id : commentIds) {
+                            adapter.deleteCommentFromPost(id);
                         }
                     }
 
-                    postData.delete();
+                    imgUri = document.getString("image");
+                    if (imgUri != null) {
+                        String pattern = "images%2F(.*?)\\?";
+                        Pattern p = Pattern.compile(pattern);
+                        Matcher m = p.matcher(imgUri);
+
+                        if (m.find()) {
+                            String oldUri = m.group(1);
+
+                            // Create a reference to the old image and delete it
+                            StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                            oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
+                        }
+                    }
                 }
+
+                postData.delete();
             }
         });
     }

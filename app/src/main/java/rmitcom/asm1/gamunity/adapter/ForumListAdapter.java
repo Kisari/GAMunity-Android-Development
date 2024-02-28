@@ -2,13 +2,9 @@ package rmitcom.asm1.gamunity.adapter;
 
 import static android.content.ContentValues.TAG;
 
-import static androidx.core.app.ActivityCompat.startActivityForResult;
-
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,14 +18,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
@@ -42,7 +33,6 @@ import java.util.Objects;
 
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
-import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
@@ -89,12 +79,6 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
         } else viewForumList = convertView;
 
         Forum forumItem = (Forum) getItem(position);
-
-//        viewForumList.setOnClickListener(v -> {
-//            Intent toForumDetailView = new Intent(parent.getContext(), ForumView.class);
-//            toForumDetailView.putExtra("forumId", forumItem.getForumRef());
-//            ((Activity) parent.getContext()).startActivityForResult(toForumDetailView, constant.DELETE);
-//        });
 
         ImageView forumBackground = viewForumList.findViewById(R.id.forumBackground);
         ShapeableImageView forumIcon = viewForumList.findViewById(R.id.forumIcon);
@@ -280,7 +264,6 @@ public class ForumListAdapter extends BaseAdapter implements Filterable {
     public Filter getFilter(){
 
         return new Filter() {
-            @SuppressWarnings("unchecked")
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 if(results.count == 0){

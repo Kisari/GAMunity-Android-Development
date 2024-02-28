@@ -20,30 +20,19 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,7 +42,6 @@ import rmitcom.asm1.gamunity.components.views.LoginView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
-import rmitcom.asm1.gamunity.model.GroupChat;
 
 public class CreateForumView extends AppCompatActivity implements ForumTagListAdapter.ItemLongClickListener{
     private final FireBaseManager db = new FireBaseManager();
@@ -263,7 +251,7 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     String forumRef = task.getResult().getId();
-                    Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<String>(Arrays.asList(forumTagList)), new ArrayList<String>(), backgroundFilePath.toString(), iconFilePath.toString());
+                    Forum newForumObject = new Forum(nextForumID, forumRef, db.getCurrentUser().getUid(), forumNameContent, new ArrayList<>(Arrays.asList(forumTagList)), new ArrayList<>(), backgroundFilePath.toString(), iconFilePath.toString());
 
                     ArrayList<String> memberIds = new ArrayList<>();
                     ArrayList<String> moderatorIds = new ArrayList<>();
@@ -284,21 +272,18 @@ public class CreateForumView extends AppCompatActivity implements ForumTagListAd
                     newChatRoom.put("dataId", forumRef);
 
                     db.getDb().collection("CHATROOMS").add(newChatRoom)
-                                    .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<DocumentReference> task) {
-                                            if (task.isSuccessful()) {
-                                                String chatId = task.getResult().getId();
+                                    .addOnCompleteListener(task1 -> {
+                                        if (task1.isSuccessful()) {
+                                            String chatId = task1.getResult().getId();
 
 //                                                GroupChat newChatGroup = new GroupChat(chatId, chatName, iconFilePath.toString(), forumRef, true,
 //                                                        memberIds, moderatorIds, adminIds, now, "");
 
-                                                db.getDb().collection("FORUMS").document(forumRef).update("chatId", chatId);
+                                            db.getDb().collection("FORUMS").document(forumRef).update("chatId", chatId);
 
-                                                db.getDb().collection("users").document(db.getCurrentUser().getUid())
-                                                        .update("chatGroupIds", FieldValue.arrayUnion(chatId));
+                                            db.getDb().collection("users").document(db.getCurrentUser().getUid())
+                                                    .update("chatGroupIds", FieldValue.arrayUnion(chatId));
 
-                                            }
                                         }
                                     });
 

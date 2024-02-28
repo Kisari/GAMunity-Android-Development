@@ -1,12 +1,5 @@
 package rmitcom.asm1.gamunity.components.views.chat;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -17,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,35 +17,28 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.PopupMenu;
-import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-//import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
@@ -63,7 +48,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,15 +56,13 @@ import rmitcom.asm1.gamunity.adapter.ChatMessageRecyclerViewAdapter;
 import rmitcom.asm1.gamunity.components.fragments.ChatFragment;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.forum.ForumView;
+import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.GroupChat;
 import rmitcom.asm1.gamunity.model.Message;
 
 public class ChatView extends AppCompatActivity {
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private final FirebaseAuth userAuth = FirebaseAuth.getInstance();
-    private final String userId = userAuth.getUid();
-    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private final FireBaseManager manager = new FireBaseManager();
     private final String TAG = "Chat view";
     private WeakReference<Activity> activityReference;
     private DocumentReference chatData, forumData, currUserData, otherUserData;
@@ -128,10 +110,10 @@ public class ChatView extends AppCompatActivity {
         if (getIntent != null) {
             chatId = Objects.requireNonNull(getIntent.getExtras()).getString("chatId");
             Log.i(TAG, "chatView id: " + chatId);
-            chatData = db.collection("CHATROOMS").document(chatId);
+            chatData = manager.getDb().collection("CHATROOMS").document(chatId);
             chatRef = chatData.collection("CHATS");
 
-            currUserData = db.collection("users").document(userId);
+            currUserData = manager.getDb().collection("users").document(manager.getCurrentUser().getUid());
 
             isGroup = getIntent.getExtras().getBoolean("isGroup");
 
@@ -140,12 +122,12 @@ public class ChatView extends AppCompatActivity {
             if (isGroup) {
                 if (dataId != null && !dataId.isEmpty()) {
                     forumId = dataId;
-                    forumData = db.collection("FORUMS").document(dataId);
+                    forumData = manager.getDb().collection("FORUMS").document(dataId);
                 }
             }
             else {
                 if (dataId != null && !dataId.isEmpty()) {
-                    otherUserData = db.collection("users").document(dataId);
+                    otherUserData = manager.getDb().collection("users").document(dataId);
                 }
             }
         }
@@ -161,203 +143,190 @@ public class ChatView extends AppCompatActivity {
             sendMessageToChat(message);
         });
 
-        chatImageBtn.setOnClickListener(v -> {
-            chooseImage(false);
-        });
+        chatImageBtn.setOnClickListener(v -> chooseImage(false));
 
         returnToPreviousPage();
     }
 
+    @SuppressLint("SetTextI18n")
     private void getOrCreateChatRoom() {
-        chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+        chatData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
 
-                    if (document.exists() && document.getData() != null && !document.getData().isEmpty()) {
-                        Log.i(TAG, "chatView getOrCreateChatRoom: not empty doc");
-                        isNew = false;
+                if (document.exists() && document.getData() != null && !document.getData().isEmpty()) {
+                    Log.i(TAG, "chatView getOrCreateChatRoom: not empty doc");
+                    isNew = false;
 
-                        chatTitleStr = document.getString("chatTitle");
-                        chatTitle.setText(chatTitleStr);
-                        chatIconUri = document.getString("chatImg");
-                        Log.i(TAG, "chatView - chatIconUri: " + chatIconUri);
+                    chatTitleStr = document.getString("chatTitle");
+                    chatTitle.setText(chatTitleStr);
+                    chatIconUri = document.getString("chatImg");
+                    Log.i(TAG, "chatView - chatIconUri: " + chatIconUri);
 
-                        if (chatIconUri != null) {
-                            try {
-                                baseImage.setVisibility(View.GONE);
-                                chatImage.setVisibility(View.VISIBLE);
-                                chatProgressBar.setVisibility(View.VISIBLE);
+                    if (chatIconUri != null) {
+                        try {
+                            baseImage.setVisibility(View.GONE);
+                            chatImage.setVisibility(View.VISIBLE);
+                            chatProgressBar.setVisibility(View.VISIBLE);
 
-                                new AsyncImage(chatImage, chatProgressBar).loadImage(chatIconUri);
-                            }
-                            catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            new AsyncImage(chatImage, chatProgressBar).loadImage(chatIconUri);
                         }
-                        else {
-                            baseImage.setVisibility(View.VISIBLE);
-                            chatImage.setVisibility(View.GONE);
-                            chatProgressBar.setVisibility(View.GONE);
+                        catch (Exception e) {
+                            e.printStackTrace();
                         }
-
-                        chatAdminIds = new ArrayList<>();
-                        chatModeratorIds = new ArrayList<>();
-                        chatMemberIds = new ArrayList<>();
-
-                        if (document.get("adminIds") != null) {
-                            chatAdminIds = (ArrayList<String>) document.get("adminIds");
-                        }
-
-                        if (document.get("moderatorIds") != null) {
-                            chatModeratorIds = (ArrayList<String>) document.get("moderatorIds");
-                        }
-
-                        if (document.get("memberIds") != null) {
-                            chatMemberIds = (ArrayList<String>) document.get("memberIds");
-                        }
-
-                        setMoreInfo();
                     }
                     else {
-                        Log.i(TAG, "chatView getOrCreateChatRoom: empty doc");
-                        isNew = true;
+                        baseImage.setVisibility(View.VISIBLE);
+                        chatImage.setVisibility(View.GONE);
+                        chatProgressBar.setVisibility(View.GONE);
+                    }
 
-                        lastActionCode = constant.CREATE;
+                    chatAdminIds = new ArrayList<>();
+                    chatModeratorIds = new ArrayList<>();
+                    chatMemberIds = new ArrayList<>();
 
-                        Map<String, Object> newChatroom = new HashMap<>();
+                    if (document.get("adminIds") != null) {
+                        chatAdminIds = (ArrayList<String>) document.get("adminIds");
+                    }
 
-                        chatMemberIds = new ArrayList<>();
-                        chatModeratorIds = new ArrayList<>();
-                        chatAdminIds = new ArrayList<>();
+                    if (document.get("moderatorIds") != null) {
+                        chatModeratorIds = (ArrayList<String>) document.get("moderatorIds");
+                    }
 
-                        newChatroom.put("isGroup", isGroup);
+                    if (document.get("memberIds") != null) {
+                        chatMemberIds = (ArrayList<String>) document.get("memberIds");
+                    }
 
-                        if (isGroup) {
-                            if (forumId != null) {
-                                forumData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                        if (task.isSuccessful()) {
-                                            DocumentSnapshot document = task.getResult();
+                    setMoreInfo();
+                }
+                else {
+                    Log.i(TAG, "chatView getOrCreateChatRoom: empty doc");
+                    isNew = true;
 
-                                            if (document.exists()) {
-                                                String forumName = document.getString("title");
-                                                String forumIcon = document.getString("forumIcon");
+                    lastActionCode = constant.CREATE;
 
-                                                String chiefAdminId = document.getString("chiefAdmin");
-                                                chatAdminIds.add(chiefAdminId);
+                    Map<String, Object> newChatroom = new HashMap<>();
 
-                                                ArrayList<String> memberIds = (ArrayList<String>) document.get("memberIds");
-                                                ArrayList<String> moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                    chatMemberIds = new ArrayList<>();
+                    chatModeratorIds = new ArrayList<>();
+                    chatAdminIds = new ArrayList<>();
 
-                                                if (memberIds != null) {
-                                                    if (memberIds.contains(userId)) {
-                                                        chatMemberIds.add(userId);
-                                                    }
-                                                }
+                    newChatroom.put("isGroup", isGroup);
 
-                                                if (moderatorIds != null) {
-                                                    if (moderatorIds.contains(userId)) {
-                                                        chatModeratorIds.add(userId);
-                                                    }
-                                                }
+                    if (isGroup) {
+                        if (forumId != null) {
+                            forumData.get().addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    DocumentSnapshot document1 = task1.getResult();
 
-                                                chatTitleStr = forumName + "'s Group Chat";
-                                                newChatroom.put("chatTitle", forumName + "'s Group Chat");
-                                                chatTitle.setText(forumName + "'s Group Chat");
+                                    if (document1.exists()) {
+                                        String forumName = document1.getString("title");
+                                        String forumIcon = document1.getString("forumIcon");
 
-                                                newChatroom.put("memberIds", chatMemberIds);
-                                                newChatroom.put("moderatorIds", chatModeratorIds);
-                                                newChatroom.put("adminIds", chatAdminIds);
+                                        String chiefAdminId = document1.getString("chiefAdmin");
+                                        chatAdminIds.add(chiefAdminId);
 
-                                                newChatroom.put("lastTimestamp", Timestamp.now());
-                                                newChatroom.put("lastMessageSenderId", "");
-                                                newChatroom.put("chatImg", forumIcon);
-                                                newChatroom.put("dataId", dataId);
+                                        ArrayList<String> memberIds = (ArrayList<String>) document1.get("memberIds");
+                                        ArrayList<String> moderatorIds = (ArrayList<String>) document1.get("moderatorIds");
 
-                                                chatData.set(newChatroom, SetOptions.merge());
-
-                                                if (forumIcon != null) {
-                                                    try {
-                                                        baseImage.setVisibility(View.INVISIBLE);
-                                                        chatImage.setVisibility(View.VISIBLE);
-                                                        chatProgressBar.setVisibility(View.VISIBLE);
-
-                                                        new AsyncImage(chatImage, chatProgressBar).loadImage(forumIcon);
-                                                    }
-                                                    catch (Exception e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                                else {
-                                                    baseImage.setVisibility(View.VISIBLE);
-                                                    chatImage.setVisibility(View.INVISIBLE);
-                                                    chatProgressBar.setVisibility(View.INVISIBLE);
-                                                }
-
-                                                db.collection("users").document(chiefAdminId).update("chatGroupIds", FieldValue.arrayUnion(chatId));
-
-                                                setMoreInfo();
-
+                                        if (memberIds != null) {
+                                            if (memberIds.contains(manager.getCurrentUser().getUid())) {
+                                                chatMemberIds.add(manager.getCurrentUser().getUid());
                                             }
                                         }
-                                    }
-                                });
-                            }
 
-                        }
-                        else {
-                            StringBuilder dataName = new StringBuilder();
-                            Log.i(TAG, "chatName: " + dataName);
-                            currUserData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                @Override
-                                public void onSuccess(DocumentSnapshot document) {
-                                    if (document.exists()) {
-                                        String currUserName = document.getString("name");
-                                        Log.i(TAG, "chatName - curr: " + currUserName);
-                                        dataName.append(currUserName);
-                                        Log.i(TAG, "chatName: " + dataName);
-
-                                        dataName.append(" - ");
-                                        Log.i(TAG, "chatName: " + dataName);
-
-                                        otherUserData.get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot document) {
-                                                if (document.exists()) {
-                                                    String otherUserName = document.getString("name");
-                                                    Log.i(TAG, "chatName - other: " + otherUserName);
-                                                    dataName.append(otherUserName);
-                                                    Log.i(TAG, "chatName: " + dataName);
-
-                                                    String name = dataName + "'s Chat";
-                                                    chatTitleStr = name;
-                                                    Log.i(TAG, "chatName: " + name);
-
-                                                    newChatroom.put("chatTitle", name);
-                                                    chatTitle.setText(name);
-
-                                                    chatAdminIds.add(userId);
-                                                    chatAdminIds.add(dataId);
-
-                                                    newChatroom.put("adminIds", chatAdminIds);
-                                                    newChatroom.put("lastTimestamp", Timestamp.now());
-                                                    newChatroom.put("lastMessageSenderId", "");
-                                                    newChatroom.put("chatImg", null);
-
-                                                    chatData.set(newChatroom, SetOptions.merge());
-
-                                                    setMoreInfo();
-                                                }
+                                        if (moderatorIds != null) {
+                                            if (moderatorIds.contains(manager.getCurrentUser().getUid())) {
+                                                chatModeratorIds.add(manager.getCurrentUser().getUid());
                                             }
-                                        });
+                                        }
+
+                                        chatTitleStr = forumName + "'s Group Chat";
+                                        newChatroom.put("chatTitle", forumName + "'s Group Chat");
+                                        chatTitle.setText(forumName + "'s Group Chat");
+
+                                        newChatroom.put("memberIds", chatMemberIds);
+                                        newChatroom.put("moderatorIds", chatModeratorIds);
+                                        newChatroom.put("adminIds", chatAdminIds);
+
+                                        newChatroom.put("lastTimestamp", Timestamp.now());
+                                        newChatroom.put("lastMessageSenderId", "");
+                                        newChatroom.put("chatImg", forumIcon);
+                                        newChatroom.put("dataId", dataId);
+
+                                        chatData.set(newChatroom, SetOptions.merge());
+
+                                        if (forumIcon != null) {
+                                            try {
+                                                baseImage.setVisibility(View.INVISIBLE);
+                                                chatImage.setVisibility(View.VISIBLE);
+                                                chatProgressBar.setVisibility(View.VISIBLE);
+
+                                                new AsyncImage(chatImage, chatProgressBar).loadImage(forumIcon);
+                                            }
+                                            catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        else {
+                                            baseImage.setVisibility(View.VISIBLE);
+                                            chatImage.setVisibility(View.INVISIBLE);
+                                            chatProgressBar.setVisibility(View.INVISIBLE);
+                                        }
+
+                                        assert chiefAdminId != null;
+                                        manager.getDb().collection("users").document(chiefAdminId).update("chatGroupIds", FieldValue.arrayUnion(chatId));
+
+                                        setMoreInfo();
+
                                     }
                                 }
                             });
                         }
+
+                    }
+                    else {
+                        StringBuilder dataName = new StringBuilder();
+                        Log.i(TAG, "chatName: " + dataName);
+                        currUserData.get().addOnSuccessListener(document12 -> {
+                            if (document12.exists()) {
+                                String currUserName = document12.getString("name");
+                                Log.i(TAG, "chatName - curr: " + currUserName);
+                                dataName.append(currUserName);
+                                Log.i(TAG, "chatName: " + dataName);
+
+                                dataName.append(" - ");
+                                Log.i(TAG, "chatName: " + dataName);
+
+                                otherUserData.get().addOnSuccessListener(document121 -> {
+                                    if (document121.exists()) {
+                                        String otherUserName = document121.getString("name");
+                                        Log.i(TAG, "chatName - other: " + otherUserName);
+                                        dataName.append(otherUserName);
+                                        Log.i(TAG, "chatName: " + dataName);
+
+                                        String name = dataName + "'s Chat";
+                                        chatTitleStr = name;
+                                        Log.i(TAG, "chatName: " + name);
+
+                                        newChatroom.put("chatTitle", name);
+                                        chatTitle.setText(name);
+
+                                        chatAdminIds.add(manager.getCurrentUser().getUid());
+                                        chatAdminIds.add(dataId);
+
+                                        newChatroom.put("adminIds", chatAdminIds);
+                                        newChatroom.put("lastTimestamp", Timestamp.now());
+                                        newChatroom.put("lastMessageSenderId", "");
+                                        newChatroom.put("chatImg", null);
+
+                                        chatData.set(newChatroom, SetOptions.merge());
+
+                                        setMoreInfo();
+                                    }
+                                });
+                            }
+                        });
                     }
                 }
             }
@@ -365,36 +334,33 @@ public class ChatView extends AppCompatActivity {
 
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void getChatData() {
         Query query = chatRef.orderBy("timestamp", Query.Direction.ASCENDING).limit(50);
-        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                if (error != null) {
-                    return;
+        query.addSnapshotListener((value, error) -> {
+            if (error != null) {
+                return;
+            }
+
+            if (chatMessages == null) {
+                chatMessages = new ArrayList<>();
+            } else {
+                chatMessages.clear();
+            }
+
+            if (value != null) {
+                for (QueryDocumentSnapshot queryDocument : value) {
+                    Message messageInfo = queryDocument.toObject(Message.class);
+                    chatMessages.add(messageInfo);
+                    Log.i(TAG, "message - existed: " + messageInfo.getMessageContent());
                 }
 
-                if (chatMessages == null) {
-                    chatMessages = new ArrayList<>();
-                } else {
-                    chatMessages.clear();
-                }
+                setupList(chatMessages);
 
-                if (value != null) {
-                    for (QueryDocumentSnapshot queryDocument : value) {
-                        Message messageInfo = queryDocument.toObject(Message.class);
-                        chatMessages.add(messageInfo);
-                        Log.i(TAG, "message - existed: " + messageInfo.getMessageContent());
-                    }
-
-                    setupList(chatMessages);
-
-                }
-                if (adapter != null) {
-                    messageBody.scrollToPosition(adapter.getItemCount() - 1);
-                    adapter.notifyDataSetChanged();
-                }
+            }
+            if (adapter != null) {
+                messageBody.scrollToPosition(adapter.getItemCount() - 1);
+                adapter.notifyDataSetChanged();
             }
         });
     }
@@ -402,14 +368,14 @@ public class ChatView extends AppCompatActivity {
     @SuppressLint("NotifyDataSetChanged")
     private void sendMessageToChat(String message) {
         Map<String, String> lastSender = new HashMap<>();
-        lastSender.put("lastMessageSenderId", userId);
+        lastSender.put("lastMessageSenderId", manager.getCurrentUser().getUid());
         chatData.set(lastSender, SetOptions.merge());
 
         Map<String, Timestamp> lastTimestamp = new HashMap<>();
         lastTimestamp.put("lastTimestamp", Timestamp.now());
         chatData.set(lastTimestamp, SetOptions.merge());
 
-        Message newMessage = new Message(message, userId, Timestamp.now(), false);
+        Message newMessage = new Message(message, manager.getCurrentUser().getUid(), Timestamp.now(), false);
         messageBody.scrollToPosition(adapter.getItemCount() - 1);
         chatRef.add(newMessage).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -470,6 +436,7 @@ public class ChatView extends AppCompatActivity {
         }
 
         if (requestCode == 117 && resultCode == RESULT_OK) {
+            assert data != null;
             String newChatId = data.getStringExtra("chatId");
 
             Intent chatIntent = new Intent(ChatView.this, ChatView.class);
@@ -486,6 +453,7 @@ public class ChatView extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private void uploadChatImage(Uri submitFilePath, boolean isIcon, AlertDialog dialog) {
         if(submitFilePath != null) {
             activityReference = new WeakReference<>(this);
@@ -496,7 +464,7 @@ public class ChatView extends AppCompatActivity {
 
             String randomId = UUID.randomUUID().toString();
             Log.i(TAG, "uploadCommentImage - randomId: " + randomId);
-            StorageReference storageRef = storage.getReference().child("images/" + randomId);
+            StorageReference storageRef = manager.getStorageRef().child("images/" + randomId);
 
             storageRef.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
@@ -517,12 +485,8 @@ public class ChatView extends AppCompatActivity {
                                 if (m.find()) {
                                     String oldUri = m.group(1);
 
-                                    StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                    oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                        Log.i("Delete image", "Old image deleted successfully");
-                                    }).addOnFailureListener(e -> {
-                                        Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                    });
+                                    StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                    oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                                 }
                             }
 
@@ -547,18 +511,14 @@ public class ChatView extends AppCompatActivity {
                                 chatImgUri = chatImageFilePath.toString();
                                 Log.i(TAG, "chatView chatImgURI: " + chatImgUri);
 
-                                Message newMessage = new Message(chatImgUri, userId, Timestamp.now(), true);
+                                Message newMessage = new Message(chatImgUri, manager.getCurrentUser().getUid(), Timestamp.now(), true);
                                 messageBody.scrollToPosition(adapter.getItemCount() - 1);
                                 Log.i(TAG, "chatView newMess: " + newMessage.getMessageContent());
-                                chatRef.add(newMessage).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                    @SuppressLint("NotifyDataSetChanged")
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentReference> task) {
-                                        if (task.isSuccessful()) {
-                                            Log.i(TAG, "chatView newMess - just send: " + newMessage.getMessageContent());
-                                            adapter.notifyDataSetChanged();
+                                chatRef.add(newMessage).addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Log.i(TAG, "chatView newMess - just send: " + newMessage.getMessageContent());
+                                        adapter.notifyDataSetChanged();
 //                                        setUI();
-                                        }
                                     }
                                 });
 
@@ -619,7 +579,7 @@ public class ChatView extends AppCompatActivity {
             groupChat = new GroupChat(chatId, chatTitleStr, chatIconUri, false, null, null);
         }
 
-        if ((chatAdminIds != null && chatAdminIds.contains(userId))) {
+        if ((chatAdminIds != null && chatAdminIds.contains(manager.getCurrentUser().getUid()))) {
             moreOptionBtn.setVisibility(View.VISIBLE);
             moreInfoBtn.setVisibility(View.GONE);
 
@@ -637,7 +597,7 @@ public class ChatView extends AppCompatActivity {
         MenuItem addMember = popupMenu.getMenu().findItem(R.id.chatAddUser);
         MenuItem removeMember = popupMenu.getMenu().findItem(R.id.chatRemoveUser);
 
-        if (chatAdminIds != null && chatAdminIds.contains(userId)) {
+        if (chatAdminIds != null && chatAdminIds.contains(manager.getCurrentUser().getUid())) {
             moreInfo.setVisible(true);
             deleteChat.setVisible(true);
             if (isGroup) {
@@ -694,7 +654,7 @@ public class ChatView extends AppCompatActivity {
         startActivity(moreInfoIntent);
     }
 
-    @SuppressLint("InflateParams")
+    @SuppressLint({"InflateParams", "SetTextI18n"})
     private void updateChatRoomPopup() {
         AlertDialog.Builder builder = new AlertDialog.Builder(ChatView.this);
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -728,31 +688,23 @@ public class ChatView extends AppCompatActivity {
             editChatProgressBar.setVisibility(View.GONE);
         }
 
-        editChatIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                chooseImage(true);
-            }
-        });
+        editChatIcon.setOnClickListener(v -> chooseImage(true));
 
         try {
             dialogMessage.setText("Update Chat Infomation");
 
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-            updateButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (isImageUpdate) {
-                        uploadChatImage(chatIconFilePath, true, dialog);
-                    }
-                    else {
-                        updateChatRoom(editChatTitle);
-                        dialog.dismiss();
-                        recreate();
-                    }
-
+            updateButton.setOnClickListener(v -> {
+                if (isImageUpdate) {
+                    uploadChatImage(chatIconFilePath, true, dialog);
                 }
+                else {
+                    updateChatRoom(editChatTitle);
+                    dialog.dismiss();
+                    recreate();
+                }
+
             });
 
         } catch (Exception e) {
@@ -787,6 +739,7 @@ public class ChatView extends AppCompatActivity {
 
     }
 
+    @SuppressLint("SetTextI18n")
     private void deleteChatAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(ChatView.this);
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -804,9 +757,7 @@ public class ChatView extends AppCompatActivity {
             dialogMessage.setText("Are you sure you want to delete this post");
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-            deleteButton.setOnClickListener(v -> {
-                deleteChatRoom(dialog);
-            });
+            deleteButton.setOnClickListener(v -> deleteChatRoom(dialog));
 
         } catch (Exception e) {
             Log.e("Post", "getView: ", e);
@@ -821,7 +772,7 @@ public class ChatView extends AppCompatActivity {
         if (chatAdminIds != null) {
             for (String id : chatAdminIds) {
                 Log.i(TAG, "setMoreInfo - userId: " + id);
-                Task<Void> task = db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                Task<Void> task = manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                 userTasks.add(task);
             }
 
@@ -830,7 +781,7 @@ public class ChatView extends AppCompatActivity {
         if (chatModeratorIds != null) {
             for (String id : chatModeratorIds) {
                 Log.i(TAG, "setMoreInfo - userId: " + id);
-                Task<Void> task = db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                Task<Void> task = manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                 userTasks.add(task);
             }
 
@@ -839,7 +790,7 @@ public class ChatView extends AppCompatActivity {
         if (chatMemberIds != null) {
             for (String id : chatMemberIds) {
                 Log.i(TAG, "setMoreInfo - userId: " + id);
-                Task<Void> task = db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                Task<Void> task = manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                 userTasks.add(task);
             }
         }
@@ -849,7 +800,7 @@ public class ChatView extends AppCompatActivity {
                 ArrayList<Task<Void>> forumTasks = new ArrayList<>();
 
                 if (isGroup && forumId != null) {
-                    Task<Void> task = db.collection("FORUMS").document(forumId).update("chatId", null);
+                    Task<Void> task = manager.getDb().collection("FORUMS").document(forumId).update("chatId", null);
                     forumTasks.add(task);
                 }
 
@@ -868,17 +819,14 @@ public class ChatView extends AppCompatActivity {
                                     String imageUri = document.getString("messageContent");
                                     String pattern = "images%2F(.*?)\\?";
                                     Pattern p = Pattern.compile(pattern);
+                                    assert imageUri != null;
                                     Matcher m = p.matcher(imageUri);
 
                                     if (m.find()) {
                                         String oldUri = m.group(1);
 
-                                        StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                        oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                            Log.i("Delete image", "Old image deleted successfully");
-                                        }).addOnFailureListener(e -> {
-                                            Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                        });
+                                        StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                        oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                                     }
                                 }
 
@@ -911,26 +859,26 @@ public class ChatView extends AppCompatActivity {
                                 finish();
 
                             } else {
-                                Log.e(TAG, "Failed to delete chat messages: " + messageTask.getException().getMessage());
+                                Log.e(TAG, "Failed to delete chat messages: " + messageTask.getException());
                             }
                         });
                     } else {
-                        Log.e(TAG, "Failed to update forum: " + forumTask.getException().getMessage());
+                        Log.e(TAG, "Failed to update forum: " + forumTask.getException());
                     }
                 });
             } else {
-                Log.e(TAG, "Failed to update users: " + userTask.getException().getMessage());
+                Log.e(TAG, "Failed to update users: " + userTask.getException());
             }
         });
     }
 
     public void deleteChatRoomFromForum(String chatId) {
-        DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
+        DocumentReference chatData = manager.getDb().collection("CHATROOMS").document(chatId);
         chatData.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot document = task.getResult();
 
-                ArrayList<String> adminIds = new ArrayList<>(), moderatorIds = new ArrayList<>(), memberIds = new ArrayList<>();
+                ArrayList<String> adminIds, moderatorIds, memberIds;
 
                 if (document.exists()) {
 
@@ -939,7 +887,7 @@ public class ChatView extends AppCompatActivity {
 
                         if (adminIds != null) {
                             for (String id: adminIds) {
-                                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                                manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                             }
                         }
                     }
@@ -949,7 +897,7 @@ public class ChatView extends AppCompatActivity {
 
                         if (moderatorIds != null) {
                             for (String id: moderatorIds) {
-                                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                                manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                             }
                         }
                     }
@@ -959,45 +907,39 @@ public class ChatView extends AppCompatActivity {
 
                         if (memberIds != null) {
                             for (String id: memberIds) {
-                                db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                                manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                             }
                         }
                     }
 
                     CollectionReference chatRef = chatData.collection("CHATS");
-                    chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                ArrayList<Message> messageList = new ArrayList<>();
-                                String messageId;
+                    chatRef.get().addOnCompleteListener(task1 -> {
+                        if (task1.isSuccessful()) {
+                            ArrayList<Message> messageList = new ArrayList<>();
+                            String messageId;
 
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    messageId = document.getId();
-                                    Log.i(TAG, "chatView - messageId: " + messageId);
-                                    boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
+                            for (QueryDocumentSnapshot document1 : task1.getResult()) {
+                                messageId = document1.getId();
+                                Log.i(TAG, "chatView - messageId: " + messageId);
+                                boolean isImage = Boolean.TRUE.equals(document1.getBoolean("image"));
 
-                                    if (isImage) {
-                                        String imageUri = document.getString("messageContent");
-                                        String pattern = "images%2F(.*?)\\?";
-                                        Pattern p = Pattern.compile(pattern);
-                                        Matcher m = p.matcher(imageUri);
+                                if (isImage) {
+                                    String imageUri = document1.getString("messageContent");
+                                    String pattern = "images%2F(.*?)\\?";
+                                    Pattern p = Pattern.compile(pattern);
+                                    assert imageUri != null;
+                                    Matcher m = p.matcher(imageUri);
 
-                                        if (m.find()) {
-                                            String oldUri = m.group(1);
+                                    if (m.find()) {
+                                        String oldUri = m.group(1);
 
-                                            StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                            oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                                Log.i("Delete image", "Old image deleted successfully");
-                                            }).addOnFailureListener(e -> {
-                                                Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                            });
-                                        }
+                                        StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                        oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                                     }
-                                    chatRef.document(messageId).delete()
-                                            .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
-                                            .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
                                 }
+                                chatRef.document(messageId).delete()
+                                        .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
+                                        .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
                             }
                         }
                     });
@@ -1009,98 +951,83 @@ public class ChatView extends AppCompatActivity {
     }
 
     public void deleteOrRemoveChatRoomFromProfile(String chatId, String userId) {
-        DocumentReference chatData = db.collection("CHATROOMS").document(chatId);
-        chatData.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
+        DocumentReference chatData = manager.getDb().collection("CHATROOMS").document(chatId);
+        chatData.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
 
-                    ArrayList<String> adminIds = new ArrayList<>(), moderatorIds = new ArrayList<>(), memberIds = new ArrayList<>();
+                ArrayList<String> adminIds, moderatorIds, memberIds;
 
-                    if (document.exists()) {
+                if (document.exists()) {
 
-                        if (document.get("moderatorIds") != null) {
-                            moderatorIds = (ArrayList<String>) document.get("moderatorIds");
+                    if (document.get("moderatorIds") != null) {
+                        moderatorIds = (ArrayList<String>) document.get("moderatorIds");
 
-                            if (moderatorIds != null && moderatorIds.contains(userId)) {
-                                chatData.update("moderatorIds", FieldValue.arrayRemove(userId));
-                                db.collection("users").document(userId).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-                            }
+                        if (moderatorIds != null && moderatorIds.contains(userId)) {
+                            chatData.update("moderatorIds", FieldValue.arrayRemove(userId));
+                            manager.getDb().collection("users").document(userId).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                         }
+                    }
 
-                        if (document.get("memberIds") != null) {
-                            memberIds = (ArrayList<String>) document.get("memberIds");
+                    if (document.get("memberIds") != null) {
+                        memberIds = (ArrayList<String>) document.get("memberIds");
 
-                            if (memberIds != null && memberIds.contains(userId)) {
-                                chatData.update("memberIds", FieldValue.arrayRemove(userId));
-                                db.collection("users").document(userId).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-                            }
+                        if (memberIds != null && memberIds.contains(userId)) {
+                            chatData.update("memberIds", FieldValue.arrayRemove(userId));
+                            manager.getDb().collection("users").document(userId).update("chatGroupIds", FieldValue.arrayRemove(chatId));
                         }
+                    }
 
-                        if (document.get("adminIds") != null) {
-                            adminIds = (ArrayList<String>) document.get("adminIds");
+                    if (document.get("adminIds") != null) {
+                        adminIds = (ArrayList<String>) document.get("adminIds");
 
-                            if (adminIds != null) {
-                                for (String id : adminIds) {
-                                    if (!adminIds.contains(userId)) {
-                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
-                                    } else {
-                                        db.collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId))
-                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                    @Override
-                                                    public void onSuccess(Void unused) {
-                                                        CollectionReference chatRef = chatData.collection("CHATS");
-                                                        chatRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                                            @Override
-                                                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                                                if (task.isSuccessful()) {
-                                                                    ArrayList<Message> messageList = new ArrayList<>();
-                                                                    String messageId;
+                        if (adminIds != null) {
+                            for (String id : adminIds) {
+                                if (!adminIds.contains(userId)) {
+                                    manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId));
+                                } else {
+                                    manager.getDb().collection("users").document(id).update("chatGroupIds", FieldValue.arrayRemove(chatId))
+                                            .addOnSuccessListener(unused -> {
+                                                CollectionReference chatRef = chatData.collection("CHATS");
+                                                chatRef.get().addOnCompleteListener(task12 -> {
+                                                    if (task12.isSuccessful()) {
+                                                        ArrayList<Message> messageList = new ArrayList<>();
+                                                        String messageId;
 
-                                                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                                                        messageId = document.getId();
-                                                                        Log.i(TAG, "chatView - messageId: " + messageId);
-                                                                        boolean isImage = Boolean.TRUE.equals(document.getBoolean("image"));
+                                                        for (QueryDocumentSnapshot document1 : task12.getResult()) {
+                                                            messageId = document1.getId();
+                                                            Log.i(TAG, "chatView - messageId: " + messageId);
+                                                            boolean isImage = Boolean.TRUE.equals(document1.getBoolean("image"));
 
-                                                                        if (isImage) {
-                                                                            String imageUri = document.getString("messageContent");
-                                                                            String pattern = "images%2F(.*?)\\?";
-                                                                            Pattern p = Pattern.compile(pattern);
-                                                                            Matcher m = p.matcher(imageUri);
+                                                            if (isImage) {
+                                                                String imageUri = document1.getString("messageContent");
+                                                                String pattern = "images%2F(.*?)\\?";
+                                                                Pattern p = Pattern.compile(pattern);
+                                                                assert imageUri != null;
+                                                                Matcher m = p.matcher(imageUri);
 
-                                                                            if (m.find()) {
-                                                                                String oldUri = m.group(1);
+                                                                if (m.find()) {
+                                                                    String oldUri = m.group(1);
 
-                                                                                StorageReference oldImageRef = storage.getReference().child("images/" + oldUri);
-                                                                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                                                                    Log.i("Delete image", "Old image deleted successfully");
-                                                                                }).addOnFailureListener(e -> {
-                                                                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                                                                });
-                                                                            }
-                                                                        }
-                                                                        chatRef.document(messageId).delete()
-                                                                                .addOnSuccessListener(unused -> Log.i(TAG, "chatView - delete chat message: success"))
-                                                                                .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
-                                                                    }
+                                                                    StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                                                    oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                                                                 }
                                                             }
-                                                        }).addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                                            @Override
-                                                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                                                // Delete the chatData after messages and images are deleted
-                                                                chatData.delete();
-                                                            }
-                                                        });
+                                                            chatRef.document(messageId).delete()
+                                                                    .addOnSuccessListener(unused1 -> Log.i(TAG, "chatView - delete chat message: success"))
+                                                                    .addOnFailureListener(e -> Log.i(TAG, "chatView - delete chat message: failed"));
+                                                        }
                                                     }
+                                                }).addOnCompleteListener(task1 -> {
+                                                    // Delete the chatData after messages and images are deleted
+                                                    chatData.delete();
                                                 });
-                                    }
+                                            });
                                 }
                             }
                         }
-
                     }
+
                 }
             }
         });
@@ -1119,14 +1046,11 @@ public class ChatView extends AppCompatActivity {
     }
 
     private void returnToPreviousPage() {
-        returnBackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent backIntent = new Intent();
-                backIntent.putExtra("newGroupChat", groupChat);
-                setResult(lastActionCode, backIntent);
-                finish();
-            }
+        returnBackBtn.setOnClickListener(v -> {
+            Intent backIntent = new Intent();
+            backIntent.putExtra("newGroupChat", groupChat);
+            setResult(lastActionCode, backIntent);
+            finish();
         });
     }
 }

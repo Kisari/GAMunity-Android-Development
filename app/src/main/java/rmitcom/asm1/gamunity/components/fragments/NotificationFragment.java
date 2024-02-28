@@ -39,9 +39,9 @@ import rmitcom.asm1.gamunity.model.Notification;
 
 public class NotificationFragment extends Fragment implements FirebaseFetchAndSetUI {
     private NotificationListAdapter adapter;
-    private ArrayList<Notification> notificationArrayList = new ArrayList<>();
+    private final ArrayList<Notification> notificationArrayList = new ArrayList<>();
     private SwipeRefreshLayout swipeRefreshLayout;
-    private final FireBaseManager db = new FireBaseManager();
+    private final FireBaseManager manager = new FireBaseManager();
     private final Constant constant = new Constant();
     View currentView;
     private final ActivityResultLauncher<String> requestPermissionLauncher;
@@ -107,11 +107,9 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
     private void initializeNotification(){
         swipeRefreshLayout = currentView.findViewById(R.id.refreshLayout);
 
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            recreate(requireActivity());
-        });
+        swipeRefreshLayout.setOnRefreshListener(() -> recreate(requireActivity()));
 
-        db.getMsgProvider().getToken()
+        manager.getMsgProvider().getToken()
             .addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     String msg = task.getResult();
@@ -125,8 +123,8 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
 
     @Override
     public void fetchData() {
-        db.getDb().collection(constant.notifications)
-                .whereEqualTo("notificationReceiverId", db.getCurrentUser().getUid())
+        manager.getDb().collection(constant.notifications)
+                .whereEqualTo("notificationReceiverId", manager.getCurrentUser().getUid())
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
@@ -182,7 +180,7 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
             navigateToHomeFragment(notification);
             return;
         }
-        CollectionReference ref = db.getDb().collection(constant.notifications);
+        CollectionReference ref = manager.getDb().collection(constant.notifications);
         ref.whereEqualTo("notificationId", notification.getNotificationId())
             .get()
             .addOnCompleteListener(task -> {
@@ -203,7 +201,7 @@ public class NotificationFragment extends Fragment implements FirebaseFetchAndSe
     }
     private void navigateToHomeFragment(Notification notification){
         try {
-            db.getDb().collection(constant.forums)
+            manager.getDb().collection(constant.forums)
                     .whereEqualTo("forumId", notification.getNotificationForumId())
                     .get()
                     .addOnCompleteListener(task -> {

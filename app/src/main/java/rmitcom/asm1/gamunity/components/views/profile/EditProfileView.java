@@ -21,21 +21,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -45,8 +38,6 @@ import java.util.regex.Pattern;
 import rmitcom.asm1.gamunity.R;
 import rmitcom.asm1.gamunity.components.ui.AsyncImage;
 import rmitcom.asm1.gamunity.components.views.LoginView;
-import rmitcom.asm1.gamunity.components.views.chat.ChatView;
-import rmitcom.asm1.gamunity.components.views.forum.ForumView;
 import rmitcom.asm1.gamunity.db.FireBaseManager;
 import rmitcom.asm1.gamunity.helper.FirebaseFetchAndSetUI;
 import rmitcom.asm1.gamunity.model.Constant;
@@ -54,7 +45,7 @@ import rmitcom.asm1.gamunity.model.User;
 
 public class EditProfileView extends AppCompatActivity implements FirebaseFetchAndSetUI {
 
-    private final FireBaseManager db = new FireBaseManager();
+    private final FireBaseManager manager = new FireBaseManager();
     private final Constant constant = new Constant();
     private EditText userFirstName, userLastName, userBirth;
     private ImageView userBackground, userBackgroundBtn, editProfileSubmitButton, returnBack;
@@ -85,19 +76,16 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
         userBackgroundBtn.setOnClickListener(v -> chooseImageFromFile(true));
         userIconBtn.setOnClickListener(v -> chooseImageFromFile(false));
 
-        editProfileSubmitButton.setOnClickListener( v -> {
-            uploadBackgroundImage(backgroundFilePath);
-        });
+        editProfileSubmitButton.setOnClickListener( v -> uploadBackgroundImage(backgroundFilePath));
 
-        returnBack.setOnClickListener(v -> {
-            finish();
-        });
+        returnBack.setOnClickListener(v -> finish());
 
         deleteButton.setOnClickListener(v -> deleteAccount());
 
         fetchData();
     }
 
+    @SuppressLint("SetTextI18n")
     private void deleteAccount() {
         AlertDialog.Builder builder = new AlertDialog.Builder(EditProfileView.this);
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -115,98 +103,22 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
             dialogMessage.setText("Are you sure you want delete this account ? This can not be reverted");
             cancelButton.setOnClickListener(v -> dialog.dismiss());
 
-            deleteButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    db.getCurrentUser().delete()
-                    .addOnCompleteListener(task -> {
-                        if(task.isSuccessful()){
-                            Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
+            deleteButton.setOnClickListener(v -> manager.getCurrentUser().delete()
+            .addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
 
-                            Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
-                            startActivity(loginIntent);
-                            finish();
-                        }
-                    });
+                    Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
+                    startActivity(loginIntent);
+                    finish();
                 }
-            });
+            }));
 
         } catch (Exception e) {
             Log.e("Forum", "getView: ", e);
             e.printStackTrace();
         }
-    }
-
-    private void deleteProfile(AlertDialog dialog) {
-        DocumentReference userData = db.getDb().collection("users").document(db.getCurrentUser().getUid());
-        userData.get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-
-                            if (document.exists()) {
-                                if (document.get("followingIds") != null) {
-                                    
-                                }
-
-                                if (document.get("joinedForumIds") != null) {
-                                    ArrayList<String> memberForumIds = (ArrayList<String>) document.get("joinedForumIds");
-
-                                    if (memberForumIds != null) {
-                                        for (String forumId: memberForumIds) {
-                                            db.getDb().collection("FORUMS").document(forumId)
-                                                    .update("memberIds", FieldValue.arrayRemove(db.getCurrentUser().getUid()));
-                                        }
-                                    }
-                                }
-
-                                if (document.get("adminForumIds") != null) {
-                                    ArrayList<String> moderatorForumIds = (ArrayList<String>) document.get("adminForumIds");
-
-                                    if (moderatorForumIds != null) {
-                                        for (String forumId: moderatorForumIds) {
-                                            db.getDb().collection("FORUMS").document(forumId)
-                                                    .update("moderatorIds", FieldValue.arrayRemove(db.getCurrentUser().getUid()));
-                                        }
-                                    }
-                                }
-
-                                if (document.get("ownedForumIds") != null) {
-                                    ArrayList<String> adminForumIds = (ArrayList<String>) document.get("ownedForumIds");
-
-                                    if (adminForumIds != null) {
-                                        ForumView forumView = new ForumView();
-                                        for (String forumId: adminForumIds) {
-                                            forumView.deleteForumFromProfile(forumId);
-                                        }
-                                    }
-                                }
-
-                                if (document.get("chatGroupIds") != null) {
-                                    ArrayList<String> chatGroupIds = (ArrayList<String>) document.get("chatGroupIds");
-
-                                    if (chatGroupIds != null) {
-                                        ChatView chatView = new ChatView();
-                                        for (String chatId: chatGroupIds) {
-                                            chatView.deleteOrRemoveChatRoomFromProfile(chatId, db.getCurrentUser().getUid());
-                                        }
-                                    }
-                                }
-                            }
-                            userData.delete();
-
-                            Toast.makeText(EditProfileView.this, "Delete the account", Toast.LENGTH_SHORT).show();
-                            dialog.dismiss();
-
-                            Intent loginIntent = new Intent(EditProfileView.this, LoginView.class);
-                            startActivity(loginIntent);
-                            finish();
-                        }
-                    }
-                });
     }
 
     private void chooseImageFromFile(Boolean isBackground){
@@ -254,8 +166,8 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
 
     @Override
     public void fetchData() {
-        db.getDb().collection("users")
-                .whereEqualTo("userId", db.getCurrentUser().getUid())
+        manager.getDb().collection("users")
+                .whereEqualTo("userId", manager.getCurrentUser().getUid())
                 .get()
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
@@ -317,7 +229,7 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
             progressDialog.setTitle("Uploading user background...");
             progressDialog.show();
 
-            StorageReference ref = db.getStorageRef().child("images/"+ UUID.randomUUID().toString());
+            StorageReference ref = manager.getStorageRef().child("images/"+ UUID.randomUUID().toString());
             ref.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
                         progressDialog.dismiss();
@@ -331,12 +243,8 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                             if (m.find()) {
                                 String oldUri = m.group(1);
 
-                                StorageReference oldImageRef = db.getStorageRef().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i("Delete image", "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                });
+                                StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                             }
                         }
 
@@ -367,7 +275,7 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
             progressDialog.setTitle("Uploading user icon...");
             progressDialog.show();
 
-            StorageReference ref = db.getStorageRef().child("images/"+ UUID.randomUUID().toString());
+            StorageReference ref = manager.getStorageRef().child("images/"+ UUID.randomUUID().toString());
             ref.putFile(submitFilePath)
                     .addOnSuccessListener(taskSnapshot -> {
                         progressDialog.dismiss();
@@ -381,12 +289,8 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
                             if (m.find()) {
                                 String oldUri = m.group(1);
 
-                                StorageReference oldImageRef = db.getStorageRef().child("images/" + oldUri);
-                                oldImageRef.delete().addOnSuccessListener(aVoid -> {
-                                    Log.i("Delete image", "Old image deleted successfully");
-                                }).addOnFailureListener(e -> {
-                                    Log.e("Delete image", "Failed to delete old image: " + e.getMessage());
-                                });
+                                StorageReference oldImageRef = manager.getStorageRef().child("images/" + oldUri);
+                                oldImageRef.delete().addOnSuccessListener(aVoid -> Log.i("Delete image", "Old image deleted successfully")).addOnFailureListener(e -> Log.e("Delete image", "Failed to delete old image: " + e.getMessage()));
                             }
                         }
 
@@ -425,7 +329,7 @@ public class EditProfileView extends AppCompatActivity implements FirebaseFetchA
             newUserInfo.put("dob", userBirth.getText().toString());
         }
 
-        db.getDb().collection("users")
+        manager.getDb().collection("users")
                 .document(userDocumentRef)
                 .set(newUserInfo, SetOptions.merge())
                 .addOnCompleteListener(task -> {

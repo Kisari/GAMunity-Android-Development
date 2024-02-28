@@ -2,12 +2,9 @@ package rmitcom.asm1.gamunity.components.fragments;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
-
 import static androidx.core.app.ActivityCompat.recreate;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
@@ -15,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -24,7 +20,6 @@ import android.widget.TextView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -43,9 +38,9 @@ import rmitcom.asm1.gamunity.model.Constant;
 import rmitcom.asm1.gamunity.model.Forum;
 
 public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,ForumTagListAdapter.ItemClickListener {
-    private int currentForumId = 0;
     private final FireBaseManager db = new FireBaseManager();
     private final Constant constant = new Constant();
+    /** @noinspection FieldMayBeFinal*/
     private ArrayList<Forum> forumList= new ArrayList<>();
     private View currentView;
     private ForumListAdapter forumListAdapter;
@@ -101,7 +96,6 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void fetchData() {
         db.getDb().collection(constant.forums)
@@ -168,7 +162,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
 
     private void initializeForumTagSelectionView(){
         //get the listview
-        RecyclerView forumTagLayout = (RecyclerView) currentView.findViewById(R.id.forumTagsLayout);
+        RecyclerView forumTagLayout = currentView.findViewById(R.id.forumTagsLayout);
 
         //initialize adapter
         this.tagListAdapter = new ForumTagListAdapter(getContext(), constant.tagList);
@@ -203,7 +197,7 @@ public class HomeFragment extends Fragment implements FirebaseFetchAndSetUI,Foru
         else{
             if(!Objects.equals(forumListAdapter.getTagName(), "") && forumListAdapter.getTagPosition() != -1){
                 RecyclerView.ViewHolder prevHolder = forumTagLayout.findViewHolderForLayoutPosition(forumListAdapter.getTagPosition());
-                TextView prevTagName = prevHolder.itemView.findViewById(R.id.forumTagItem);
+                TextView prevTagName = Objects.requireNonNull(prevHolder).itemView.findViewById(R.id.forumTagItem);
                 GradientDrawable drawable = (GradientDrawable)prevTagName.getBackground();
                 drawable.mutate();
                 drawable.setColor(Color.parseColor("#ffffff"));
