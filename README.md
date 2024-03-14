@@ -8,54 +8,46 @@ Note: Members within team have the same contribution to the project.
 <br />
 
 ## Table of Contents
-- [Instructions] (#instructions)
-- [Functionalities] (#Functionalities)
-  - [Login/Signup] (#Login/Signup)
-  - [Home] (#home-view)
-  - [Notification] (#notification-view)
-  - [Profile] (#profile-view)
-  - [Forum] (#forum-view)
-  - [Post] (#post-view)
-  - [Chat] (#chat-view)
-- [Technologies] (#technologies)
-- [Review] (#review)
+- [Instructions](#instructions)
+- [Functionalities](#functionalities)
+  - [Login/Signup](#loginsignup)
+  - [Home View](#home-view)
+  - [Notification View](#notification-view)
+  - [Profile View](#profile-view)
+  - [Forum View](#forum-view)
+  - [Post View](#post-view)
+  - [Chat Room View](#chat-room-view)
+- [Technologies](#technologies)
+- [Review](#review)
 
 ## Instructions
-**Operation system**: Android
-**Development language**: Java
-**Target/CompileSDK recommend**: 34 
-**Min SDK require version**: 26
-Dowload the project and run in Android Studio as normal. Taking times to install dependencies and accessories library.
-Number of sending messages, images, notifications may be limited due to the free version of FireBase storage.
+**Operation system**: Android <br />
+**Development language**: Java <br />
+**Target/CompileSDK recommend**: 34 <br />
+**Min SDK require version**: 26 <br />
+Dowload the project and run in Android Studio as normal. Taking times to install dependencies and accessories library.<br />
+Number of sending messages, images, notifications may be limited due to the free version of FireBase storage.<br />
 
 ## Functionalities
 ### Login/Signup
-<br />
--Login: The users can login with existed accounts or google gmail
--Signup: The users can signup for a new account 
-## Home View
-<br />
--Create forum: The user can create a new forum. The ceator will be set as chief admin of that forum.
+-Login: The users can login with existed accounts or google gmail.<br />
+-Signup: The users can signup for a new account.<br />
+### Home View
+-Create forum: The user can create a new forum. The ceator will be set as chief admin of that forum.<br />
 -Forum Search: The users are able to search for the specific forum by its name. <br />
 -Forum Filter: The users are able to filter the specific tags that belong to Forum. <br />
 -Join/UnJoin: The users can join or unjoin a forum directly in this page. <br />
 -Forum Detail: The users can click to the forum and navigate to the specific forum with details. <br />
-<br />
 ### Notification View
-<br />
 -Notification click: The users can click to the notification to view the forum info.<br />
 -Push up notification: The users receive the nofication when the owner update forum info or someone join their own forum. <br />
-<br />
 ### Profile View**
-<br />
 -View other profile: The users can click the post owner in **Post View** to view their info.<br /> 
 -Follow/UnFollow: The users can follow or unfollow the specific user when visits their profile.<br />
 -View own forum: The users can click on the option menu to view their joined and owned forums.<br />
 -Update information: The users can update their own inforamtion.<br />
 -Delete acccount: The users can delete their account which can not be reverted.<br />
-<br />
 ### Forum View
-<br />
 -View forum info: Any users can see detail info of the forum (title, description, caterory, list of members and their role).<br />
 -Edit forum info: chief admin and moderators can edit some of the forum info (title, description, caterory, forum icon and forum background).<br />
 -Delete forum: only chief admin can delete a forum, once delete it will pop up an alert box to ask for comfirmation. If process, then all information of the forum, posts of the forum and comments of thge posts will be delete and users data will be updated accordingly.<br />
@@ -65,9 +57,7 @@ Number of sending messages, images, notifications may be limited due to the free
 -Access forum group chat: Any users can access the forum group chat if the are a member, moderator, chief admin of the forum through a chat icon. The users role in the chat will be similar to their role in the forum.<br />
 -Create post: Any users of the forum can craete a post in the forum. When create, it will be display with somme basic information (post owner info, title, image if have, and number of like/dislike/comment).<br />
 -Post details: User can click on the post and navigate to that specific post for more information.<br />
-<br />
-### Post View**
-<br />
+### Post View
 -Edit post info: Only owner of the post can edit the info of a post (post title, description, image), currently cannot remove image if added.<br />
 -Delete post: Chief admin, moderators, and owner of the post can delete the post. It will popup an alert for comfirmation. If process then the post info and all it comment will be delete and related databse be updated accordingly.<br />
 -Like/Dislike post: Any user can like or dislike a post.<br />
@@ -75,9 +65,7 @@ Number of sending messages, images, notifications may be limited due to the free
 -Edit comment: Only owner of the comment can edit the info of a comment (post title, description, image), currently cannot remove image if added.<br />
 -Delete comment: Chief admin, moderators, and owner of the comment can delete the comment. It will popup an alert for comfirmation. If process then the comment info will be delete and related databse be updated accordingly.<br />
 -Like/Dislike comment: Any user can like or dislike a comment.<br />
-<br />
 ### Chat Room View
-<br />
 -Display chat: It will display the lastest 50 chat make in the chat room.<br />
 -Send text message: Chat room users will be able to send text message into the chat room.<br />
 -Send image message: Chat room users will be able to send image message into the chat room.<br />
@@ -86,10 +74,9 @@ Number of sending messages, images, notifications may be limited due to the free
 -Access more info: Users of chat room can see more details of the chat (name, icon, number of people join and their role).<br />
 -Add new member: Admin of the chatroom (for individual chat room and normal chat room only) can add another user to the group. If added from individual chat room, it will create a new group chat and set the user that create the group chat room be admin. If add from a group chat room, then choosen user will be added to the current group chat room.<br />
 -Remove a member: Admin of the chat room can remove any user of a group chat room (will not appear for individual chat room).<br />
-<br />
 ## Technologies
-**Glide**: Fast and efficient library support to load the image from the url with ==HttpUrlConnection** and store in the memory for reusing in the near future
-**FireBase**: Data storage and management with easy-to-use functions and fast set up intructions
+**Glide**: Fast and efficient library support to load the image from the url with ==HttpUrlConnection** and store in the memory for reusing in the near future.<br />
+**FireBase**: Data storage and management with easy-to-use functions and fast set up intructions.<br />
 ## Review
 
 <p align="center">
